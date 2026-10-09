@@ -50,7 +50,7 @@ Editorial and monochrome: content first, few boxes, generous space. Inspired by 
 
 ## Stack
 
-Vite · React · TypeScript (strict) · Tailwind CSS v4 (`@tailwindcss/vite`) · React Router · TanStack React Query · Zustand (UI state only) · Zod + React Hook Form · Framer Motion · React Three Fiber + Drei (lazy-loaded, never in the initial bundle) · Recharts · Lucide · Supabase (Postgres, Auth, RLS, RPC) · Vitest + Testing Library + PGlite · ESLint (typescript-eslint, react-hooks) · Prettier.
+Vite · React · TypeScript (strict) · Tailwind CSS v4 (`@tailwindcss/vite`) · React Router · TanStack React Query · Zustand (UI state only) · Zod + React Hook Form · Framer Motion · React Three Fiber + Drei (lazy-loaded, never in the initial bundle) · charts as plain CSS bars (no chart library) · Lucide · Supabase (Postgres, Auth, RLS, RPC) · Vitest + Testing Library + PGlite · ESLint (typescript-eslint, react-hooks) · Prettier.
 
 ## Commands
 
