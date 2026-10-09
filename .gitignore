@@ -25,3 +25,6 @@ dist-ssr
 
 .env*
 !.env.example
+
+# Supabase CLI local state (linked project, CLI version)
+supabase/.temp/
