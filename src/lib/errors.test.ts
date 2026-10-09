@@ -18,3 +18,21 @@ describe('toFriendlyMessage', () => {
     )
   })
 })
+
+describe('toFriendlyMessage for card controls', () => {
+  it.each([
+    ['card_not_found', "This card isn't available anymore. Reload and try again."],
+    ['limit_out_of_range', 'Choose a limit between $500 and $100,000.'],
+    ['limit_not_whole_dollars', 'Use whole dollars for the limit, like 15000.'],
+    ['limit_below_spent', "The limit can't be lower than what's already been spent on this card."],
+    ['invalid_request', 'Something was missing from the request. Reload and try again.'],
+  ])('explains %s and how to fix it', (code, message) => {
+    expect(toFriendlyMessage(new Error(`P0001: ${code}`))).toBe(message)
+  })
+
+  it('names the action in the generic fallback', () => {
+    expect(toFriendlyMessage(new Error('fetch failed'), 'update the card')).toBe(
+      "Couldn't update the card. Check your connection and try again.",
+    )
+  })
+})
