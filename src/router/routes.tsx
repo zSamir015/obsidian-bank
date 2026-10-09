@@ -10,7 +10,7 @@ const page = (load: () => Promise<{ default: React.ComponentType }>) => async ()
 })
 
 export const routes: RouteObject[] = [
-  { path: '/login', lazy: page(() => import('@/pages/LoginPage')), errorElement: <RouteError /> },
+  { path: '/login', lazy: page(() => import('@/pages/login/LoginPage')), errorElement: <RouteError /> },
   {
     element: <ProtectedRoute />,
     errorElement: <RouteError />,
@@ -22,9 +22,9 @@ export const routes: RouteObject[] = [
             errorElement: <RouteError />,
             children: [
               { index: true, lazy: page(() => import('@/pages/overview/OverviewPage')) },
-              { path: 'activity', lazy: page(() => import('@/pages/TransactionsPage')) },
-              { path: 'transfer', lazy: page(() => import('@/pages/TransferPage')) },
-              { path: 'budgets', lazy: page(() => import('@/pages/BudgetsPage')) },
+              { path: 'activity', lazy: page(() => import('@/pages/activity/ActivityPage')) },
+              { path: 'transfer', lazy: page(() => import('@/pages/transfer/TransferPage')) },
+              { path: 'budgets', lazy: page(() => import('@/pages/budgets/BudgetsPage')) },
               ...legacyRedirects,
             ],
           },
