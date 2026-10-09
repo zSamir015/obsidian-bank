@@ -2,12 +2,11 @@ import { Card } from '@/components/ui/Card'
 import { Label, SectionTitle } from '@/components/ui/Label'
 import { Money } from '@/components/ui/Money'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { formatApy } from '@/lib/labels'
 import type { Account } from '@/types/bank'
 import type { QueryView } from './query'
 
 const TYPE_LABEL: Record<Account['type'], string> = { checking: 'Checking', vault: 'Vault' }
-
-const formatApy = (bps: number) => `${(bps / 100).toFixed(2)}% APY`
 
 export function AccountsSection({ accounts }: { readonly accounts: QueryView<readonly Account[]> }) {
   // The balance hero already reports a failed accounts query, with its own retry.
