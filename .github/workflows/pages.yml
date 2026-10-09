@@ -32,8 +32,8 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
-      # Pages has no SPA fallback: serving index.html as 404.html lets deep links load the router.
-      - run: cp dist/index.html dist/404.html
+      # Pages has no SPA fallback; see scripts/pages-routes.mjs.
+      - run: node scripts/pages-routes.mjs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
