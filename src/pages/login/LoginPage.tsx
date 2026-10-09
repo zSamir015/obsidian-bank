@@ -1,3 +1,4 @@
+import { ArrowUpRight } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate } from 'react-router'
 import { useAuth } from '@/auth/useAuth'
@@ -49,6 +50,16 @@ export default function LoginPage() {
           </div>
         )}
         <p className="mt-10 text-sm text-muted">No sign-up and no personal data: demo sessions are anonymous.</p>
+        <a
+          href="https://github.com/zSamir015/obsidian-bank"
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 inline-flex items-center gap-1 text-sm text-muted underline-offset-4 hover:text-text hover:underline"
+        >
+          View source on GitHub
+          <ArrowUpRight aria-hidden="true" className="size-3.5" />
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
       </main>
     </div>
   )
