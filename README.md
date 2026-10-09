@@ -6,9 +6,17 @@ Personal banking app built with React 19, TypeScript and Supabase: accounts, car
 
 Live demo: https://zsamir015.github.io/obsidian-bank/
 
+| Overview                                                                                                                      | Activity                                                                                        |
+| ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| ![Overview: total balance hero, accounts, cards, spending against budgets and recent activity](docs/screenshots/overview.png) | ![Activity: transactions grouped by day with search and filters](docs/screenshots/activity.png) |
+| **Move money**                                                                                                                | **Budgets**                                                                                     |
+| ![Transfer form with a summary of balances after the transfer](docs/screenshots/transfer.png)                                 | ![Budgets with spending against each monthly limit](docs/screenshots/budgets.png)               |
+
+<sub>Screenshots at 1280px with local demo data.</sub>
+
 ## Stack
 
-Vite · React · TypeScript (strict) · Tailwind CSS v4 · React Router · TanStack React Query · Zod + React Hook Form · Recharts · Supabase (Postgres, Auth, Row Level Security, RPC) · Vitest + Testing Library + PGlite · ESLint · Prettier.
+Vite · React 19 · TypeScript (strict) · Tailwind CSS v4 · React Router · TanStack React Query · Zod + React Hook Form · Lucide · Geist (self-hosted) · Supabase (Postgres, Auth, Row Level Security, RPC) · Vitest + Testing Library + PGlite · ESLint · Prettier.
 
 ## Getting started
 
@@ -38,6 +46,19 @@ Apply the SQL in `supabase/migrations/` to your Supabase project, in order.
 - **Money** is stored and handled as integer cents. Amounts are always positive; a transaction's `type` (`debit` / `credit`) gives its direction.
 - **Simplified balances.** An account's balance is the sum of all its transactions, including `pending` and `flagged` ones. A real bank would separate the posted balance from the available balance and hold pending charges apart; this demo keeps a single balance.
 - **Migration tests run on PGlite.** `supabase/tests/` applies every migration to [PGlite](https://pglite.dev/) (Postgres compiled to WebAssembly, in memory) with a small stub of Supabase's `auth` schema and API roles. That checks constraints, Row Level Security, the transfer function and the demo data without Docker or a live database. It is close to Supabase but not identical, so migrations are still reviewed before being applied to production.
+- **Initial load: 169 kB of JavaScript (gzip).** Measured in Chrome as every JS file downloaded to render the overview from a cold cache (production build, Supabase responses mocked). Each route is its own chunk, so other pages add only a few kB when visited. By package, the minified code that loads is:
+
+  | Part                            | Share |
+  | ------------------------------- | ----- |
+  | React + React DOM               | 37%   |
+  | Supabase client (`@supabase/*`) | 36%   |
+  | React Router                    | 16%   |
+  | TanStack Query                  | 6%    |
+  | App code                        | 4%    |
+  | Lucide icons                    | 1%    |
+
+  The Supabase client is needed at startup to restore the session, so it stays in the initial bundle. The pre-redesign single bundle was 306 kB.
+
 - **Cards** only ever store the last four digits; never the full card number or CVV.
 
 ## License
