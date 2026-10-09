@@ -9,7 +9,19 @@ const SUPABASE_STUB = `
   create role anon nologin;
   create role authenticated nologin;
   create schema auth;
-  create table auth.users (id uuid primary key, email text);
+  create table auth.users (
+    id uuid primary key,
+    email text,
+    is_anonymous boolean not null default false,
+    created_at timestamptz not null default now(),
+    last_sign_in_at timestamptz
+  );
+  create table auth.sessions (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references auth.users (id) on delete cascade,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+  );
   create function auth.uid() returns uuid language sql stable as $$
     select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
   $$;
@@ -19,9 +31,18 @@ const SUPABASE_STUB = `
   alter default privileges in schema public grant all on functions to anon, authenticated;
 `
 
-export const migrations = readdirSync(migrationsDir)
+// Migrations PGlite cannot run, with the reason. They are checked statically in their own tests.
+export const PGLITE_UNSUPPORTED: Record<string, string> = {
+  '004_schedule_anonymous_cleanup.sql': 'pg_cron is not available in PGlite',
+}
+
+export const allMigrations = readdirSync(migrationsDir)
   .filter((f) => f.endsWith('.sql'))
   .sort()
+
+export const migrations = allMigrations.filter((f) => !(f in PGLITE_UNSUPPORTED))
+
+export const readMigration = (file: string) => readFileSync(new URL(file, migrationsDir), 'utf8')
 
 export async function createDb() {
   const db = new PGlite()
@@ -35,7 +56,7 @@ const applied = new WeakMap<PGlite, number>()
 export async function migrate(db: PGlite, upTo = migrations.length) {
   const from = applied.get(db) ?? 0
   for (const file of migrations.slice(from, upTo)) {
-    await db.exec(readFileSync(new URL(file, migrationsDir), 'utf8'))
+    await db.exec(readMigration(file))
   }
   applied.set(db, Math.max(from, upTo))
 }
