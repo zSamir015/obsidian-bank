@@ -50,3 +50,13 @@ describe('LoginPage', () => {
     expect(screen.getByText('overview')).toBeInTheDocument()
   })
 })
+
+describe('LoginPage source link', () => {
+  it('links to the repository, opening safely in a new tab', () => {
+    renderPage()
+    const link = screen.getByRole('link', { name: /View source on GitHub/ })
+    expect(link).toHaveAttribute('href', 'https://github.com/zSamir015/obsidian-bank')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noreferrer')
+  })
+})
