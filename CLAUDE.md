@@ -17,17 +17,36 @@ Portfolio demo of a personal banking app. **Not a real bank**: no real money, ca
 - **Every phase ends with `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` passing.**
 - **Commits and PRs carry no AI attribution** (no `Co-Authored-By` trailers, no "Generated with" lines).
 
-## Palette
+## Visual system
 
-| Token           | Value     | Use                                                                                                                                  |
-| --------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `bg`            | `#050505` | Page background                                                                                                                      |
-| `surface`       | `#121212` | Cards, panels                                                                                                                        |
-| `surface-2`     | `#18181B` | Raised surfaces, inputs                                                                                                              |
-| `accent`        | `#FF2A3B` | Primary actions, highlights                                                                                                          |
-| `accent-strong` | `#E50914` | Pressed/active accent                                                                                                                |
-| `text`          | `#FFFFFF` | Primary text                                                                                                                         |
-| `danger`        | `#FF9F1C` | Errors and destructive states. Amber so it never reads as the red accent; **always paired with an icon and text**, never color alone |
+Editorial and monochrome: content first, few boxes, generous space. Inspired by the principles of Revolut's design system, adapted to a dark palette; never copy its identity or exact layouts.
+
+### Palette
+
+| Token           | Value     | Use                                                                                                                       |
+| --------------- | --------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `bg`            | `#050505` | Page background                                                                                                           |
+| `sunken`        | `#0B0B0C` | Recessed surface for lists (activity, transactions)                                                                       |
+| `surface`       | `#121212` | Cards                                                                                                                     |
+| `surface-2`     | `#18181B` | Inputs, hover states                                                                                                      |
+| `hairline`      | `#27272A` | 1px borders and dividers                                                                                                  |
+| `text`          | `#FFFFFF` | Primary text, primary buttons                                                                                             |
+| `muted`         | `#A1A1AA` | Section titles, labels, secondary text, cents                                                                             |
+| `accent`        | `#FF2A3B` | The single red element of a screen (e.g. hero glow, active indicator). Never as a fill behind white text (3.6:1 fails AA) |
+| `accent-strong` | `#E50914` | Only if red must carry white text (4.6:1). Avoid by default                                                               |
+| `danger`        | `#FF9F1C` | Errors only, **always with an icon and text**, never color alone                                                          |
+
+### Rules
+
+- **Monochrome by default.** Red appears in **one element per screen** at most. No green: income shows a `+` in white. Amber is reserved for errors.
+- **Headings:** Geist weight 500, never heavier. Negative tracking scaled to size: about `-0.024em` for display sizes, `-0.01em` for 24–40px. **Section titles are muted**, not white.
+- **Labels:** 12px, uppercase, tracking `+0.015em` (e.g. `TOTAL BALANCE`).
+- **Amounts:** proportional sans with `tabular-nums`; never monospace for large figures. Cents are smaller and muted. Debits show `−`, credits `+`.
+- **Geist Mono** only for last4, IDs and routing numbers.
+- **Shapes:** buttons, inputs and tags are pills (`9999px`). Cards have ~22px radius, a hairline border and no shadows. No chamfers or clip-paths.
+- **Buttons:** primary is a white pill with `#050505` text; secondary is a pill with a hairline border.
+- **Layout:** the total balance is a large editorial hero on the page background, not inside a card. Lists sit on the `sunken` surface. Fewer boxes, more space: ~80px between sections on desktop.
+- **Fonts:** at most two weights per family, latin subset, self-hosted; preload only text and amount faces.
 
 ## Stack
 

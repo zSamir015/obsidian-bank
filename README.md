@@ -22,16 +22,16 @@ Apply the SQL in `supabase/migrations/` to your Supabase project, in order.
 
 ## Scripts
 
-| Script | What it does |
-| --- | --- |
-| `npm run dev` | Start the dev server |
-| `npm run build` | Typecheck and build for production |
-| `npm run lint` | ESLint |
-| `npm run typecheck` | TypeScript project build check |
-| `npm test` | Unit tests and database migration tests |
-| `npm run format` | Prettier |
-| `npm run notices` | Regenerate `THIRD_PARTY_NOTICES.md` |
-| `npm run db:types` | Regenerate Supabase types (needs `supabase login`) |
+| Script              | What it does                                       |
+| ------------------- | -------------------------------------------------- |
+| `npm run dev`       | Start the dev server                               |
+| `npm run build`     | Typecheck and build for production                 |
+| `npm run lint`      | ESLint                                             |
+| `npm run typecheck` | TypeScript project build check                     |
+| `npm test`          | Unit tests and database migration tests            |
+| `npm run format`    | Prettier                                           |
+| `npm run notices`   | Regenerate `THIRD_PARTY_NOTICES.md`                |
+| `npm run db:types`  | Regenerate Supabase types (needs `supabase login`) |
 
 ## Implementation notes
 
