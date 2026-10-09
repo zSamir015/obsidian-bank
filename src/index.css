@@ -1,8 +1,31 @@
 @import 'tailwindcss';
+@import '@fontsource/geist/latin-400.css';
+@import '@fontsource/geist/latin-500.css';
+@import '@fontsource/geist-mono/latin-400.css';
 
 @theme {
   --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
+
+  /* See CLAUDE.md > Visual system */
+  --color-bg: #050505;
+  --color-sunken: #0b0b0c;
+  --color-surface: #121212;
+  --color-surface-2: #18181b;
+  --color-hairline: #27272a;
+  --color-text: #ffffff;
+  --color-muted: #a1a1aa;
+  --color-accent: #ff2a3b;
+  --color-accent-strong: #e50914;
+  --color-danger: #ff9f1c;
+
+  --radius-card: 22px;
+
+  --text-label: 12px;
+  --text-label--letter-spacing: 0.015em;
+  --text-label--line-height: 1rem;
+
+  /* Legacy tokens: removed as each page moves to the new visual system. */
   --color-obsidian-950: #07060b;
   --color-obsidian-900: #0e0c15;
   --color-obsidian-800: #17141f;
@@ -15,9 +38,13 @@
     color-scheme: dark;
   }
   body {
-    @apply bg-obsidian-950 font-sans text-zinc-100 antialiased;
+    @apply bg-bg font-sans text-text antialiased;
   }
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-sheen;
+    @apply outline-2 outline-offset-2 outline-text;
   }
+}
+
+@utility tracking-display {
+  letter-spacing: -0.024em;
 }
