@@ -51,49 +51,56 @@ export default function ActivityPage() {
             className="pl-11"
           />
         </div>
-        {/* Mobile: one swipeable row of filters. Desktop: the wrapper dissolves into the grid. */}
-        <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 md:contents">
-          <div className="shrink-0">
-            <Select
-              className="w-auto md:w-full"
-              aria-label="Category"
-              value={filters.category}
-              onChange={(e) => update('category', e.target.value as Category | 'all')}
-            >
-              <option value="all">All categories</option>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {CATEGORY_LABELS[c]}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div className="shrink-0">
-            <Select
-              className="w-auto md:w-full"
-              aria-label="Type"
-              value={filters.flow}
-              onChange={(e) => update('flow', e.target.value as FlowFilter)}
-            >
-              <option value="all">Money in and out</option>
-              <option value="in">Money in</option>
-              <option value="out">Money out</option>
-            </Select>
-          </div>
-          <div className="shrink-0">
-            <Select
-              className="w-auto md:w-full"
-              aria-label="Account"
-              value={filters.accountId}
-              onChange={(e) => update('accountId', e.target.value)}
-            >
-              <option value="all">All accounts</option>
-              {accounts.data?.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </Select>
+        {/* Mobile: one swipeable row of filters, with a fade hinting at more to the right.
+            Desktop: both wrappers dissolve into the grid. */}
+        <div className="relative md:contents">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 -right-5 z-10 w-12 bg-gradient-to-l from-bg to-transparent md:hidden"
+          />
+          <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 md:contents">
+            <div className="shrink-0">
+              <Select
+                className="w-auto md:w-full"
+                aria-label="Category"
+                value={filters.category}
+                onChange={(e) => update('category', e.target.value as Category | 'all')}
+              >
+                <option value="all">All categories</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {CATEGORY_LABELS[c]}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className="shrink-0">
+              <Select
+                className="w-auto md:w-full"
+                aria-label="Type"
+                value={filters.flow}
+                onChange={(e) => update('flow', e.target.value as FlowFilter)}
+              >
+                <option value="all">Money in and out</option>
+                <option value="in">Money in</option>
+                <option value="out">Money out</option>
+              </Select>
+            </div>
+            <div className="shrink-0">
+              <Select
+                className="w-auto md:w-full"
+                aria-label="Account"
+                value={filters.accountId}
+                onChange={(e) => update('accountId', e.target.value)}
+              >
+                <option value="all">All accounts</option>
+                {accounts.data?.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
           </div>
         </div>
       </div>
