@@ -24,13 +24,6 @@
   --text-label: 12px;
   --text-label--letter-spacing: 0.015em;
   --text-label--line-height: 1rem;
-
-  /* Legacy tokens: removed as each page moves to the new visual system. */
-  --color-obsidian-950: #07060b;
-  --color-obsidian-900: #0e0c15;
-  --color-obsidian-800: #17141f;
-  --color-obsidian-700: #262132;
-  --color-sheen: #a78bfa;
 }
 
 @layer base {
