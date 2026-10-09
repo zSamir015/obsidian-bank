@@ -1,5 +1,6 @@
 import { ChevronDown, TriangleAlert } from 'lucide-react'
 import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react'
+import { cn } from '@/lib/cn'
 
 export interface ControlProps {
   readonly id: string
@@ -47,14 +48,14 @@ export function Field({
 const control =
   'h-12 w-full rounded-full border border-hairline bg-surface-2 px-5 text-text placeholder:text-muted/60 transition-colors hover:border-muted/40 aria-invalid:border-danger disabled:opacity-50'
 
-export function Input({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={`${control} ${className}`} {...props} />
+export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+  return <input className={cn(control, className)} {...props} />
 }
 
-export function Select({ className = '', ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+export function Select({ className, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <div className="relative">
-      <select className={`${control} appearance-none pr-11 ${className}`} {...props} />
+      <select className={cn(control, 'appearance-none pr-11', className)} {...props} />
       <ChevronDown
         aria-hidden="true"
         className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-muted"
@@ -64,7 +65,7 @@ export function Select({ className = '', ...props }: SelectHTMLAttributes<HTMLSe
 }
 
 /** Dollar amounts: decimal keypad, tabular figures, "$" shown outside the value. */
-export function MoneyInput({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function MoneyInput({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div className="relative">
       <span aria-hidden="true" className="pointer-events-none absolute top-1/2 left-5 -translate-y-1/2 text-muted">
@@ -75,7 +76,7 @@ export function MoneyInput({ className = '', ...props }: InputHTMLAttributes<HTM
         inputMode="decimal"
         autoComplete="off"
         placeholder="0.00"
-        className={`pl-9 tabular-nums ${className}`}
+        className={cn('pl-9 tabular-nums', className)}
         {...props}
       />
     </div>
