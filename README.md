@@ -11,6 +11,8 @@ Live demo: https://zsamir015.github.io/obsidian-bank/
 | ![Overview: total balance hero, accounts, cards, spending against budgets and recent activity](docs/screenshots/overview.webp) | ![Activity: transactions grouped by day with search and filters](docs/screenshots/activity.webp) |
 | **Move money**                                                                                                                 | **Budgets**                                                                                      |
 | ![Transfer form with a summary of balances after the transfer](docs/screenshots/transfer.webp)                                 | ![Budgets with spending against each monthly limit](docs/screenshots/budgets.webp)               |
+| **Cards**                                                                                                                      |                                                                                                  |
+| ![Cards: a 3D card with freeze and limit controls](docs/screenshots/cards.webp)                                                |                                                                                                  |
 
 <sub>Screenshots at 1280px with local demo data.</sub>
 
@@ -61,9 +63,18 @@ Apply the SQL in `supabase/migrations/` to your Supabase project, in order.
 
   The Supabase client is needed at startup to restore the session, so it stays in the initial bundle. The pre-redesign single bundle was 306 kB.
 
-- **The 3D card loads only on `/cards`.** three.js, React Three Fiber and Drei are a separate 253 kB (gzip) chunk requested by that page, and only when WebGL is available and the user has not asked for reduced motion; otherwise, or if the chunk fails or the WebGL context is lost, a static CSS card shows the same details.
-
 - **Cards** only ever store the last four digits; never the full card number or CVV.
+
+## How the 3D card loads
+
+`/cards` shows an interactive 3D card, but three.js never reaches the initial bundle:
+
+1. **Route chunk.** `/cards` is a lazy route like every page; its chunk (~4 kB gzip) holds the page, the controls and the static card.
+2. **Capability check.** On mount, `CardVisual` runs the 3D card only if the browser has WebGL and the user has not asked for reduced motion.
+3. **3D chunk.** Only then does `React.lazy` request the 3D chunk: three.js, React Three Fiber and Drei, 253 kB gzip. While it downloads, the static CSS card is shown in its place, so the layout does not move.
+4. **Fallbacks.** An error boundary switches to the static card if the chunk fails to load, and so does a lost WebGL context (`webglcontextlost`). The static card shows the same details: tier, last four digits, holder, expiry and frozen state.
+
+Inside the 3D card, `frameloop="demand"` draws frames only while the card moves, pointer input lives in refs and is applied in `useFrame` (no React re-render per pointer move), `dpr` is capped at 2, reflections come from Lightformers built in code (no HDR files), and the card face is a canvas texture drawn after the web fonts load. On touch screens a vertical swipe keeps scrolling; tilting starts after a short horizontal drag. Freeze and limit controls are regular HTML, outside the canvas, which is marked decorative.
 
 ## License
 
