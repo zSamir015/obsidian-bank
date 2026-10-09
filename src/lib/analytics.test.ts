@@ -6,7 +6,16 @@ const now = new Date().toISOString()
 const lastYear = new Date(new Date().getFullYear() - 1, 0, 15).toISOString()
 
 function tx(overrides: Partial<Transaction>): Transaction {
-  return { id: crypto.randomUUID(), account_id: 'a', amount_cents: -1000, category: 'groceries', description: 'Mercadona', transfer_id: null, created_at: now, ...overrides }
+  return {
+    id: crypto.randomUUID(),
+    account_id: 'a',
+    amount_cents: -1000,
+    category: 'groceries',
+    description: 'Mercadona',
+    transfer_id: null,
+    created_at: now,
+    ...overrides,
+  }
 }
 
 const all: TransactionFilters = { search: '', category: 'all', flow: 'all', accountId: 'all' }
