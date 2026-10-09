@@ -30,6 +30,7 @@ The favicon (`public/favicon.svg`), UI components, database schema and demo data
 | [@supabase/supabase-js](https://github.com/supabase/supabase-js/tree/master/packages/core/supabase-js) | 2.117.3 | MIT |
 | [@tanstack/query-core](https://tanstack.com/query) | 5.104.1 | MIT |
 | [@tanstack/react-query](https://tanstack.com/query) | 5.104.1 | MIT |
+| [clsx](https://www.npmjs.com/package/clsx) | 2.1.1 | MIT |
 | [cookie-es](https://www.npmjs.com/package/cookie-es) | 3.1.1 | MIT |
 | [iceberg-js](https://github.com/supabase/iceberg-js#readme) | 0.8.1 | MIT |
 | [lucide-react](https://lucide.dev) | 1.54.0 | ISC |
@@ -38,6 +39,7 @@ The favicon (`public/favicon.svg`), UI components, database schema and demo data
 | [react-hook-form](https://react-hook-form.com) | 7.89.0 | MIT |
 | [react-router](https://www.npmjs.com/package/react-router) | 8.4.0 | MIT |
 | [scheduler](https://react.dev/) | 0.28.0 | MIT |
+| [tailwind-merge](https://github.com/dcastil/tailwind-merge) | 3.7.0 | MIT |
 | [tslib](https://www.typescriptlang.org/) | 2.8.1 | 0BSD |
 | [zod](https://zod.dev) | 4.6.5 | MIT |
 
@@ -552,6 +554,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+### clsx@2.1.1
+
+```
+MIT License
+
+Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
 ### cookie-es@3.1.1
 
 ```
@@ -771,6 +787,32 @@ SOFTWARE.
 MIT License
 
 Copyright (c) Meta Platforms, Inc. and affiliates.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### tailwind-merge@3.7.0
+
+```
+MIT License
+
+Copyright (c) 2021 Dany Castillo
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
