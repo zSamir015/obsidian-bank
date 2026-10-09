@@ -1,6 +1,7 @@
 import { LoaderCircle } from 'lucide-react'
 import type { ButtonHTMLAttributes } from 'react'
 import { Link, type LinkProps } from 'react-router'
+import { cn } from '@/lib/cn'
 
 type Variant = 'primary' | 'secondary' | 'ghost'
 type Size = 'md' | 'sm' | 'icon'
@@ -14,8 +15,7 @@ const variants: Record<Variant, string> = {
   ghost: 'text-muted hover:bg-surface-2 hover:text-text',
 }
 
-// Tailwind resolves conflicting utilities by stylesheet order, not class order: change a
-// button's dimensions through `size`, never by passing height or padding in className.
+// Dimensions come from `size`; className still overrides any base class through cn().
 const sizes: Record<Size, string> = {
   md: 'h-11 px-5',
   sm: 'h-9 px-4',
@@ -27,8 +27,8 @@ interface Styling {
   readonly size?: Size
 }
 
-const buttonClass = ({ variant = 'primary', size = 'md', className = '' }: Styling & { className?: string }) =>
-  `${base} ${sizes[size]} ${variants[variant]} ${className}`
+const buttonClass = ({ variant = 'primary', size = 'md', className }: Styling & { className?: string }) =>
+  cn(base, sizes[size], variants[variant], className)
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, Styling {
   readonly loading?: boolean

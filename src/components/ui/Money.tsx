@@ -1,3 +1,4 @@
+import { cn } from '@/lib/cn'
 import { formatMoney, formatMoneyParts } from '@/lib/money'
 import type { Cents, TransactionType } from '@/types/bank'
 
@@ -11,7 +12,7 @@ export function Money({
   cents,
   type,
   display = false,
-  className = '',
+  className,
 }: {
   readonly cents: Cents
   readonly type?: TransactionType
@@ -22,12 +23,12 @@ export function Money({
   const sign = type ? SIGN[type] : cents < 0 ? '−' : ''
   const parts = formatMoneyParts(cents)
   return (
-    <span className={`tabular-nums ${className}`}>
+    <span className={cn('tabular-nums', className)}>
       <span className="sr-only">{`${sign}${formatMoney(Math.abs(cents) as Cents)}`}</span>
       <span aria-hidden="true">
         {sign}
         {parts.whole}
-        <span data-part="cents" className={`${display ? 'text-[0.6em]' : 'text-[0.8em]'} text-muted`}>
+        <span data-part="cents" className={cn(display ? 'text-[0.6em]' : 'text-[0.8em]', 'text-muted')}>
           {parts.cents}
         </span>
       </span>
