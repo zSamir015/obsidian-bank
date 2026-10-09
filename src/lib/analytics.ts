@@ -1,5 +1,5 @@
 // Transfers between the user's own accounts move money but are neither income nor spending.
-import type { BudgetCategory, Category, Cents, Transaction } from '@/types/bank'
+import type { Budget, BudgetCategory, Category, Cents, Transaction } from '@/types/bank'
 import { isInCurrentMonth } from './dates'
 
 const isMonthlyFlow = (t: Transaction) => t.category !== 'transfer' && isInCurrentMonth(t.date)
@@ -16,6 +16,31 @@ export function spendingByCategory(transactions: readonly Transaction[]): Catego
     totals.set(t.category, (totals.get(t.category) ?? 0) + t.amount)
   }
   return [...totals].map(([category, cents]) => ({ category, cents: cents as Cents })).sort((a, b) => b.cents - a.cents)
+}
+
+export interface BudgetProgress {
+  readonly category: BudgetCategory
+  readonly spent: Cents
+  /** null when the category has no budget. */
+  readonly limit: Cents | null
+  readonly ratio: number | null
+}
+
+/** This month's spending per category next to its budget; budgeted categories appear even at $0. */
+export function spendingAgainstBudgets(
+  transactions: readonly Transaction[],
+  budgets: readonly Budget[],
+): BudgetProgress[] {
+  const spent = new Map(spendingByCategory(transactions).map((s) => [s.category, s.cents]))
+  const limits = new Map(budgets.map((b) => [b.category, b.limit]))
+  const categories = new Set([...spent.keys(), ...limits.keys()])
+  return [...categories]
+    .map((category) => {
+      const cents = spent.get(category) ?? (0 as Cents)
+      const limit = limits.get(category) ?? null
+      return { category, spent: cents, limit, ratio: limit === null ? null : cents / limit }
+    })
+    .sort((a, b) => b.spent - a.spent)
 }
 
 export function cashflowThisMonth(transactions: readonly Transaction[]): {

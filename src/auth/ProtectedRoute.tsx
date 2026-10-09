@@ -3,6 +3,6 @@ import { useAuth } from './useAuth'
 
 export function ProtectedRoute() {
   const { session, loading } = useAuth()
-  if (loading) return <div className="grid min-h-dvh place-items-center text-zinc-500">Cargando…</div>
+  if (loading) return <div className="grid min-h-dvh place-items-center text-muted">Loading…</div>
   return session ? <Outlet /> : <Navigate to="/login" replace />
 }
