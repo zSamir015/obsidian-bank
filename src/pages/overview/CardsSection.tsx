@@ -1,19 +1,28 @@
+import { ButtonLink } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { Label, SectionTitle } from '@/components/ui/Label'
 import { Money } from '@/components/ui/Money'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Tag } from '@/components/ui/Tag'
+import { CARD_TIER_LABELS } from '@/lib/labels'
 import { asCents } from '@/lib/money'
 import type { CreditCard } from '@/types/bank'
 import type { QueryView } from './query'
 
-const TIER_LABEL: Record<CreditCard['tier'], string> = { black: 'Black', platinum: 'Platinum', corporate: 'Corporate' }
-
 export function CardsSection({ cards }: { readonly cards: QueryView<readonly CreditCard[]> }) {
   return (
     <section aria-labelledby="cards">
-      <SectionTitle id="cards">Cards</SectionTitle>
+      <SectionTitle
+        id="cards"
+        action={
+          <ButtonLink to="/cards" variant="ghost" size="sm" className="-mr-4">
+            Manage
+          </ButtonLink>
+        }
+      >
+        Cards
+      </SectionTitle>
       {cards.isError ? (
         <ErrorMessage onRetry={() => void cards.refetch()}>Couldn't load your cards.</ErrorMessage>
       ) : (
@@ -35,7 +44,7 @@ function CardSummary({ card }: { readonly card: CreditCard }) {
     <Card data-frozen={card.isFrozen}>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <Label>{TIER_LABEL[card.tier]}</Label>
+          <Label>{CARD_TIER_LABELS[card.tier]}</Label>
           <p className="mt-1.5 text-sm">
             <span className="sr-only">Card ending in </span>
             <span aria-hidden="true">•••• </span>
@@ -52,7 +61,7 @@ function CardSummary({ card }: { readonly card: CreditCard }) {
       </div>
       <div
         role="meter"
-        aria-label={`${TIER_LABEL[card.tier]} card limit used`}
+        aria-label={`${CARD_TIER_LABELS[card.tier]} card limit used`}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(used * 100)}

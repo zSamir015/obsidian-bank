@@ -103,3 +103,13 @@ describe('OverviewPage frozen card', () => {
     )
   })
 })
+
+describe('OverviewPage card management', () => {
+  it('links the Cards section to the cards page', () => {
+    renderPage()
+    expect(within(screen.getByRole('region', { name: 'Cards' })).getByRole('link', { name: 'Manage' })).toHaveAttribute(
+      'href',
+      '/cards',
+    )
+  })
+})

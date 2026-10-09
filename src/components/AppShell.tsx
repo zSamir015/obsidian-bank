@@ -1,4 +1,4 @@
-import { ArrowLeftRight, ChartPie, LayoutGrid, LogOut, ReceiptText } from 'lucide-react'
+import { ArrowLeftRight, ChartPie, CreditCard, LayoutGrid, LogOut, ReceiptText } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router'
 import { supabase } from '@/lib/supabase'
 import { Logo } from './Logo'
@@ -8,6 +8,7 @@ const NAV = [
   { to: '/activity', label: 'Activity', icon: ReceiptText },
   { to: '/transfer', label: 'Transfer', icon: ArrowLeftRight },
   { to: '/budgets', label: 'Budgets', icon: ChartPie },
+  { to: '/cards', label: 'Cards', icon: CreditCard },
 ] as const
 
 // Active items stay monochrome: each screen spends its single red accent on its own content.
