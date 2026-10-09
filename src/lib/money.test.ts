@@ -1,33 +1,97 @@
 import { describe, expect, it } from 'vitest'
-import { formatCents, parseAmountToCents } from './money'
+import type { Cents } from '@/types/bank'
+import { asCents, formatMoney, parseCents, toCents } from './money'
 
-describe('parseAmountToCents', () => {
+describe('toCents', () => {
   it.each([
+    ['0', 0],
     ['12', 1200],
-    ['12,5', 1250],
+    ['12.5', 1250],
     ['12.50', 1250],
-    ['0,01', 1],
+    ['0.01', 1],
     [' 7 ', 700],
+    ['1,234.56', 123456],
+    ['-5', -500],
+    ['-0.29', -29],
   ])('parses %j as %i cents', (input, expected) => {
-    expect(parseAmountToCents(input)).toBe(expected)
+    expect(toCents(input)).toBe(expected)
   })
 
-  it.each(['', 'abc', '-5', '1,234', '1.2.3', '12,'])('rejects %j', (input) => {
-    expect(parseAmountToCents(input)).toBeNull()
+  it.each([
+    [0, 0],
+    [19.99, 1999],
+    [-3.1, -310],
+  ])('accepts the number %d', (input, expected) => {
+    expect(toCents(input)).toBe(expected)
   })
 
-  it('avoids floating point errors', () => {
-    expect(parseAmountToCents('0,29')).toBe(29)
-    expect(parseAmountToCents('1.10')).toBe(110)
+  it('never goes through float multiplication', () => {
+    expect(toCents('0.29')).toBe(29) // 0.29 * 100 === 28.999999999999996
+    expect(toCents('1.10')).toBe(110)
+    expect(toCents('1.15')).toBe(115) // 1.15 * 100 === 114.99999999999999
+  })
+
+  it('returns +0 for negative zero', () => {
+    expect(Object.is(toCents('-0'), 0)).toBe(true)
+  })
+
+  it.each([
+    '',
+    ' ',
+    'abc',
+    '1.234',
+    '12.',
+    '.5',
+    '1,23',
+    '1,2345.00',
+    '1.2.3',
+    '--5',
+    '+5',
+    '1e3',
+    '$5',
+    'Infinity',
+    'NaN',
+  ])('rejects %j', (input) => {
+    expect(() => toCents(input)).toThrow(RangeError)
+  })
+
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, 0.001, 0.1 + 0.2, 1e21])(
+    'rejects the number %d',
+    (input) => {
+      expect(() => toCents(input)).toThrow(RangeError)
+    },
+  )
+
+  it('rejects amounts beyond the safe integer range', () => {
+    expect(() => toCents('90071992547409.92')).toThrow(RangeError)
+    expect(toCents('90071992547409.91')).toBe(Number.MAX_SAFE_INTEGER)
   })
 })
 
-describe('formatCents', () => {
-  it('formats cents as euros', () => {
-    expect(formatCents(123456)).toMatch(/1\.?234,56\s€/)
+describe('parseCents', () => {
+  it('returns null instead of throwing', () => {
+    expect(parseCents('12.345')).toBeNull()
+    expect(parseCents('12.34')).toBe(1234)
+  })
+})
+
+describe('asCents', () => {
+  it('brands integer cents', () => {
+    expect(asCents(1999)).toBe(1999)
   })
 
-  it('formats negative amounts', () => {
-    expect(formatCents(-500)).toMatch(/-5,00\s€/)
+  it.each([1.5, Number.NaN, Number.POSITIVE_INFINITY, 2 ** 53])('rejects %d', (input) => {
+    expect(() => asCents(input)).toThrow(RangeError)
+  })
+})
+
+describe('formatMoney', () => {
+  it.each([
+    [0, '$0.00'],
+    [1, '$0.01'],
+    [123456, '$1,234.56'],
+    [-500, '-$5.00'],
+  ])('formats %i cents as %s', (cents, expected) => {
+    expect(formatMoney(cents as Cents)).toBe(expected)
   })
 })

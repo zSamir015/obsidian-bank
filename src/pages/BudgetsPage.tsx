@@ -1,20 +1,15 @@
 import { useState } from 'react'
 import { Amount, Card, PageHeader, QueryState } from '../components/ui'
 import { useBudgets, useTransactions, useUpdateBudget } from '../hooks/queries'
-import { isInCurrentMonth } from '../lib/dates'
-import { formatCents, parseAmountToCents } from '../lib/money'
-import { CATEGORY_LABELS, type Budget } from '../lib/types'
+import { spendingByCategory } from '../lib/analytics'
+import { CATEGORY_LABELS } from '../lib/labels'
+import { asCents, formatMoney, parseCents } from '../lib/money'
+import type { Budget, Cents } from '@/types/bank'
 
 export function BudgetsPage() {
   const budgets = useBudgets()
   const transactions = useTransactions()
-
-  const spentByCategory = new Map<string, number>()
-  for (const t of transactions.data ?? []) {
-    if (t.amount_cents < 0 && isInCurrentMonth(t.created_at)) {
-      spentByCategory.set(t.category, (spentByCategory.get(t.category) ?? 0) - t.amount_cents)
-    }
-  }
+  const spentByCategory = new Map(spendingByCategory(transactions.data ?? []).map((s) => [s.category, s.cents]))
 
   return (
     <>
@@ -22,29 +17,29 @@ export function BudgetsPage() {
       <QueryState isLoading={budgets.isLoading} error={budgets.error} />
       <div className="grid gap-4 md:grid-cols-2">
         {budgets.data?.map((budget) => (
-          <BudgetCard key={budget.id} budget={budget} spentCents={spentByCategory.get(budget.category) ?? 0} />
+          <BudgetCard key={budget.id} budget={budget} spentCents={spentByCategory.get(budget.category) ?? asCents(0)} />
         ))}
       </div>
     </>
   )
 }
 
-function BudgetCard({ budget, spentCents }: { budget: Budget; spentCents: number }) {
+function BudgetCard({ budget, spentCents }: { budget: Budget; spentCents: Cents }) {
   const update = useUpdateBudget()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const ratio = spentCents / budget.limit_cents
+  const ratio = spentCents / budget.limit
   const barColor = ratio >= 1 ? 'bg-rose-500' : ratio >= 0.8 ? 'bg-amber-400' : 'bg-sheen'
   const label = CATEGORY_LABELS[budget.category]
 
   function save() {
-    const cents = parseAmountToCents(draft)
+    const cents = parseCents(draft)
     if (cents === null || cents <= 0) {
       setError('Importe no válido')
       return
     }
-    update.mutate({ id: budget.id, limitCents: cents }, { onSuccess: () => setEditing(false) })
+    update.mutate({ id: budget.id, limit: cents }, { onSuccess: () => setEditing(false) })
   }
 
   return (
@@ -52,15 +47,15 @@ function BudgetCard({ budget, spentCents }: { budget: Budget; spentCents: number
       <div className="flex items-baseline justify-between">
         <h2 className="font-medium">{label}</h2>
         <span className="text-sm text-zinc-400">
-          <Amount cents={spentCents} /> / {formatCents(budget.limit_cents)}
+          <Amount cents={spentCents} /> / {formatMoney(budget.limit)}
         </span>
       </div>
       <div
         role="progressbar"
         aria-label={`Gasto en ${label}`}
         aria-valuemin={0}
-        aria-valuemax={budget.limit_cents}
-        aria-valuenow={Math.min(spentCents, budget.limit_cents)}
+        aria-valuemax={budget.limit}
+        aria-valuenow={Math.min(spentCents, budget.limit)}
         className="mt-3 h-2 overflow-hidden rounded-full bg-obsidian-800"
       >
         <div
@@ -70,8 +65,8 @@ function BudgetCard({ budget, spentCents }: { budget: Budget; spentCents: number
       </div>
       <p className="mt-2 text-xs text-zinc-500">
         {ratio >= 1
-          ? `Excedido en ${formatCents(spentCents - budget.limit_cents)}`
-          : `Quedan ${formatCents(budget.limit_cents - spentCents)}`}
+          ? `Excedido en ${formatMoney(asCents(spentCents - budget.limit))}`
+          : `Quedan ${formatMoney(asCents(budget.limit - spentCents))}`}
       </p>
 
       {editing ? (
@@ -109,7 +104,7 @@ function BudgetCard({ budget, spentCents }: { budget: Budget; spentCents: number
         <button
           type="button"
           onClick={() => {
-            setDraft(String(budget.limit_cents / 100).replace('.', ','))
+            setDraft((budget.limit / 100).toFixed(2))
             setEditing(true)
           }}
           className="mt-3 text-sm text-sheen hover:underline"

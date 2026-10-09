@@ -1,8 +1,8 @@
 import { z } from 'zod'
-import { formatCents, parseAmountToCents } from '../lib/money'
-import type { Account } from '../lib/types'
+import { formatMoney, parseCents } from '@/lib/money'
+import type { Account } from '@/types/bank'
 
-export function makeTransferSchema(accounts: Account[]) {
+export function makeTransferSchema(accounts: readonly Account[]) {
   return z
     .object({
       fromId: z.string().min(1, 'Elige la cuenta de origen'),
@@ -15,17 +15,17 @@ export function makeTransferSchema(accounts: Account[]) {
         ctx.addIssue({ code: 'custom', path: ['toId'], message: 'Elige una cuenta distinta a la de origen' })
       }
       if (!values.amount) return
-      const cents = parseAmountToCents(values.amount)
+      const cents = parseCents(values.amount)
       if (cents === null || cents <= 0) {
-        ctx.addIssue({ code: 'custom', path: ['amount'], message: 'Importe no válido (ej.: 25,50)' })
+        ctx.addIssue({ code: 'custom', path: ['amount'], message: 'Importe no válido (ej.: 25.50)' })
         return
       }
       const from = accounts.find((a) => a.id === values.fromId)
-      if (from && cents > from.balance_cents) {
+      if (from && cents > from.balance) {
         ctx.addIssue({
           code: 'custom',
           path: ['amount'],
-          message: `Saldo insuficiente. Disponible: ${formatCents(from.balance_cents)}`,
+          message: `Saldo insuficiente. Disponible: ${formatMoney(from.balance)}`,
         })
       }
     })

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { formatCents } from '../lib/money'
+import { formatMoney } from '@/lib/money'
+import type { Cents, TransactionType } from '@/types/bank'
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
@@ -18,21 +19,14 @@ export function PageHeader({ title, subtitle }: { title: string; subtitle?: stri
   )
 }
 
-export function Amount({
-  cents,
-  signed = false,
-  className = '',
-}: {
-  cents: number
-  signed?: boolean
-  className?: string
-}) {
-  const color = !signed ? '' : cents > 0 ? 'text-emerald-400' : 'text-zinc-200'
-  const prefix = signed && cents > 0 ? '+' : ''
+/** Pass the transaction type to show its direction (+ credit / − debit). */
+export function Amount({ cents, type, className = '' }: { cents: Cents; type?: TransactionType; className?: string }) {
+  const color = type === 'credit' ? 'text-emerald-400' : type === 'debit' ? 'text-zinc-200' : ''
+  const prefix = type === 'credit' ? '+' : type === 'debit' ? '−' : ''
   return (
     <span className={`font-mono tabular-nums ${color} ${className}`}>
       {prefix}
-      {formatCents(cents)}
+      {formatMoney(cents)}
     </span>
   )
 }
