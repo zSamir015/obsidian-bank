@@ -59,3 +59,11 @@ export function toAmountInput(cents: Cents): string {
   const abs = Math.abs(cents)
   return `${sign}${Math.trunc(abs / 100)}.${String(abs % 100).padStart(2, '0')}`
 }
+
+const usdWhole = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+
+/** "$12,848" for amounts that are whole dollars (e.g. card limits). Throws if there are cents. */
+export function formatDollars(cents: Cents): string {
+  if (cents % 100 !== 0) throw new RangeError(`Not a whole-dollar amount: ${cents}`)
+  return usdWhole.format(cents / 100)
+}

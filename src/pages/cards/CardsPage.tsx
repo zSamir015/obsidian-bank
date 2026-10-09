@@ -11,10 +11,10 @@ import { useCards, useFreezeCard, useUpdateCardLimit } from '@/hooks/queries'
 import { cn } from '@/lib/cn'
 import { toFriendlyMessage } from '@/lib/errors'
 import { CARD_TIER_LABELS } from '@/lib/labels'
-import { asCents, formatMoney } from '@/lib/money'
+import { asCents, formatDollars, formatMoney } from '@/lib/money'
 import type { CreditCard } from '@/types/bank'
 import { CardVisual } from './CardVisual'
-import { validateCardLimit } from './limit'
+import { minimumLimit, validateCardLimit } from './limit'
 
 const cardName = (card: CreditCard) => `${CARD_TIER_LABELS[card.tier]} •••• ${card.last4}`
 
@@ -41,12 +41,17 @@ export default function CardsPage() {
           <div className="min-w-0">
             <fieldset>
               <legend className="sr-only">Card</legend>
-              <div role="radiogroup" aria-label="Card" className="mb-8 flex flex-wrap gap-2">
+              <div
+                role="radiogroup"
+                aria-label="Card"
+                // Mobile: one swipeable row of chips. Wider screens: they wrap if needed.
+                className="-mx-5 mb-8 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
+              >
                 {cards.data.map((c) => (
                   <label
                     key={c.id}
                     className={cn(
-                      'inline-flex h-10 cursor-pointer items-center gap-2 rounded-full border border-hairline px-4 text-sm text-muted transition-colors hover:text-text',
+                      'inline-flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-full border border-hairline px-4 text-sm text-muted transition-colors hover:text-text',
                       'has-[:checked]:bg-surface-2 has-[:checked]:text-text has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-text',
                     )}
                   >
@@ -125,7 +130,7 @@ function CardControls({ card, onResult }: { readonly card: CreditCard; readonly 
 
       <div className="mt-8 border-t border-hairline pt-6">
         <Label>Card status</Label>
-        <p className="mt-1.5 text-sm">{card.isFrozen ? 'Frozen: new payments are declined.' : 'Active.'}</p>
+        <p className="mt-1.5 text-sm">{card.isFrozen ? 'Frozen: new payments are declined.' : 'Active'}</p>
         <Button
           variant="secondary"
           className="mt-4"
@@ -197,7 +202,7 @@ function LimitForm({
     >
       <Field
         label="New credit limit"
-        hint={`Whole dollars from $500 to $100,000, and at least ${formatMoney(card.spent)} already spent.`}
+        hint={`Whole dollars from ${formatDollars(minimumLimit(card.spent))} to $100,000.`}
         error={error}
       >
         {(props) => (
