@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Cents } from '@/types/bank'
-import { asCents, formatMoney, formatMoneyParts, parseCents, toCents } from './money'
+import { asCents, formatMoney, formatMoneyParts, parseCents, toAmountInput, toCents } from './money'
 
 describe('toCents', () => {
   it.each([
@@ -104,5 +104,20 @@ describe('formatMoneyParts', () => {
     [-123456, { whole: '$1,234', cents: '.56' }],
   ])('splits %i cents into whole and cents parts without the sign', (cents, expected) => {
     expect(formatMoneyParts(cents as Cents)).toEqual(expected)
+  })
+})
+
+describe('toAmountInput', () => {
+  it.each([
+    [120000, '1200.00'],
+    [5, '0.05'],
+    [0, '0.00'],
+    [123456789, '1234567.89'],
+  ])('writes %i cents as %s for an editable field', (cents, text) => {
+    expect(toAmountInput(cents as Cents)).toBe(text)
+  })
+
+  it('round-trips through toCents', () => {
+    expect(toCents(toAmountInput(98999 as Cents))).toBe(98999)
   })
 })

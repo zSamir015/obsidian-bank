@@ -18,6 +18,9 @@ export function spendingByCategory(transactions: readonly Transaction[]): Catego
   return [...totals].map(([category, cents]) => ({ category, cents: cents as Cents })).sort((a, b) => b.cents - a.cents)
 }
 
+/** From this share of a budget on, its bar turns white to draw attention. */
+export const NEAR_LIMIT_RATIO = 0.9
+
 export interface BudgetProgress {
   readonly category: BudgetCategory
   readonly spent: Cents

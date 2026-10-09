@@ -52,3 +52,10 @@ export function formatMoneyParts(cents: Cents): { readonly whole: string; readon
       .join('')
   return { whole: text(0, split), cents: text(split) }
 }
+
+/** Plain "1200.00" for prefilling inputs, using integer math only. */
+export function toAmountInput(cents: Cents): string {
+  const sign = cents < 0 ? '-' : ''
+  const abs = Math.abs(cents)
+  return `${sign}${Math.trunc(abs / 100)}.${String(abs % 100).padStart(2, '0')}`
+}
