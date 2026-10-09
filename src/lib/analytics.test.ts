@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import type { Cents, Transaction } from '@/types/bank'
-import { cashflowThisMonth, filterTransactions, spendingByCategory, type TransactionFilters } from './analytics'
+import type { Budget, Cents, Transaction } from '@/types/bank'
+import {
+  cashflowThisMonth,
+  filterTransactions,
+  spendingAgainstBudgets,
+  spendingByCategory,
+  type TransactionFilters,
+} from './analytics'
 
 const now = new Date().toISOString()
 const lastYear = new Date(new Date().getFullYear() - 1, 0, 15).toISOString()
@@ -93,5 +99,30 @@ describe('filterTransactions', () => {
     expect(filterTransactions(list, { ...all, flow: 'out' })).toHaveLength(2)
     expect(filterTransactions(list, { ...all, category: 'travel' })).toHaveLength(1)
     expect(filterTransactions(list, { ...all, accountId: 'b' })).toHaveLength(1)
+  })
+})
+
+describe('spendingAgainstBudgets', () => {
+  const budget = (category: Budget['category'], limit: number): Budget => ({
+    id: category,
+    category,
+    limit: limit as Cents,
+  })
+
+  it('pairs spending with its budget, including budgeted categories with nothing spent yet', () => {
+    const result = spendingAgainstBudgets(
+      [tx({ category: 'travel', amount: 9000 }), tx({ category: 'corporate', amount: 500 })],
+      [budget('travel', 10000), budget('services', 8000)],
+    )
+    expect(result).toEqual([
+      { category: 'travel', spent: 9000, limit: 10000, ratio: 0.9 },
+      { category: 'corporate', spent: 500, limit: null, ratio: null },
+      { category: 'services', spent: 0, limit: 8000, ratio: 0 },
+    ])
+  })
+
+  it('never includes transfers', () => {
+    const result = spendingAgainstBudgets([tx({ category: 'transfer', amount: 5000, transferId: 'x' })], [])
+    expect(result).toEqual([])
   })
 })

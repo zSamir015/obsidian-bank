@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router'
 import { useAuth } from '../auth/useAuth'
-import { Logo } from '../components/Layout'
+import { Logo } from '@/components/Logo'
 import { supabase } from '../lib/supabase'
 
 export function LoginPage() {
@@ -50,3 +50,5 @@ export function LoginPage() {
     </main>
   )
 }
+
+export default LoginPage

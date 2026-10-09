@@ -125,3 +125,5 @@ function Field({
     </div>
   )
 }
+
+export default TransferPage

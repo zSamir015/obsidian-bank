@@ -115,3 +115,5 @@ function BudgetCard({ budget, spentCents }: { budget: Budget; spentCents: Cents 
     </Card>
   )
 }
+
+export default BudgetsPage
