@@ -70,3 +70,18 @@ describe('ErrorMessage', () => {
     expect(onRetry).toHaveBeenCalledOnce()
   })
 })
+
+describe('Button sizes', () => {
+  // Tailwind resolves conflicting utilities by stylesheet order, not class order, so a size
+  // must never be layered over another size's padding or height.
+  it.each([
+    ['md', ['h-11', 'px-5'], ['h-9', 'size-10']],
+    ['sm', ['h-9', 'px-4'], ['h-11', 'px-5']],
+    ['icon', ['size-10'], ['px-5', 'px-4', 'h-11']],
+  ] as const)('%s uses only its own dimensions', (size, present, absent) => {
+    render(<Button size={size}>x</Button>)
+    const classes = screen.getByRole('button').classList
+    for (const c of present) expect(classes).toContain(c)
+    for (const c of absent) expect(classes).not.toContain(c)
+  })
+})

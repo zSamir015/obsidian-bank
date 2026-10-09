@@ -19,7 +19,7 @@ export function RecentActivity({
       <SectionTitle
         id="recent-activity"
         action={
-          <ButtonLink to="/activity" variant="ghost" className="-mr-3 h-9 px-3">
+          <ButtonLink to="/activity" variant="ghost" size="sm" className="-mr-4">
             View all
           </ButtonLink>
         }
