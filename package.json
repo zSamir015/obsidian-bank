@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "notices": "node scripts/third-party-notices.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
