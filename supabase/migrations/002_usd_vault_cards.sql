@@ -219,7 +219,7 @@ begin
   values
     (p_user_id, v_checking,  8940, 'debit', 'travel',    'Uber',                'pending', now() - interval '6 hours'),
     (p_user_id, v_checking, 21900, 'debit', 'corporate', 'Amazon Web Services', 'pending', now() - interval '1 day'),
-    (p_user_id, v_checking, 98999, 'debit', 'services',  'Unknown merchant — LAGOS NG', 'flagged', now() - interval '2 days');
+    (p_user_id, v_checking, 98999, 'debit', 'services',  'Unrecognized merchant — online', 'flagged', now() - interval '2 days');
 
   update public.accounts a
      set balance_cents = (
