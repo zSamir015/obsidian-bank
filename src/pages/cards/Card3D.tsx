@@ -1,7 +1,7 @@
-import { RoundedBox } from '@react-three/drei'
+import { Environment, Lightformer } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useRef, useState, type RefObject } from 'react'
-import { CanvasTexture, SRGBColorSpace, type Group } from 'three'
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import { CanvasTexture, Shape, ShapeGeometry, SRGBColorSpace, type Group } from 'three'
 import { CARD_TIER_LABELS } from '@/lib/labels'
 import type { CreditCard } from '@/types/bank'
 import { CARD_ASPECT, FINISH } from './finish'
@@ -19,9 +19,15 @@ interface Tilt {
 
 const WIDTH = 3.2
 const HEIGHT = WIDTH / CARD_ASPECT
-const DEPTH = 0.05
+const RADIUS = WIDTH * (3.18 / 85.6) // ISO/IEC 7810 corner radius, scaled
+const DEPTH = 0.03
+const BEVEL = 0.006
+const FACE_Z = DEPTH / 2 + BEVEL + 0.0008
 const MAX_TILT = 0.32 // radians
 const TOUCH_THRESHOLD = 8 // px of horizontal drag before a touch starts tilting
+// Face texture: 2048px wide, over 2× the largest on-screen card (520 CSS px × dpr 2 = 1040px).
+const FACE_LAYOUT_WIDTH = 1024
+const FACE_SCALE = 2
 
 /**
  * Procedural 3D card. Tilts toward the pointer with inertia and settles back when it
@@ -74,8 +80,10 @@ export default function Card3D({ card, onFailure }: Card3DProps) {
         dpr={[1, 2]}
         frameloop="demand"
         camera={{ position: [0, 0, 3.9], fov: 35 }}
-        gl={{ antialias: true, powerPreference: 'low-power' }}
+        // Transparent: the page background shows around the card, no box.
+        gl={{ antialias: true, alpha: true, powerPreference: 'low-power' }}
         onCreated={({ gl, invalidate: requestFrame }) => {
+          gl.setClearColor(0x000000, 0)
           invalidate.current = requestFrame
           gl.domElement.addEventListener('webglcontextlost', (event) => {
             event.preventDefault()
@@ -83,20 +91,67 @@ export default function Card3D({ card, onFailure }: Card3DProps) {
           })
         }}
       >
-        <ambientLight intensity={0.35} />
-        <directionalLight position={[2.5, 3, 5]} intensity={1.6} />
-        {/* The screen's single red element: a rim light grazing the card's edge. */}
-        <pointLight position={[-2.6, 1.4, 0.8]} color="#ff2a3b" intensity={card.isFrozen ? 3 : 8} distance={7} />
+        <Reflections />
+        {/* No point-like key light: on the clearcoat it reads as a blown-out spot. The strips light the card. */}
+        <ambientLight intensity={0.3} />
+        {/* The screen's single red accent: a rim light grazing the edge plus a faint reflection. */}
+        <pointLight position={[-2.6, 1.4, 0.8]} color="#ff2a3b" intensity={card.isFrozen ? 2 : 6} distance={7} />
         <CardMesh card={card} target={target} />
       </Canvas>
     </div>
   )
 }
 
+/**
+ * Studio reflections built in code (no HDR files): soft white strips and a faint red
+ * panel. The environment stays still while the card rotates, so reflections slide on tilt.
+ */
+function Reflections() {
+  return (
+    // A glossy face pointing at the camera mirrors what is behind the camera (z > 0),
+    // so the strips live there: soft horizontal bands at rest that slide as the card tilts.
+    <Environment resolution={256} frames={1}>
+      <Lightformer form="rect" intensity={0.8} position={[0, 1.2, 5]} scale={[10, 0.6, 1]} />
+      <Lightformer form="rect" intensity={0.35} position={[0, -1.6, 5]} scale={[10, 0.3, 1]} />
+      <Lightformer form="rect" intensity={1} position={[-5, 0, 3]} scale={[0.4, 6, 1]} />
+      <Lightformer form="rect" intensity={0.8} position={[5, 0, 3]} scale={[0.4, 6, 1]} />
+      <Lightformer form="circle" color="#ff2a3b" intensity={0.35} position={[-3, -2, 4]} scale={2} />
+    </Environment>
+  )
+}
+
+function roundedRectShape(width: number, height: number, radius: number) {
+  const x = -width / 2
+  const y = -height / 2
+  const shape = new Shape()
+  shape.moveTo(x + radius, y)
+  shape.lineTo(x + width - radius, y)
+  shape.quadraticCurveTo(x + width, y, x + width, y + radius)
+  shape.lineTo(x + width, y + height - radius)
+  shape.quadraticCurveTo(x + width, y + height, x + width - radius, y + height)
+  shape.lineTo(x + radius, y + height)
+  shape.quadraticCurveTo(x, y + height, x, y + height - radius)
+  shape.lineTo(x, y + radius)
+  shape.quadraticCurveTo(x, y, x + radius, y)
+  return shape
+}
+
 function CardMesh({ card, target }: { readonly card: CreditCard; readonly target: RefObject<Tilt> }) {
   const group = useRef<Group>(null)
   const face = useCardFace(card)
   const finish = FINISH[card.tier]
+  const shape = useMemo(() => roundedRectShape(WIDTH, HEIGHT, RADIUS), [])
+  // Same rounded outline for the printed face, with UVs mapped 0..1 so the texture fits it.
+  const faceGeometry = useMemo(() => {
+    const geometry = new ShapeGeometry(shape, 24)
+    const position = geometry.attributes.position!
+    const uv = geometry.attributes.uv!
+    for (let i = 0; i < uv.count; i++) {
+      uv.setXY(i, (position.getX(i) + WIDTH / 2) / WIDTH, (position.getY(i) + HEIGHT / 2) / HEIGHT)
+    }
+    return geometry
+  }, [shape])
+  useEffect(() => () => faceGeometry.dispose(), [faceGeometry])
 
   useFrame((state, delta) => {
     const g = group.current
@@ -110,25 +165,37 @@ function CardMesh({ card, target }: { readonly card: CreditCard; readonly target
 
   return (
     <group ref={group}>
-      <RoundedBox args={[WIDTH, HEIGHT, DEPTH]} radius={0.14} smoothness={4}>
+      <mesh position={[0, 0, -DEPTH / 2]}>
+        <extrudeGeometry
+          args={[
+            shape,
+            {
+              depth: DEPTH,
+              bevelEnabled: true,
+              bevelThickness: BEVEL,
+              bevelSize: BEVEL,
+              bevelSegments: 3,
+              curveSegments: 24,
+            },
+          ]}
+        />
         <meshPhysicalMaterial
           color={finish.base}
           roughness={finish.roughness}
-          metalness={0.15}
-          clearcoat={0.35}
-          clearcoatRoughness={0.5}
+          metalness={0.1}
+          clearcoat={0.7}
+          clearcoatRoughness={0.25}
+          envMapIntensity={0.9}
         />
-      </RoundedBox>
+      </mesh>
       {card.isFrozen && (
         // Frost veil over the face, matching the static card.
-        <mesh position={[0, 0, DEPTH / 2 + 0.0005]}>
-          <planeGeometry args={[WIDTH - 0.02, HEIGHT - 0.02]} />
+        <mesh geometry={faceGeometry} position={[0, 0, FACE_Z - 0.0004]}>
           <meshBasicMaterial color="#a1a1aa" transparent opacity={0.14} toneMapped={false} />
         </mesh>
       )}
       {face && (
-        <mesh position={[0, 0, DEPTH / 2 + 0.001]}>
-          <planeGeometry args={[WIDTH, HEIGHT]} />
+        <mesh geometry={faceGeometry} position={[0, 0, FACE_Z]}>
           <meshBasicMaterial map={face} transparent toneMapped={false} />
         </mesh>
       )}
@@ -140,6 +207,7 @@ function CardMesh({ card, target }: { readonly card: CreditCard; readonly target
 function useCardFace(card: CreditCard) {
   const [texture, setTexture] = useState<CanvasTexture | null>(null)
   const invalidate = useThree((state) => state.invalidate)
+  const maxAnisotropy = useThree((state) => state.gl.capabilities.getMaxAnisotropy())
   const { tier, last4, cardHolder, expiry, isFrozen } = card
 
   useEffect(() => {
@@ -153,7 +221,7 @@ function useCardFace(card: CreditCard) {
       if (cancelled) return
       created = new CanvasTexture(drawFace({ tier, last4, cardHolder, expiry, isFrozen }))
       created.colorSpace = SRGBColorSpace
-      created.anisotropy = 4
+      created.anisotropy = maxAnisotropy
       setTexture(created)
       invalidate()
     })()
@@ -161,18 +229,20 @@ function useCardFace(card: CreditCard) {
       cancelled = true
       created?.dispose()
     }
-  }, [tier, last4, cardHolder, expiry, isFrozen, invalidate])
+  }, [tier, last4, cardHolder, expiry, isFrozen, invalidate, maxAnisotropy])
 
   return texture
 }
 
 function drawFace(card: Pick<CreditCard, 'tier' | 'last4' | 'cardHolder' | 'expiry' | 'isFrozen'>) {
-  const width = 1024
+  // Laid out on a 1024-wide grid and rendered at FACE_SCALE for sharp text.
+  const width = FACE_LAYOUT_WIDTH
   const height = Math.round(width / CARD_ASPECT)
   const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
+  canvas.width = width * FACE_SCALE
+  canvas.height = height * FACE_SCALE
   const ctx = canvas.getContext('2d')!
+  ctx.scale(FACE_SCALE, FACE_SCALE)
   const pad = 64
   const ink = card.isFrozen ? 'rgba(255,255,255,0.55)' : '#ffffff'
   const muted = 'rgba(161,161,170,0.95)'
@@ -180,6 +250,7 @@ function drawFace(card: Pick<CreditCard, 'tier' | 'last4' | 'cardHolder' | 'expi
   // Obsidian mark: the shard from the logo, then the wordmark.
   ctx.strokeStyle = ink
   ctx.lineWidth = 3
+  ctx.lineJoin = 'round'
   ctx.beginPath()
   ctx.moveTo(pad + 18, pad)
   ctx.lineTo(pad + 36, pad + 13)
