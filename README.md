@@ -6,10 +6,10 @@ Personal banking app built with React 19, TypeScript and Supabase: accounts, car
 
 Live demo: https://zsamir015.github.io/obsidian-bank/
 
-| Overview                                                                                                                      | Activity                                                                                        |
-| ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Overview                                                                                                                       | Activity                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
 | ![Overview: total balance hero, accounts, cards, spending against budgets and recent activity](docs/screenshots/overview.webp) | ![Activity: transactions grouped by day with search and filters](docs/screenshots/activity.webp) |
-| **Move money**                                                                                                                | **Budgets**                                                                                     |
+| **Move money**                                                                                                                 | **Budgets**                                                                                      |
 | ![Transfer form with a summary of balances after the transfer](docs/screenshots/transfer.webp)                                 | ![Budgets with spending against each monthly limit](docs/screenshots/budgets.webp)               |
 
 <sub>Screenshots at 1280px with local demo data.</sub>
