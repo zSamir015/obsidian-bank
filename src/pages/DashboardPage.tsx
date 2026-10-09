@@ -49,7 +49,14 @@ export function DashboardPage() {
               <ResponsiveContainer>
                 <BarChart data={spending} layout="vertical" margin={{ left: 8, right: 16 }}>
                   <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="label" width={100} tick={{ fill: '#a1a1aa', fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    type="category"
+                    dataKey="label"
+                    width={100}
+                    tick={{ fill: '#a1a1aa', fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
                   <Tooltip
                     cursor={{ fill: '#17141f' }}
                     contentStyle={{ background: '#0e0c15', border: '1px solid #262132', borderRadius: 8 }}
@@ -65,7 +72,9 @@ export function DashboardPage() {
         <Card className="lg:col-span-2">
           <div className="flex items-baseline justify-between">
             <h2 className="font-medium">Últimos movimientos</h2>
-            <Link to="/movimientos" className="text-sm text-sheen hover:underline">Ver todos</Link>
+            <Link to="/movimientos" className="text-sm text-sheen hover:underline">
+              Ver todos
+            </Link>
           </div>
           <QueryState isLoading={transactions.isLoading} error={transactions.error} />
           <ul className="mt-2 divide-y divide-obsidian-700">

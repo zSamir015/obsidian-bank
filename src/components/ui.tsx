@@ -18,14 +18,32 @@ export function PageHeader({ title, subtitle }: { title: string; subtitle?: stri
   )
 }
 
-export function Amount({ cents, signed = false, className = '' }: { cents: number; signed?: boolean; className?: string }) {
+export function Amount({
+  cents,
+  signed = false,
+  className = '',
+}: {
+  cents: number
+  signed?: boolean
+  className?: string
+}) {
   const color = !signed ? '' : cents > 0 ? 'text-emerald-400' : 'text-zinc-200'
   const prefix = signed && cents > 0 ? '+' : ''
-  return <span className={`font-mono tabular-nums ${color} ${className}`}>{prefix}{formatCents(cents)}</span>
+  return (
+    <span className={`font-mono tabular-nums ${color} ${className}`}>
+      {prefix}
+      {formatCents(cents)}
+    </span>
+  )
 }
 
 export function QueryState({ isLoading, error }: { isLoading: boolean; error: Error | null }) {
   if (isLoading) return <p className="text-sm text-zinc-500">Cargando…</p>
-  if (error) return <p role="alert" className="text-sm text-rose-400">No se pudieron cargar los datos.</p>
+  if (error)
+    return (
+      <p role="alert" className="text-sm text-rose-400">
+        No se pudieron cargar los datos.
+      </p>
+    )
   return null
 }

@@ -63,10 +63,15 @@ function BudgetCard({ budget, spentCents }: { budget: Budget; spentCents: number
         aria-valuenow={Math.min(spentCents, budget.limit_cents)}
         className="mt-3 h-2 overflow-hidden rounded-full bg-obsidian-800"
       >
-        <div className={`h-full rounded-full ${barColor} transition-[width] duration-500`} style={{ width: `${Math.min(ratio, 1) * 100}%` }} />
+        <div
+          className={`h-full rounded-full ${barColor} transition-[width] duration-500`}
+          style={{ width: `${Math.min(ratio, 1) * 100}%` }}
+        />
       </div>
       <p className="mt-2 text-xs text-zinc-500">
-        {ratio >= 1 ? `Excedido en ${formatCents(spentCents - budget.limit_cents)}` : `Quedan ${formatCents(budget.limit_cents - spentCents)}`}
+        {ratio >= 1
+          ? `Excedido en ${formatCents(spentCents - budget.limit_cents)}`
+          : `Quedan ${formatCents(budget.limit_cents - spentCents)}`}
       </p>
 
       {editing ? (
@@ -88,8 +93,16 @@ function BudgetCard({ budget, spentCents }: { budget: Budget; spentCents: number
             }}
             className="w-32 rounded-lg border border-obsidian-700 bg-obsidian-950 px-3 py-1.5 font-mono text-sm"
           />
-          <button type="submit" disabled={update.isPending} className="rounded-lg bg-sheen px-3 text-sm font-medium text-obsidian-950">Guardar</button>
-          <button type="button" onClick={() => setEditing(false)} className="px-2 text-sm text-zinc-400">Cancelar</button>
+          <button
+            type="submit"
+            disabled={update.isPending}
+            className="rounded-lg bg-sheen px-3 text-sm font-medium text-obsidian-950"
+          >
+            Guardar
+          </button>
+          <button type="button" onClick={() => setEditing(false)} className="px-2 text-sm text-zinc-400">
+            Cancelar
+          </button>
           {error && <span className="self-center text-xs text-rose-400">{error}</span>}
         </form>
       ) : (

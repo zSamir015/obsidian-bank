@@ -37,10 +37,14 @@ export function LoginPage() {
         >
           {pending ? 'Preparando tu cuenta demo…' : 'Entrar como demo'}
         </button>
-        {error && <p role="alert" className="mt-3 text-sm text-rose-400">{error}</p>}
+        {error && (
+          <p role="alert" className="mt-3 text-sm text-rose-400">
+            {error}
+          </p>
+        )}
         <p className="mt-6 rounded-lg border border-obsidian-700 p-3 text-xs leading-relaxed text-zinc-500">
-          Proyecto de portafolio. Obsidian Bank no es un banco real: los datos son ficticios y se generan
-          para cada sesión demo. No introduzcas información personal.
+          Proyecto de portafolio. Obsidian Bank no es un banco real: los datos son ficticios y se generan para cada
+          sesión demo. No introduzcas información personal.
         </p>
       </div>
     </main>

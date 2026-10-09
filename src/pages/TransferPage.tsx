@@ -7,7 +7,8 @@ import { toFriendlyMessage } from '../lib/errors'
 import { formatCents, parseAmountToCents } from '../lib/money'
 import { makeTransferSchema, type TransferFormValues } from './transferSchema'
 
-const fieldClass = 'mt-1 w-full rounded-lg border border-obsidian-700 bg-obsidian-950 px-3 py-2.5 aria-invalid:border-rose-500'
+const fieldClass =
+  'mt-1 w-full rounded-lg border border-obsidian-700 bg-obsidian-950 px-3 py-2.5 aria-invalid:border-rose-500'
 
 export function TransferPage() {
   const accounts = useAccounts()
@@ -28,7 +29,12 @@ export function TransferPage() {
   async function onSubmit(values: TransferFormValues) {
     setConfirmation(null)
     const amountCents = parseAmountToCents(values.amount)!
-    await transfer.mutateAsync({ fromId: values.fromId, toId: values.toId, amountCents, description: values.description })
+    await transfer.mutateAsync({
+      fromId: values.fromId,
+      toId: values.toId,
+      amountCents,
+      description: values.description,
+    })
     setConfirmation(`Transferencia de ${formatCents(amountCents)} realizada.`)
     reset()
   }
@@ -44,21 +50,42 @@ export function TransferPage() {
               <select id="fromId" {...register('fromId')} aria-invalid={!!errors.fromId} className={fieldClass}>
                 <option value="">Selecciona una cuenta</option>
                 {accounts.data.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name} · {formatCents(a.balance_cents)}</option>
+                  <option key={a.id} value={a.id}>
+                    {a.name} · {formatCents(a.balance_cents)}
+                  </option>
                 ))}
               </select>
             </Field>
             <Field label="Hacia" error={errors.toId?.message} id="toId">
               <select id="toId" {...register('toId')} aria-invalid={!!errors.toId} className={fieldClass}>
                 <option value="">Selecciona una cuenta</option>
-                {accounts.data.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                {accounts.data.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
               </select>
             </Field>
             <Field label="Importe (€)" error={errors.amount?.message} id="amount">
-              <input id="amount" inputMode="decimal" autoComplete="off" placeholder="0,00" {...register('amount')} aria-invalid={!!errors.amount} className={`${fieldClass} font-mono`} />
+              <input
+                id="amount"
+                inputMode="decimal"
+                autoComplete="off"
+                placeholder="0,00"
+                {...register('amount')}
+                aria-invalid={!!errors.amount}
+                className={`${fieldClass} font-mono`}
+              />
             </Field>
             <Field label="Concepto (opcional)" error={errors.description?.message} id="description">
-              <input id="description" maxLength={140} placeholder="Ahorro mensual" {...register('description')} aria-invalid={!!errors.description} className={fieldClass} />
+              <input
+                id="description"
+                maxLength={140}
+                placeholder="Ahorro mensual"
+                {...register('description')}
+                aria-invalid={!!errors.description}
+                className={fieldClass}
+              />
             </Field>
             <button
               type="submit"
@@ -69,7 +96,11 @@ export function TransferPage() {
             </button>
             <div aria-live="polite">
               {confirmation && <p className="text-sm text-emerald-400">{confirmation}</p>}
-              {transfer.error && <p role="alert" className="text-sm text-rose-400">{toFriendlyMessage(transfer.error)}</p>}
+              {transfer.error && (
+                <p role="alert" className="text-sm text-rose-400">
+                  {toFriendlyMessage(transfer.error)}
+                </p>
+              )}
             </div>
           </form>
         </Card>
@@ -78,10 +109,22 @@ export function TransferPage() {
   )
 }
 
-function Field({ id, label, error, children }: { id: string; label: string; error?: string; children: React.ReactNode }) {
+function Field({
+  id,
+  label,
+  error,
+  children,
+}: {
+  id: string
+  label: string
+  error?: string
+  children: React.ReactNode
+}) {
   return (
     <div>
-      <label htmlFor={id} className="text-sm text-zinc-300">{label}</label>
+      <label htmlFor={id} className="text-sm text-zinc-300">
+        {label}
+      </label>
       {children}
       {error && <p className="mt-1 text-sm text-rose-400">{error}</p>}
     </div>

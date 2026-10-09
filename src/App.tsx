@@ -39,7 +39,9 @@ function NotFound() {
       <div>
         <p className="font-mono text-sheen">404</p>
         <h1 className="mt-2 text-2xl font-semibold">Página no encontrada</h1>
-        <Link to="/" className="mt-4 inline-block text-sm text-zinc-400 hover:text-zinc-100">Volver al resumen</Link>
+        <Link to="/" className="mt-4 inline-block text-sm text-zinc-400 hover:text-zinc-100">
+          Volver al resumen
+        </Link>
       </div>
     </main>
   )
