@@ -1,1 +1,23 @@
 @import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --color-obsidian-950: #07060b;
+  --color-obsidian-900: #0e0c15;
+  --color-obsidian-800: #17141f;
+  --color-obsidian-700: #262132;
+  --color-sheen: #a78bfa;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-obsidian-950 font-sans text-zinc-100 antialiased;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-sheen;
+  }
+}
