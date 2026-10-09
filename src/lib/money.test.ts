@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Cents } from '@/types/bank'
-import { asCents, formatMoney, formatMoneyParts, parseCents, toAmountInput, toCents } from './money'
+import { asCents, formatDollars, formatMoney, formatMoneyParts, parseCents, toAmountInput, toCents } from './money'
 
 describe('toCents', () => {
   it.each([
@@ -119,5 +119,19 @@ describe('toAmountInput', () => {
 
   it('round-trips through toCents', () => {
     expect(toCents(toAmountInput(98999 as Cents))).toBe(98999)
+  })
+})
+
+describe('formatDollars', () => {
+  it.each([
+    [1_284_800, '$12,848'],
+    [50_000, '$500'],
+    [10_000_000, '$100,000'],
+  ])('formats %i whole-dollar cents as %s', (cents, text) => {
+    expect(formatDollars(cents as Cents)).toBe(text)
+  })
+
+  it('refuses amounts with cents rather than rounding them silently', () => {
+    expect(() => formatDollars(1_284_750 as Cents)).toThrow(RangeError)
   })
 })

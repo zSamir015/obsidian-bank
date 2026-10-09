@@ -91,7 +91,7 @@ describe('CardsPage', () => {
     await userEvent.clear(input)
     await userEvent.type(input, '12847')
     await userEvent.click(screen.getByRole('button', { name: 'Save limit' }))
-    expect(input).toHaveAccessibleDescription(/can't be lower than what's already been spent/)
+    expect(input).toHaveAccessibleDescription(/Choose at least \$12,848/)
     expect(updateLimit).not.toHaveBeenCalled()
   })
 
@@ -118,5 +118,36 @@ describe('CardsPage', () => {
     queries.useCards.mockReturnValue({ data: [], isPending: false, isError: false, refetch: vi.fn() })
     renderPage()
     expect(screen.getByText("You don't have any cards yet.")).toBeInTheDocument()
+  })
+})
+
+describe('CardsPage limit form', () => {
+  const openForm = async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Change limit' }))
+    return screen.getByRole('textbox', { name: 'New credit limit' })
+  }
+
+  it('states the real minimum in whole dollars', async () => {
+    const input = await openForm()
+    expect(input).toHaveAccessibleDescription('Whole dollars from $12,848 to $100,000.')
+  })
+
+  it('saves $50,000 without any error (regression: no stale "already spent" message)', async () => {
+    const input = await openForm()
+    expect(input).toHaveValue('50000')
+    await userEvent.click(screen.getByRole('button', { name: 'Save limit' }))
+    expect(updateLimit).toHaveBeenCalledWith({ cardId: cards[0]!.id, limit: 5_000_000 })
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('clears a server error as soon as the amount is edited', async () => {
+    updateLimit.mockRejectedValueOnce(new Error('limit_below_spent'))
+    const input = await openForm()
+    await userEvent.click(screen.getByRole('button', { name: 'Save limit' }))
+    expect(input).toHaveAccessibleDescription(/already been spent/)
+    await userEvent.type(input, '0')
+    expect(input).toHaveAccessibleDescription('Whole dollars from $12,848 to $100,000.')
+    expect(input).toHaveAttribute('aria-invalid', 'false')
   })
 })
