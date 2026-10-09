@@ -8,12 +8,19 @@ const root = new URL('..', import.meta.url).pathname
 const tree = JSON.parse(execSync('npm ls --omit=dev --all --json', { cwd: root, maxBuffer: 1e8 }).toString())
 
 // Packages whose tarball ships no license file. Text points to the upstream source instead of guessing it.
+const noFile = (license, source) =>
+  `No license file is shipped in the npm package; its package.json declares ${license}.\nSee ${source}`
 const missingTextNotes = {
-  'victory-vendor':
-    'No license file is shipped in the npm package. package.json declares "MIT AND ISC": the wrapper is MIT\n' +
-    '(see https://github.com/FormidableLabs/victory/blob/main/LICENSE) and the vendored d3 modules keep the\n' +
-    'ISC / BSD-3-Clause texts reproduced under the matching d3-* entries in this file.',
+  '@react-three/fiber': noFile('MIT', 'https://github.com/pmndrs/react-three-fiber/blob/master/LICENSE'),
+  // The packages below come with @react-three/drei; tree-shaking keeps them out of the build.
+  '@mediapipe/tasks-vision': noFile('Apache-2.0', 'https://github.com/google-ai-edge/mediapipe/blob/master/LICENSE'),
+  draco3d: noFile('Apache-2.0', 'https://github.com/google/draco/blob/main/LICENSE'),
+  maath: noFile('MIT', 'https://github.com/pmndrs/maath/blob/main/LICENSE'),
+  'stats-gl': noFile('MIT', 'https://github.com/RenaudRohlinger/stats-gl/blob/main/LICENSE'),
 }
+
+// Packages whose package.json has no license field; taken from the license file they ship.
+const licenseOverrides = { 'webgl-constants': 'MIT' }
 
 // Type-only packages never reach the bundle.
 const isTypeOnly = (name) => name.startsWith('@types/') || name === 'csstype'
@@ -28,7 +35,7 @@ const packages = new Map()
     const licenseFile = readdirSync(dir).find((f) => /^(licen[sc]e|copying)/i.test(f))
     packages.set(name, {
       version: dep.version,
-      license: typeof pkg.license === 'string' ? pkg.license : 'UNKNOWN',
+      license: typeof pkg.license === 'string' ? pkg.license : (licenseOverrides[name] ?? 'UNKNOWN'),
       homepage: pkg.homepage ?? `https://www.npmjs.com/package/${name}`,
       text: licenseFile ? readFileSync(join(dir, licenseFile), 'utf8').trim() : (missingTextNotes[name] ?? null),
     })
