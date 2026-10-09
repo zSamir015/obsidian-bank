@@ -22,7 +22,11 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+
+    /* Aliases (mirrored in vite.config.ts) */
+    "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src"]
 }
