@@ -40,3 +40,15 @@ const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' 
 export function formatMoney(cents: Cents): string {
   return usd.format(cents / 100)
 }
+
+/** Unsigned "$1,234" and ".56" parts, so the UI can render cents smaller. The caller shows the sign. */
+export function formatMoneyParts(cents: Cents): { readonly whole: string; readonly cents: string } {
+  const parts = usd.formatToParts(Math.abs(cents) / 100)
+  const split = parts.findIndex((p) => p.type === 'decimal')
+  const text = (from: number, to?: number) =>
+    parts
+      .slice(from, to)
+      .map((p) => p.value)
+      .join('')
+  return { whole: text(0, split), cents: text(split) }
+}

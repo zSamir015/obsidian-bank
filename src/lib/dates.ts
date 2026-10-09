@@ -1,4 +1,4 @@
-const dateFormatter = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' })
+const dateFormatter = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short' })
 
 export function formatShortDate(iso: string): string {
   return dateFormatter.format(new Date(iso))

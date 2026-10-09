@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Cents } from '@/types/bank'
-import { asCents, formatMoney, parseCents, toCents } from './money'
+import { asCents, formatMoney, formatMoneyParts, parseCents, toCents } from './money'
 
 describe('toCents', () => {
   it.each([
@@ -93,5 +93,16 @@ describe('formatMoney', () => {
     [-500, '-$5.00'],
   ])('formats %i cents as %s', (cents, expected) => {
     expect(formatMoney(cents as Cents)).toBe(expected)
+  })
+})
+
+describe('formatMoneyParts', () => {
+  it.each([
+    [4821307, { whole: '$48,213', cents: '.07' }],
+    [0, { whole: '$0', cents: '.00' }],
+    [5, { whole: '$0', cents: '.05' }],
+    [-123456, { whole: '$1,234', cents: '.56' }],
+  ])('splits %i cents into whole and cents parts without the sign', (cents, expected) => {
+    expect(formatMoneyParts(cents as Cents)).toEqual(expected)
   })
 })
