@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router'
-import { useAuth } from '../auth/AuthProvider'
+import { useAuth } from '../auth/useAuth'
 import { Logo } from '../components/Layout'
 import { supabase } from '../lib/supabase'
 

@@ -3,20 +3,8 @@ import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recha
 import { TransactionRow } from '../components/TransactionRow'
 import { Amount, Card, PageHeader, QueryState } from '../components/ui'
 import { useAccounts, useTransactions } from '../hooks/queries'
-import { isInCurrentMonth } from '../lib/dates'
+import { spendingByCategory } from '../lib/analytics'
 import { formatCents } from '../lib/money'
-import { CATEGORY_LABELS, type Category, type Transaction } from '../lib/types'
-
-export function spendingByCategory(transactions: Transaction[]) {
-  const totals = new Map<Category, number>()
-  for (const t of transactions) {
-    if (t.amount_cents >= 0 || t.category === 'transfer' || !isInCurrentMonth(t.created_at)) continue
-    totals.set(t.category, (totals.get(t.category) ?? 0) - t.amount_cents)
-  }
-  return [...totals]
-    .map(([category, cents]) => ({ category, label: CATEGORY_LABELS[category], cents }))
-    .sort((a, b) => b.cents - a.cents)
-}
 
 export function DashboardPage() {
   const accounts = useAccounts()

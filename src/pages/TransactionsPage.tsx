@@ -2,29 +2,10 @@ import { useMemo, useState } from 'react'
 import { TransactionRow } from '../components/TransactionRow'
 import { Card, PageHeader, QueryState } from '../components/ui'
 import { useAccounts, useTransactions } from '../hooks/queries'
-import { CATEGORIES, CATEGORY_LABELS, type Category, type Transaction } from '../lib/types'
+import { filterTransactions, type FlowFilter, type TransactionFilters } from '../lib/analytics'
+import { CATEGORIES, CATEGORY_LABELS, type Category } from '../lib/types'
 
 const PAGE_SIZE = 15
-
-export type FlowFilter = 'all' | 'in' | 'out'
-
-export interface TransactionFilters {
-  search: string
-  category: Category | 'all'
-  flow: FlowFilter
-  accountId: string | 'all'
-}
-
-export function filterTransactions(transactions: Transaction[], filters: TransactionFilters) {
-  const search = filters.search.trim().toLowerCase()
-  return transactions.filter(
-    (t) =>
-      (filters.category === 'all' || t.category === filters.category) &&
-      (filters.accountId === 'all' || t.account_id === filters.accountId) &&
-      (filters.flow === 'all' || (filters.flow === 'in' ? t.amount_cents > 0 : t.amount_cents < 0)) &&
-      (!search || t.description.toLowerCase().includes(search)),
-  )
-}
 
 const selectClass = 'rounded-lg border border-obsidian-700 bg-obsidian-900 px-3 py-2 text-sm'
 
