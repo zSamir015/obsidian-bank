@@ -3,7 +3,8 @@ import { TransactionRow } from '../components/TransactionRow'
 import { Card, PageHeader, QueryState } from '../components/ui'
 import { useAccounts, useTransactions } from '../hooks/queries'
 import { filterTransactions, type FlowFilter, type TransactionFilters } from '../lib/analytics'
-import { CATEGORIES, CATEGORY_LABELS, type Category } from '../lib/types'
+import { CATEGORY_LABELS } from '../lib/labels'
+import { CATEGORIES, type Category } from '@/types/bank'
 
 const PAGE_SIZE = 15
 
@@ -87,7 +88,7 @@ export function TransactionsPage() {
         )}
         <ul className="divide-y divide-obsidian-700">
           {visible.map((t) => (
-            <TransactionRow key={t.id} transaction={t} accountName={accountNames.get(t.account_id)} />
+            <TransactionRow key={t.id} transaction={t} accountName={accountNames.get(t.accountId)} />
           ))}
         </ul>
       </Card>

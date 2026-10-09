@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { Card, PageHeader, QueryState } from '../components/ui'
 import { useAccounts, useTransfer } from '../hooks/queries'
 import { toFriendlyMessage } from '../lib/errors'
-import { formatCents, parseAmountToCents } from '../lib/money'
+import { formatMoney, parseCents } from '../lib/money'
 import { makeTransferSchema, type TransferFormValues } from './transferSchema'
 
 const fieldClass =
@@ -28,14 +28,9 @@ export function TransferPage() {
 
   async function onSubmit(values: TransferFormValues) {
     setConfirmation(null)
-    const amountCents = parseAmountToCents(values.amount)!
-    await transfer.mutateAsync({
-      fromId: values.fromId,
-      toId: values.toId,
-      amountCents,
-      description: values.description,
-    })
-    setConfirmation(`Transferencia de ${formatCents(amountCents)} realizada.`)
+    const amount = parseCents(values.amount)!
+    await transfer.mutateAsync({ fromId: values.fromId, toId: values.toId, amount, description: values.description })
+    setConfirmation(`Transferencia de ${formatMoney(amount)} realizada.`)
     reset()
   }
 
@@ -51,7 +46,7 @@ export function TransferPage() {
                 <option value="">Selecciona una cuenta</option>
                 {accounts.data.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.name} · {formatCents(a.balance_cents)}
+                    {a.name} · {formatMoney(a.balance)}
                   </option>
                 ))}
               </select>
@@ -66,12 +61,12 @@ export function TransferPage() {
                 ))}
               </select>
             </Field>
-            <Field label="Importe (€)" error={errors.amount?.message} id="amount">
+            <Field label="Importe (USD)" error={errors.amount?.message} id="amount">
               <input
                 id="amount"
                 inputMode="decimal"
                 autoComplete="off"
-                placeholder="0,00"
+                placeholder="0.00"
                 {...register('amount')}
                 aria-invalid={!!errors.amount}
                 className={`${fieldClass} font-mono`}

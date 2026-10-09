@@ -4,13 +4,17 @@ import { TransactionRow } from '../components/TransactionRow'
 import { Amount, Card, PageHeader, QueryState } from '../components/ui'
 import { useAccounts, useTransactions } from '../hooks/queries'
 import { spendingByCategory } from '../lib/analytics'
-import { formatCents } from '../lib/money'
+import { CATEGORY_LABELS } from '../lib/labels'
+import { asCents, formatMoney } from '../lib/money'
 
 export function DashboardPage() {
   const accounts = useAccounts()
   const transactions = useTransactions()
-  const total = accounts.data?.reduce((sum, a) => sum + a.balance_cents, 0) ?? 0
-  const spending = spendingByCategory(transactions.data ?? [])
+  const total = asCents(accounts.data?.reduce((sum, a) => sum + a.balance, 0) ?? 0)
+  const spending = spendingByCategory(transactions.data ?? []).map((s) => ({
+    ...s,
+    label: CATEGORY_LABELS[s.category],
+  }))
   const accountNames = new Map(accounts.data?.map((a) => [a.id, a.name]))
 
   return (
@@ -27,7 +31,7 @@ export function DashboardPage() {
           {accounts.data.map((account) => (
             <Card key={account.id}>
               <p className="text-sm text-zinc-400">{account.name}</p>
-              <Amount cents={account.balance_cents} className="mt-1 block text-xl" />
+              <Amount cents={account.balance} className="mt-1 block text-xl" />
             </Card>
           ))}
           <Link
@@ -60,7 +64,7 @@ export function DashboardPage() {
                   <Tooltip
                     cursor={{ fill: '#17141f' }}
                     contentStyle={{ background: '#0e0c15', border: '1px solid #262132', borderRadius: 8 }}
-                    formatter={(value) => [formatCents(Number(value)), 'Gasto']}
+                    formatter={(value) => [formatMoney(asCents(Number(value))), 'Gasto']}
                   />
                   <Bar dataKey="cents" fill="#a78bfa" radius={[0, 6, 6, 0]} />
                 </BarChart>
@@ -79,7 +83,7 @@ export function DashboardPage() {
           <QueryState isLoading={transactions.isLoading} error={transactions.error} />
           <ul className="mt-2 divide-y divide-obsidian-700">
             {transactions.data?.slice(0, 6).map((t) => (
-              <TransactionRow key={t.id} transaction={t} accountName={accountNames.get(t.account_id)} />
+              <TransactionRow key={t.id} transaction={t} accountName={accountNames.get(t.accountId)} />
             ))}
           </ul>
         </Card>
