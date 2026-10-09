@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toAccount, toBudget, toCard, toTransaction } from '@/lib/mappers'
 import { supabase } from '@/lib/supabase'
-import type { Account, Budget, Cents, CreditCard, Transaction } from '@/types/bank'
+import type { Account, Budget, BudgetCategory, Cents, CreditCard, Transaction } from '@/types/bank'
 
 export const queryKeys = {
   accounts: ['accounts'] as const,
@@ -90,6 +90,21 @@ export function useUpdateBudget() {
   return useMutation({
     mutationFn: async ({ id, limit }: { readonly id: string; readonly limit: Cents }) => {
       const { error } = await supabase.from('budgets').update({ limit_cents: limit }).eq('id', id)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.budgets }),
+  })
+}
+
+export function useCreateBudget() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ category, limit }: { readonly category: BudgetCategory; readonly limit: Cents }) => {
+      // RLS only accepts rows for the signed-in user, so user_id must be the session's.
+      const { data } = await supabase.auth.getSession()
+      const userId = data.session?.user.id
+      if (!userId) throw new Error('not_authenticated')
+      const { error } = await supabase.from('budgets').insert({ user_id: userId, category, limit_cents: limit })
       if (error) throw new Error(error.message)
     },
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.budgets }),

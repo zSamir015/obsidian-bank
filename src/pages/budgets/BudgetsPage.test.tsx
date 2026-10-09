@@ -4,13 +4,20 @@ import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toBudget, toTransaction } from '@/lib/mappers'
 import { budgetRows, transactionRows } from '@/test/fixtures'
+import type { Cents } from '@/types/bank'
 import BudgetsPage from './BudgetsPage'
 
-const queries = vi.hoisted(() => ({ useBudgets: vi.fn(), useTransactions: vi.fn(), useUpdateBudget: vi.fn() }))
+const queries = vi.hoisted(() => ({
+  useBudgets: vi.fn(),
+  useTransactions: vi.fn(),
+  useUpdateBudget: vi.fn(),
+  useCreateBudget: vi.fn(),
+}))
 vi.mock('@/hooks/queries', () => queries)
 
 const ok = <T,>(data: T) => ({ data, isPending: false, isError: false, refetch: vi.fn() })
 const mutateAsync = vi.fn()
+const createAsync = vi.fn()
 const budgets = budgetRows.map(toBudget)
 
 beforeEach(() => {
@@ -18,6 +25,8 @@ beforeEach(() => {
   queries.useBudgets.mockReturnValue(ok(budgets))
   queries.useTransactions.mockReturnValue(ok(transactionRows.map(toTransaction)))
   queries.useUpdateBudget.mockReturnValue({ mutateAsync, isPending: false, error: null })
+  createAsync.mockReset().mockResolvedValue(undefined)
+  queries.useCreateBudget.mockReturnValue({ mutateAsync: createAsync, isPending: false, error: null })
 })
 
 const renderPage = () =>
@@ -77,5 +86,25 @@ describe('BudgetsPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent("Couldn't load your budgets.")
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
     expect(refetch).toHaveBeenCalled()
+  })
+})
+
+describe('BudgetsPage limits', () => {
+  it('says how far over budget a category is, as information rather than an error', () => {
+    queries.useBudgets.mockReturnValue(ok([{ ...budgets[0]!, limit: 100000 as Cents }, budgets[1]!]))
+    renderPage()
+    expect(within(row('Travel')).getByText(/Over by/)).toHaveTextContent('$125.30')
+    expect(within(row('Travel')).queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('sets a first budget for a category that has none', async () => {
+    renderPage()
+    await userEvent.click(within(row('Corporate')).getByRole('button', { name: 'Set budget' }))
+    const input = screen.getByRole('textbox', { name: 'Monthly limit for Corporate' })
+    expect(input).toHaveValue('')
+    await userEvent.type(input, '300')
+    await userEvent.click(screen.getByRole('button', { name: 'Save limit' }))
+    expect(createAsync).toHaveBeenCalledWith({ category: 'corporate', limit: 30000 })
+    expect(mutateAsync).not.toHaveBeenCalled()
   })
 })
