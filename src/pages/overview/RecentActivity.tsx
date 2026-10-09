@@ -1,11 +1,8 @@
 import { ButtonLink } from '@/components/ui/Button'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { SectionTitle } from '@/components/ui/Label'
-import { Money } from '@/components/ui/Money'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { Tag } from '@/components/ui/Tag'
-import { formatShortDate } from '@/lib/dates'
-import { CATEGORY_LABELS, STATUS_LABELS } from '@/lib/labels'
+import { TransactionRow } from '@/components/TransactionRow'
 import type { Account, Transaction } from '@/types/bank'
 import type { QueryView } from './query'
 
@@ -45,21 +42,11 @@ export function RecentActivity({
         ) : (
           <ul className="divide-y divide-hairline">
             {transactions.data?.slice(0, 6).map((t) => (
-              <li key={t.id} className="flex items-center justify-between gap-4 py-4">
-                <div className="min-w-0">
-                  <p className="truncate">{t.merchant}</p>
-                  <p className="mt-0.5 truncate text-sm text-muted">
-                    {formatShortDate(t.date)} · {CATEGORY_LABELS[t.category]}
-                    {accountNames.size > 1 && (
-                      <span className="hidden sm:inline"> · {accountNames.get(t.accountId)}</span>
-                    )}
-                  </p>
-                </div>
-                <div className="flex shrink-0 flex-col-reverse items-end gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-                  {t.status !== 'completed' && <Tag>{STATUS_LABELS[t.status]}</Tag>}
-                  <Money cents={t.amount} type={t.type} />
-                </div>
-              </li>
+              <TransactionRow
+                key={t.id}
+                transaction={t}
+                accountName={accountNames.size > 1 ? accountNames.get(t.accountId) : undefined}
+              />
             ))}
           </ul>
         )}

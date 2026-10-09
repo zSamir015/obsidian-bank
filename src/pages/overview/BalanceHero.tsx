@@ -1,5 +1,6 @@
 import { ButtonLink } from '@/components/ui/Button'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
+import { Glow } from '@/components/ui/Glow'
 import { Label } from '@/components/ui/Label'
 import { Money } from '@/components/ui/Money'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -20,11 +21,7 @@ export function BalanceHero({
 
   return (
     <section aria-labelledby="total-balance" className="relative isolate pt-4">
-      {/* The screen's single red element. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-24 -left-20 -z-10 size-[20rem] rounded-full bg-accent opacity-[0.1] blur-[90px] sm:-top-40 sm:-left-24 sm:size-[34rem] sm:opacity-[0.16] sm:blur-[120px]"
-      />
+      <Glow />
       <h1 id="total-balance">
         <Label as="span">Total balance</Label>
       </h1>
