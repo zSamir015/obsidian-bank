@@ -61,7 +61,7 @@ Apply the SQL in `supabase/migrations/` to your Supabase project, in order.
 
   The Supabase client is needed at startup to restore the session, so it stays in the initial bundle. The pre-redesign single bundle was 306 kB.
 
-- **The 3D card loads only on `/cards`.** three.js, React Three Fiber and Drei are a separate 235 kB (gzip) chunk requested by that page, and only when WebGL is available and the user has not asked for reduced motion; otherwise, or if the chunk fails or the WebGL context is lost, a static CSS card shows the same details.
+- **The 3D card loads only on `/cards`.** three.js, React Three Fiber and Drei are a separate 253 kB (gzip) chunk requested by that page, and only when WebGL is available and the user has not asked for reduced motion; otherwise, or if the chunk fails or the WebGL context is lost, a static CSS card shows the same details.
 
 - **Cards** only ever store the last four digits; never the full card number or CVV.
 
