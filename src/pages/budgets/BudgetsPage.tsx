@@ -5,11 +5,11 @@ import { Field, MoneyInput } from '@/components/ui/form'
 import { Money } from '@/components/ui/Money'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { useBudgets, useTransactions, useUpdateBudget } from '@/hooks/queries'
+import { useBudgets, useCreateBudget, useTransactions, useUpdateBudget } from '@/hooks/queries'
 import { NEAR_LIMIT_RATIO, spendingAgainstBudgets, type BudgetProgress } from '@/lib/analytics'
 import { CATEGORY_LABELS } from '@/lib/labels'
 import { asCents, parseCents, toAmountInput } from '@/lib/money'
-import type { Budget } from '@/types/bank'
+import type { Budget, Cents } from '@/types/bank'
 
 export default function BudgetsPage() {
   const budgets = useBudgets()
@@ -52,10 +52,13 @@ function BudgetRow({ row, budget }: { readonly row: BudgetProgress; readonly bud
   const titleId = useId()
   const label = CATEGORY_LABELS[row.category]
   const [editing, setEditing] = useState(false)
+  const update = useUpdateBudget()
+  const create = useCreateBudget()
   const near = row.ratio !== null && row.ratio >= NEAR_LIMIT_RATIO
+  const over = row.limit !== null && row.spent > row.limit
 
   return (
-    <li aria-labelledby={titleId} className="py-6">
+    <li aria-labelledby={titleId} className="py-4">
       <div className="flex items-baseline justify-between gap-4">
         <h2 id={titleId} className="font-medium">
           {label}
@@ -71,61 +74,74 @@ function BudgetRow({ row, budget }: { readonly row: BudgetProgress; readonly bud
         </span>
       </div>
 
-      {row.limit === null || row.ratio === null ? (
-        <p className="mt-2 text-sm text-muted">No budget</p>
-      ) : (
-        <>
+      {row.limit !== null && row.ratio !== null && (
+        <div
+          role="meter"
+          aria-label={`${label}: ${Math.round(row.ratio * 100)}% of budget`}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(row.ratio * 100)}
+          data-near-limit={near}
+          className="mt-2.5 h-1 overflow-hidden rounded-full bg-surface-2"
+        >
           <div
-            role="meter"
-            aria-label={`${label}: ${Math.round(row.ratio * 100)}% of budget`}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(row.ratio * 100)}
-            data-near-limit={near}
-            className="mt-3 h-1 overflow-hidden rounded-full bg-surface-2"
-          >
-            <div
-              className={`h-full rounded-full ${near ? 'bg-text' : 'bg-muted/50'}`}
-              style={{ width: `${Math.min(row.ratio, 1) * 100}%` }}
-            />
-          </div>
-          <div className="mt-3 flex items-center justify-between gap-4 text-sm">
-            {/* Going over is information, not an error: no amber here. */}
-            <p className={row.spent > row.limit ? 'text-text' : 'text-muted'}>
-              {row.spent > row.limit ? (
-                <>
-                  Over by <Money cents={asCents(row.spent - row.limit)} />
-                </>
-              ) : (
-                <>
-                  <Money cents={asCents(row.limit - row.spent)} /> left
-                </>
-              )}
-            </p>
-            {budget && !editing && (
-              <Button variant="ghost" className="-mr-4 h-9 px-4" onClick={() => setEditing(true)}>
-                Edit limit
-              </Button>
+            className={`h-full rounded-full ${near ? 'bg-text' : 'bg-muted/50'}`}
+            style={{ width: `${Math.min(row.ratio, 1) * 100}%` }}
+          />
+        </div>
+      )}
+
+      {editing ? (
+        <LimitForm
+          label={label}
+          initial={budget?.limit ?? null}
+          pending={update.isPending || create.isPending}
+          onSave={(limit) =>
+            budget
+              ? update.mutateAsync({ id: budget.id, limit })
+              : create.mutateAsync({ category: row.category, limit })
+          }
+          onDone={() => setEditing(false)}
+        />
+      ) : (
+        <div className="mt-1.5 flex items-center justify-between gap-4 text-sm">
+          {/* Going over is information, not an error: no amber here. */}
+          <p className={over ? 'text-text' : 'text-muted'}>
+            {row.limit === null ? (
+              'No budget'
+            ) : over ? (
+              <>
+                Over by <Money cents={asCents(row.spent - row.limit)} />
+              </>
+            ) : (
+              <>
+                <Money cents={asCents(row.limit - row.spent)} /> left
+              </>
             )}
-          </div>
-          {budget && editing && <LimitForm budget={budget} label={label} onDone={() => setEditing(false)} />}
-        </>
+          </p>
+          <Button variant="ghost" size="sm" className="-mr-4" onClick={() => setEditing(true)}>
+            {budget ? 'Edit limit' : 'Set budget'}
+          </Button>
+        </div>
       )}
     </li>
   )
 }
 
 function LimitForm({
-  budget,
   label,
+  initial,
+  pending,
+  onSave,
   onDone,
 }: {
-  readonly budget: Budget
   readonly label: string
+  readonly initial: Cents | null
+  readonly pending: boolean
+  readonly onSave: (limit: Cents) => Promise<unknown>
   readonly onDone: () => void
 }) {
-  const update = useUpdateBudget()
-  const [draft, setDraft] = useState(toAmountInput(budget.limit))
+  const [draft, setDraft] = useState(initial === null ? '' : toAmountInput(initial))
   const [error, setError] = useState<string>()
 
   async function save() {
@@ -135,7 +151,7 @@ function LimitForm({
       return
     }
     try {
-      await update.mutateAsync({ id: budget.id, limit })
+      await onSave(limit)
       onDone()
     } catch {
       setError("Couldn't save the limit. Check your connection and try again.")
@@ -145,7 +161,7 @@ function LimitForm({
   return (
     <form
       noValidate
-      className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-start"
+      className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start"
       onSubmit={(e) => {
         e.preventDefault()
         void save()
@@ -167,7 +183,7 @@ function LimitForm({
         </Field>
       </div>
       <div className="flex gap-2 sm:mt-7">
-        <Button type="submit" loading={update.isPending}>
+        <Button type="submit" loading={pending}>
           Save limit
         </Button>
         <Button variant="ghost" onClick={onDone}>
