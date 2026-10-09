@@ -1,35 +1,44 @@
-# React + TypeScript + Vite
+# Obsidian Bank
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> **Demo project — not a real bank.** No real money, accounts or cards are involved. Built as a portfolio piece.
 
-Currently, two official plugins are available:
+Personal banking app built with React 19, TypeScript and Supabase: accounts, cards, transactions, budgets and atomic server-side transfers. It is being rebuilt phase by phase; see [`docs/specs/`](docs/specs/).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Live demo: https://zsamir015.github.io/obsidian-bank/
 
-## React Compiler
+## Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Vite · React · TypeScript (strict) · Tailwind CSS v4 · React Router · TanStack React Query · Zod + React Hook Form · Recharts · Supabase (Postgres, Auth, Row Level Security, RPC) · Vitest + Testing Library + PGlite · ESLint · Prettier.
 
-## Expanding the Oxlint configuration
+## Getting started
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```sh
+npm install
+cp .env.example .env   # add your Supabase project URL and anon key
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Apply the SQL in `supabase/migrations/` to your Supabase project, in order.
+
+## Scripts
+
+| Script | What it does |
+| --- | --- |
+| `npm run dev` | Start the dev server |
+| `npm run build` | Typecheck and build for production |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript project build check |
+| `npm test` | Unit tests and database migration tests |
+| `npm run format` | Prettier |
+| `npm run notices` | Regenerate `THIRD_PARTY_NOTICES.md` |
+| `npm run db:types` | Regenerate Supabase types (needs `supabase login`) |
+
+## Implementation notes
+
+- **Money** is stored and handled as integer cents. Amounts are always positive; a transaction's `type` (`debit` / `credit`) gives its direction.
+- **Simplified balances.** An account's balance is the sum of all its transactions, including `pending` and `flagged` ones. A real bank would separate the posted balance from the available balance and hold pending charges apart; this demo keeps a single balance.
+- **Migration tests run on PGlite.** `supabase/tests/` applies every migration to [PGlite](https://pglite.dev/) (Postgres compiled to WebAssembly, in memory) with a small stub of Supabase's `auth` schema and API roles. That checks constraints, Row Level Security, the transfer function and the demo data without Docker or a live database. It is close to Supabase but not identical, so migrations are still reviewed before being applied to production.
+- **Cards** only ever store the last four digits; never the full card number or CVV.
 
 ## License
 
