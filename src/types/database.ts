@@ -170,6 +170,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      freeze_card: { Args: { p_card_id: string; p_frozen: boolean }; Returns: boolean }
       seed_demo_data: { Args: { p_user_id: string }; Returns: undefined }
       transfer_funds: {
         Args: {
@@ -179,6 +180,10 @@ export type Database = {
           p_to: string
         }
         Returns: string
+      }
+      update_card_limit: {
+        Args: { p_card_id: string; p_new_limit_cents: number }
+        Returns: number
       }
     }
     Enums: {
