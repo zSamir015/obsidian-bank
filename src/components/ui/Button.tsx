@@ -3,9 +3,10 @@ import type { ButtonHTMLAttributes } from 'react'
 import { Link, type LinkProps } from 'react-router'
 
 type Variant = 'primary' | 'secondary' | 'ghost'
+type Size = 'md' | 'sm' | 'icon'
 
 const base =
-  'inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-50'
+  'inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-50 [&>svg]:shrink-0'
 
 const variants: Record<Variant, string> = {
   primary: 'bg-text text-bg hover:bg-zinc-200 active:bg-zinc-300',
@@ -13,15 +14,29 @@ const variants: Record<Variant, string> = {
   ghost: 'text-muted hover:bg-surface-2 hover:text-text',
 }
 
-const buttonClass = (variant: Variant = 'primary', className = '') => `${base} ${variants[variant]} ${className}`
+// Tailwind resolves conflicting utilities by stylesheet order, not class order: change a
+// button's dimensions through `size`, never by passing height or padding in className.
+const sizes: Record<Size, string> = {
+  md: 'h-11 px-5',
+  sm: 'h-9 px-4',
+  icon: 'size-10',
+}
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface Styling {
   readonly variant?: Variant
+  readonly size?: Size
+}
+
+const buttonClass = ({ variant = 'primary', size = 'md', className = '' }: Styling & { className?: string }) =>
+  `${base} ${sizes[size]} ${variants[variant]} ${className}`
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, Styling {
   readonly loading?: boolean
 }
 
 export function Button({
   variant,
+  size,
   loading = false,
   disabled,
   className,
@@ -34,7 +49,7 @@ export function Button({
       type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={buttonClass(variant, className)}
+      className={buttonClass({ variant, size, className })}
       {...props}
     >
       {loading && <LoaderCircle aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" />}
@@ -43,6 +58,6 @@ export function Button({
   )
 }
 
-export function ButtonLink({ variant, className, ...props }: LinkProps & { readonly variant?: Variant }) {
-  return <Link className={buttonClass(variant, className)} {...props} />
+export function ButtonLink({ variant, size, className, ...props }: LinkProps & Styling) {
+  return <Link className={buttonClass({ variant, size, className })} {...props} />
 }
