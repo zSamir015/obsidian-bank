@@ -7,7 +7,8 @@ import { accountRows } from '@/test/fixtures'
 import TransferPage from './TransferPage'
 
 const queries = vi.hoisted(() => ({ useAccounts: vi.fn(), useTransfer: vi.fn() }))
-vi.mock('@/hooks/queries', () => queries)
+vi.mock('@/hooks/accountQueries', () => ({ useAccounts: queries.useAccounts }))
+vi.mock('@/hooks/transferQueries', () => ({ useTransfer: queries.useTransfer }))
 
 const mutateAsync = vi.fn()
 const accounts = accountRows.map(toAccount)

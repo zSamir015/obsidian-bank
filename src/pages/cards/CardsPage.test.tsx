@@ -8,7 +8,7 @@ import type { CreditCard } from '@/types/bank'
 import CardsPage from './CardsPage'
 
 const queries = vi.hoisted(() => ({ useCards: vi.fn(), useFreezeCard: vi.fn(), useUpdateCardLimit: vi.fn() }))
-vi.mock('@/hooks/queries', () => queries)
+vi.mock('@/hooks/cardQueries', () => queries)
 // The visual is covered in CardVisual.test.tsx; here it only reports what it was given.
 vi.mock('./CardVisual', () => ({
   CardVisual: ({ card, face }: { card: CreditCard; face: string }) => (
