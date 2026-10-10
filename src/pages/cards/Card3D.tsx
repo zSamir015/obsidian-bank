@@ -1,228 +1,299 @@
-import { Environment, Lightformer } from '@react-three/drei'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
-import {
-  CanvasTexture,
-  DataTexture,
-  LinearFilter,
-  LinearMipmapLinearFilter,
-  RepeatWrapping,
-  Shape,
-  ShapeGeometry,
-  SRGBColorSpace,
-  Vector2,
-  type Group,
-} from 'three'
-import { CARD_TIER_LABELS } from '@/lib/labels'
+import { PerspectiveCamera } from '@react-three/drei'
+import { Canvas, useFrame, useThree, type RootState } from '@react-three/fiber'
+import { useDrag } from '@use-gesture/react'
+import { damp } from 'maath/easing'
+import { useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode, type Ref } from 'react'
+import { Shape, ShapeGeometry, Vector2, type Group } from 'three'
 import type { CreditCard } from '@/types/bank'
+import { drawBack, drawFront, useArtTexture, useGrainNormalMap } from './cardArt'
 import { CARD_ASPECT, FINISH } from './finish'
+import {
+  ENTRY_MS,
+  IDLE_START_MS,
+  clampTilt,
+  entryAngle,
+  faceAt,
+  hasPlayedEntry,
+  idlePhase,
+  markEntryPlayed,
+  settleTarget,
+  turntableOffset,
+  type Face,
+} from './motion'
+import { ContactShadow, Studio } from './Studio'
+import { useRenderGate } from './useRenderGate'
 
 export interface Card3DProps {
   readonly card: CreditCard
+  readonly face: Face
+  /** Reports the face the card settled on after a drag. */
+  readonly onFaceChange: (face: Face) => void
   /** Called when the WebGL context is lost; the parent switches to the static card. */
   readonly onFailure: () => void
-}
-
-interface Tilt {
-  x: number
-  y: number
 }
 
 const WIDTH = 3.2
 const HEIGHT = WIDTH / CARD_ASPECT
 const RADIUS = WIDTH * (3.18 / 85.6) // ISO/IEC 7810 corner radius, scaled
-const DEPTH = 0.03
-const BEVEL = 0.006
+const DEPTH = 0.06 // about twice a plastic card: a metal card that reads in 3D
+const BEVEL = 0.01
 const FACE_Z = DEPTH / 2 + BEVEL + 0.0008
-const MAX_TILT = (9 * Math.PI) / 180 // 9° each way: enough to sweep the reflections, no visible perspective warp
-const TOUCH_THRESHOLD = 8 // px of horizontal drag before a touch starts tilting
-// Face texture: 2048px wide, over 2× the largest on-screen card (520 CSS px × dpr 2 = 1040px).
-const FACE_LAYOUT_WIDTH = 1024
-const FACE_SCALE = 2
+const LIFT = 0.15 // the card hovers a little above the stage centre, over its shadow
+const FOV = 26 // product-photo lens: little perspective distortion
+
+// Spring feel (maath smooth damp: critically damped, no bounce).
+const DRAG_SMOOTH = 0.07 // follows the pointer closely
+const SETTLE_SMOOTH = 0.22 // ~0.8 s ease-out into the nearest face
+const TURNTABLE_SMOOTH = 0.6 // trails the slow swing so it starts and ends softly
+const FLOAT_AMPLITUDE = 0.04
+const FLOAT_SPEED = 0.9 // radians of float phase per second
+
+const GRAIN_STRENGTH = new Vector2(0.035, 0.035)
+
+/** What the page can ask of the presented card. */
+interface PresentationHandle {
+  dragStart(): void
+  dragMove(dxPixels: number, dyPixels: number, widthPixels: number): void
+  /** `velocity` in pixels per millisecond, signed. */
+  dragEnd(velocity: number, widthPixels: number): void
+  showFace(face: Face): void
+  /** Counts as an interaction: pauses the turntable and lets it resume after a short idle. */
+  wake(): void
+}
 
 /**
- * Procedural 3D card. Tilts toward the pointer with inertia and settles back when it
- * leaves. Pointer input is kept in refs and applied in useFrame: React never re-renders
- * while the card moves, and with frameloop="demand" frames are drawn only until it settles.
+ * The card as a product on a studio set. Drag to turn it (free around Y, limited tilt);
+ * on release it settles on the nearest face. At rest it floats and slowly swings, then stops
+ * after ~30 s. Motion is applied in useFrame: React never re-renders per frame, and with
+ * frameloop="demand" frames are only drawn while something moves.
  */
-export default function Card3D({ card, onFailure }: Card3DProps) {
-  const target = useRef<Tilt>({ x: 0, y: 0 })
-  const invalidate = useRef<() => void>(() => {})
-  const touch = useRef<{ x: number; y: number; tilting: boolean } | null>(null)
+export default function Card3D({ card, face, onFaceChange, onFailure }: Card3DProps) {
+  const container = useRef<HTMLDivElement>(null)
+  const presentation = useRef<PresentationHandle>(null)
+  const scene = useRef<Pick<RootState, 'setFrameloop'> | null>(null)
+  const active = useRenderGate(container)
+  const [playEntry] = useState(() => !hasPlayedEntry())
+  const [shadowReady, setShadowReady] = useState(!playEntry)
 
-  function aim(event: React.PointerEvent<HTMLDivElement>) {
-    const rect = event.currentTarget.getBoundingClientRect()
-    const nx = ((event.clientX - rect.left) / rect.width) * 2 - 1
-    const ny = ((event.clientY - rect.top) / rect.height) * 2 - 1
-    target.current = { x: ny * MAX_TILT, y: nx * MAX_TILT }
-    invalidate.current()
-  }
+  useEffect(() => {
+    if (playEntry) markEntryPlayed()
+  }, [playEntry])
 
-  function settle() {
-    touch.current = null
-    target.current = { x: 0, y: 0 }
-    invalidate.current()
-  }
+  // The "Show back / Show front" button.
+  useEffect(() => presentation.current?.showFace(face), [face])
+
+  // Render only while on screen and in the foreground; coming back resumes the turntable.
+  useEffect(() => {
+    scene.current?.setFrameloop(active ? 'demand' : 'never')
+    if (active) presentation.current?.wake()
+  }, [active])
+
+  const bind = useDrag(
+    ({ first, last, movement: [mx, my], velocity: [vx], direction: [dx] }) => {
+      const width = container.current?.clientWidth || 1
+      if (first) presentation.current?.dragStart()
+      presentation.current?.dragMove(mx, my, width)
+      if (last) presentation.current?.dragEnd(vx * dx, width)
+    },
+    { filterTaps: true },
+  )
 
   return (
     <div
+      ref={container}
+      {...bind()}
       data-card-visual="3d"
       data-frozen={card.isFrozen}
+      data-face={face}
       aria-hidden="true"
-      // Vertical swipes keep scrolling the page; only a horizontal drag tilts the card.
-      className="aspect-[85.6/53.98] w-full max-w-[520px] touch-pan-y"
-      onPointerDown={(e) => {
-        if (e.pointerType === 'touch') touch.current = { x: e.clientX, y: e.clientY, tilting: false }
-      }}
-      onPointerMove={(e) => {
-        if (e.pointerType !== 'touch') return aim(e)
-        const start = touch.current
-        if (!start) return
-        const dx = e.clientX - start.x
-        const dy = e.clientY - start.y
-        if (!start.tilting && Math.abs(dx) > TOUCH_THRESHOLD && Math.abs(dx) > Math.abs(dy)) start.tilting = true
-        if (start.tilting) aim(e)
-      }}
-      onPointerLeave={settle}
-      onPointerUp={(e) => e.pointerType === 'touch' && settle()}
-      onPointerCancel={settle}
+      // Vertical swipes keep scrolling the page; horizontal drags turn the card.
+      className="h-full w-full cursor-grab touch-pan-y select-none active:cursor-grabbing"
     >
       <Canvas
         dpr={[1, 2]}
         frameloop="demand"
-        camera={{ position: [0, 0, 3.9], fov: 35 }}
-        // Transparent: the page background shows around the card, no box.
         gl={{ antialias: true, alpha: true, powerPreference: 'low-power' }}
-        onCreated={({ gl, invalidate: requestFrame }) => {
+        onCreated={({ gl, invalidate, setFrameloop }) => {
           gl.setClearColor(0x000000, 0)
-          invalidate.current = requestFrame
+          scene.current = { setFrameloop }
           gl.domElement.addEventListener('webglcontextlost', (event) => {
             event.preventDefault()
             onFailure()
           })
+          invalidate()
         }}
       >
-        <Reflections />
-        {/* No point-like key light: on the clearcoat it reads as a blown-out spot. The strips light the card. */}
-        <ambientLight intensity={0.3} />
-        {/* A trace of red on the left edge; the red flash itself is a reflection (see Reflections). */}
-        <pointLight position={[-2.6, 1.4, 0.8]} color="#ff2a3b" intensity={card.isFrozen ? 1 : 2} distance={7} />
-        <CardMesh card={card} target={target} />
+        <ProductCamera />
+        <Studio isFrozen={card.isFrozen} />
+        <Presentation
+          ref={presentation}
+          initialFace={face}
+          playEntry={playEntry}
+          onEntryDone={() => setShadowReady(true)}
+          onFaceSettled={onFaceChange}
+        >
+          <CardBody card={card} />
+        </Presentation>
+        {shadowReady && <ContactShadow y={LIFT - HEIGHT / 2 - 0.45} width={WIDTH} />}
       </Canvas>
     </div>
   )
 }
 
-/**
- * Studio reflections built in code (no HDR files). The environment stays still while the
- * card rotates, so reflections slide across the clearcoat when it tilts.
- *
- * A glossy face pointing at the camera mirrors what is behind the camera (z > 0), and a
- * 9° tilt swings that reflected direction by about ±18°. So everything meant to cross the
- * face sits behind the camera, within that cone:
- * - a large, very dim panel that keeps the body from reading as a hole;
- * - a soft diagonal strip, visible at rest, that sweeps across on tilt;
- * - a red strip about 31° to the side: just off the face at rest, it crosses the card as a
- *   diagonal flash when tilted. It is the screen's single red accent (with a trace of rim light).
- * The two side strips only catch the bevel, outlining the card's edge.
- */
-function Reflections() {
-  return (
-    <Environment resolution={256} frames={1}>
-      <Lightformer form="rect" intensity={0.15} position={[0, 0, 6]} scale={[24, 24, 1]} />
-      <SoftStrip position={[-0.3, 0.4, 5]} angle={-0.55} length={16} width={0.9} intensity={2.4} />
-      <SoftStrip position={[3, -0.2, 5]} angle={0.35} length={9} width={0.8} intensity={4} color="#ff2a3b" />
-      <Lightformer form="rect" intensity={0.8} position={[-5, 0, 2.5]} scale={[0.4, 6, 1]} />
-      <Lightformer form="rect" intensity={0.6} position={[5, 0, 2.5]} scale={[0.4, 6, 1]} />
-    </Environment>
-  )
+/** A long lens framing the card like a product shot, filling a set share of the stage. */
+function ProductCamera() {
+  const size = useThree((state) => state.size)
+  const share = size.width < 640 ? 0.88 : 0.55
+  const visibleHeight = Math.max(WIDTH / share / (size.width / Math.max(size.height, 1)), HEIGHT / 0.7)
+  const distance = visibleHeight / 2 / Math.tan((FOV * Math.PI) / 360)
+  return <PerspectiveCamera makeDefault fov={FOV} position={[0, 0, distance]} />
 }
 
-/**
- * A strip with a soft falloff: three overlapping Lightformers, narrow and bright to wide and
- * dim, so the reflection on the glossy clearcoat has no hard edges. Passing `rotation`
- * keeps Lightformer from pointing itself at the origin (it would discard the angle).
- */
-function SoftStrip({
-  position,
-  angle,
-  length,
-  width,
-  intensity,
-  color = '#ffffff',
+interface Motion {
+  targetY: number
+  targetX: number
+  dragging: boolean
+  dragStart: { x: number; y: number }
+  settledFace: Face
+  lastInteraction: number
+  turntableStart: number | null
+  /** -1: entrance pending (starts on the first frame); null: no entrance. */
+  entryStart: number | null
+  floatPhase: number
+}
+
+function Presentation({
+  ref,
+  initialFace,
+  playEntry,
+  onEntryDone,
+  onFaceSettled,
+  children,
 }: {
-  readonly position: [number, number, number]
-  readonly angle: number
-  readonly length: number
-  readonly width: number
-  readonly intensity: number
-  readonly color?: string
+  readonly ref: Ref<PresentationHandle>
+  readonly initialFace: Face
+  readonly playEntry: boolean
+  readonly onEntryDone: () => void
+  readonly onFaceSettled: (face: Face) => void
+  readonly children: ReactNode
 }) {
-  return (
-    <>
-      {[
-        [0.35, 0.5],
-        [0.7, 0.3],
-        [1.4, 0.2],
-      ].map(([w, share]) => (
-        <Lightformer
-          key={w}
-          form="rect"
-          color={color}
-          intensity={intensity * share!}
-          position={position}
-          rotation={[0, 0, angle]}
-          scale={[w! * width, length, 1]}
-        />
-      ))}
-    </>
-  )
-}
+  const turn = useRef<Group>(null)
+  const float = useRef<Group>(null)
+  const invalidate = useThree((state) => state.invalidate)
+  const idleTimer = useRef(0)
+  const motion = useRef<Motion>({
+    targetY: initialFace === 'back' ? Math.PI : 0,
+    targetX: 0,
+    dragging: false,
+    dragStart: { x: 0, y: 0 },
+    settledFace: initialFace,
+    lastInteraction: 0,
+    turntableStart: null,
+    entryStart: playEntry ? -1 : null,
+    floatPhase: 0,
+  })
 
-/**
- * Fine volcanic-glass grain: a tiny tangent-space normal map from seeded value noise,
- * generated in code (no image files). Mipmapped and anisotropic, so it fades instead of
- * shimmering when the card is small or tilted; it only reads up close.
- */
-function useGrainNormalMap(anisotropy: number) {
-  const texture = useMemo(() => {
-    const size = 256
-    let seed = 0x9e3779b9
-    const random = () => {
-      seed = (seed + 0x6d2b79f5) | 0
-      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  useEffect(() => () => window.clearTimeout(idleTimer.current), [])
+
+  useImperativeHandle(ref, () => {
+    const wake = () => {
+      const m = motion.current
+      m.lastInteraction = performance.now()
+      m.turntableStart = null
+      window.clearTimeout(idleTimer.current)
+      idleTimer.current = window.setTimeout(invalidate, IDLE_START_MS + 20)
+      invalidate()
     }
-    const noise = Float32Array.from({ length: size * size }, random)
-    const height = (x: number, y: number) => noise[((y + size) % size) * size + ((x + size) % size)]!
-    const data = new Uint8Array(size * size * 4)
-    for (let y = 0; y < size; y++) {
-      for (let x = 0; x < size; x++) {
-        const dx = height(x + 1, y) - height(x - 1, y)
-        const dy = height(x, y + 1) - height(x, y - 1)
-        const i = (y * size + x) * 4
-        data[i] = Math.round((dx * 0.5 + 0.5) * 255)
-        data[i + 1] = Math.round((dy * 0.5 + 0.5) * 255)
-        data[i + 2] = 255
-        data[i + 3] = 255
+    return {
+      wake,
+      dragStart() {
+        const m = motion.current
+        const g = turn.current
+        m.dragging = true
+        m.entryStart = null
+        m.dragStart = { x: g?.rotation.x ?? 0, y: g?.rotation.y ?? m.targetY }
+        wake()
+      },
+      dragMove(dxPixels, dyPixels, widthPixels) {
+        const m = motion.current
+        const radiansPerPixel = Math.PI / widthPixels
+        m.targetY = m.dragStart.y + dxPixels * radiansPerPixel
+        m.targetX = clampTilt(m.dragStart.x + dyPixels * radiansPerPixel)
+        wake()
+      },
+      dragEnd(velocity, widthPixels) {
+        const m = motion.current
+        m.dragging = false
+        m.targetX = 0
+        m.targetY = settleTarget(m.targetY, velocity * 1000 * (Math.PI / widthPixels))
+        const settled = faceAt(m.targetY)
+        if (settled !== m.settledFace) {
+          m.settledFace = settled
+          onFaceSettled(settled)
+        }
+        wake()
+      },
+      showFace(face) {
+        const m = motion.current
+        if (m.settledFace === face) return
+        m.settledFace = face
+        m.targetY += Math.PI // always turn forward
+        m.entryStart = null
+        wake()
+      },
+    }
+  }, [invalidate, onFaceSettled])
+
+  useFrame((state, delta) => {
+    const m = motion.current
+    const g = turn.current
+    const f = float.current
+    if (!g || !f) return
+    const now = performance.now()
+    let moving = false
+
+    if (m.entryStart !== null) {
+      // Entrance: from edge-on to facing front, on an exact ease-out curve.
+      if (m.entryStart < 0) m.entryStart = now
+      const elapsed = now - m.entryStart
+      g.rotation.set(0, m.targetY + entryAngle(elapsed), 0)
+      moving = true
+      if (elapsed >= ENTRY_MS) {
+        m.entryStart = null
+        m.lastInteraction = now
+        onEntryDone()
+      }
+    } else {
+      const phase = m.dragging ? 'waiting' : idlePhase(now - m.lastInteraction)
+      let offset = 0
+      if (phase === 'turning') {
+        m.turntableStart ??= now
+        offset = turntableOffset(now - m.turntableStart)
+        moving = true
+      }
+      const smooth = m.dragging ? DRAG_SMOOTH : phase === 'turning' ? TURNTABLE_SMOOTH : SETTLE_SMOOTH
+      const turningY = damp(g.rotation, 'y', m.targetY + offset, smooth, delta)
+      const turningX = damp(g.rotation, 'x', m.targetX, m.dragging ? DRAG_SMOOTH : SETTLE_SMOOTH, delta)
+      moving ||= turningY || turningX || m.dragging
+      // Float pauses while dragging and stops with the turntable; its phase only advances
+      // while active, so it resumes where it left off instead of jumping.
+      if (!m.dragging && phase !== 'stopped') {
+        m.floatPhase += delta * FLOAT_SPEED
+        moving = true
       }
     }
-    const map = new DataTexture(data, size, size)
-    map.wrapS = map.wrapT = RepeatWrapping
-    map.repeat.set(5, 3)
-    map.generateMipmaps = true
-    map.minFilter = LinearMipmapLinearFilter
-    map.magFilter = LinearFilter
-    map.anisotropy = anisotropy
-    map.needsUpdate = true
-    return map
-  }, [anisotropy])
-  useEffect(() => () => texture.dispose(), [texture])
-  return texture
-}
+    f.position.y = LIFT + FLOAT_AMPLITUDE * Math.sin(m.floatPhase)
+    if (moving) state.invalidate()
+  })
 
-const GRAIN_STRENGTH = new Vector2(0.035, 0.035)
+  return (
+    <group ref={float} position={[0, LIFT, 0]}>
+      <group ref={turn} rotation={[0, initialFace === 'back' ? Math.PI : 0, 0]}>
+        {children}
+      </group>
+    </group>
+  )
+}
 
 function roundedRectShape(width: number, height: number, radius: number) {
   const x = -width / 2
@@ -240,14 +311,13 @@ function roundedRectShape(width: number, height: number, radius: number) {
   return shape
 }
 
-function CardMesh({ card, target }: { readonly card: CreditCard; readonly target: RefObject<Tilt> }) {
-  const group = useRef<Group>(null)
-  const face = useCardFace(card)
+function CardBody({ card }: { readonly card: CreditCard }) {
+  const front = useArtTexture(drawFront, card)
+  const back = useArtTexture(drawBack, card)
+  const grain = useGrainNormalMap()
   const finish = FINISH[card.tier]
-  const maxAnisotropy = useThree((state) => state.gl.capabilities.getMaxAnisotropy())
-  const grain = useGrainNormalMap(maxAnisotropy)
   const shape = useMemo(() => roundedRectShape(WIDTH, HEIGHT, RADIUS), [])
-  // Same rounded outline for the printed face, with UVs mapped 0..1 so the texture fits it.
+  // The printed faces share the body's rounded outline, with UVs mapped 0..1.
   const faceGeometry = useMemo(() => {
     const geometry = new ShapeGeometry(shape, 24)
     const position = geometry.attributes.position!
@@ -259,18 +329,8 @@ function CardMesh({ card, target }: { readonly card: CreditCard; readonly target
   }, [shape])
   useEffect(() => () => faceGeometry.dispose(), [faceGeometry])
 
-  useFrame((state, delta) => {
-    const g = group.current
-    if (!g) return
-    const ease = 1 - Math.exp(-delta * 6) // frame-rate independent inertia
-    g.rotation.x += (target.current.x - g.rotation.x) * ease
-    g.rotation.y += (target.current.y - g.rotation.y) * ease
-    const moving = Math.abs(target.current.x - g.rotation.x) > 1e-4 || Math.abs(target.current.y - g.rotation.y) > 1e-4
-    if (moving) state.invalidate()
-  })
-
   return (
-    <group ref={group}>
+    <group>
       <mesh position={[0, 0, -DEPTH / 2]}>
         <extrudeGeometry
           args={[
@@ -285,9 +345,9 @@ function CardMesh({ card, target }: { readonly card: CreditCard; readonly target
             },
           ]}
         />
-        {/* High, smooth clearcoat: reflections read as light on polished glass. The grain sits
-            under it, in the base layer, so it only shows up close. */}
+        {/* Group 0: both faces. Polished volcanic glass: high, smooth clearcoat over the grain. */}
         <meshPhysicalMaterial
+          attach="material-0"
           color={card.isFrozen ? finish.frozenBase : finish.base}
           roughness={card.isFrozen ? finish.roughness + 0.15 : finish.roughness}
           metalness={finish.metalness}
@@ -297,115 +357,26 @@ function CardMesh({ card, target }: { readonly card: CreditCard; readonly target
           clearcoatRoughness={card.isFrozen ? 0.16 : 0.1}
           envMapIntensity={card.isFrozen ? 0.7 : 1}
         />
+        {/* Group 1: the edge, brushed metal in the tier's tone. */}
+        <meshPhysicalMaterial
+          attach="material-1"
+          color={finish.edge}
+          metalness={0.9}
+          roughness={0.3}
+          clearcoat={0.3}
+          envMapIntensity={1.1}
+        />
       </mesh>
-      {face && (
+      {front && (
         <mesh geometry={faceGeometry} position={[0, 0, FACE_Z]}>
-          <meshBasicMaterial map={face} transparent toneMapped={false} />
+          <meshBasicMaterial map={front} transparent toneMapped={false} />
+        </mesh>
+      )}
+      {back && (
+        <mesh geometry={faceGeometry} position={[0, 0, -FACE_Z]} rotation={[0, Math.PI, 0]}>
+          <meshBasicMaterial map={back} transparent toneMapped={false} />
         </mesh>
       )}
     </group>
   )
-}
-
-/** Card face text drawn once per card change, after Geist has loaded. */
-function useCardFace(card: CreditCard) {
-  const [texture, setTexture] = useState<CanvasTexture | null>(null)
-  const invalidate = useThree((state) => state.invalidate)
-  const maxAnisotropy = useThree((state) => state.gl.capabilities.getMaxAnisotropy())
-  const { tier, last4, cardHolder, expiry, isFrozen } = card
-
-  useEffect(() => {
-    let cancelled = false
-    let created: CanvasTexture | null = null
-    void (async () => {
-      await document.fonts.ready
-      await Promise.all([document.fonts.load('500 64px Geist'), document.fonts.load('400 64px "Geist Mono"')]).catch(
-        () => {},
-      )
-      if (cancelled) return
-      created = new CanvasTexture(drawFace({ tier, last4, cardHolder, expiry, isFrozen }))
-      created.colorSpace = SRGBColorSpace
-      created.anisotropy = maxAnisotropy
-      setTexture(created)
-      invalidate()
-    })()
-    return () => {
-      cancelled = true
-      created?.dispose()
-    }
-  }, [tier, last4, cardHolder, expiry, isFrozen, invalidate, maxAnisotropy])
-
-  return texture
-}
-
-function drawFace(card: Pick<CreditCard, 'tier' | 'last4' | 'cardHolder' | 'expiry' | 'isFrozen'>) {
-  // Laid out on a 1024-wide grid and rendered at FACE_SCALE for sharp text.
-  const width = FACE_LAYOUT_WIDTH
-  const height = Math.round(width / CARD_ASPECT)
-  const canvas = document.createElement('canvas')
-  canvas.width = width * FACE_SCALE
-  canvas.height = height * FACE_SCALE
-  const ctx = canvas.getContext('2d')!
-  ctx.scale(FACE_SCALE, FACE_SCALE)
-  const pad = 64
-  const ink = card.isFrozen ? 'rgba(255,255,255,0.55)' : '#ffffff'
-  const muted = 'rgba(161,161,170,0.95)'
-
-  // Obsidian mark: the shard from the logo, then the wordmark.
-  ctx.strokeStyle = ink
-  ctx.lineWidth = 3
-  ctx.lineJoin = 'round'
-  ctx.beginPath()
-  ctx.moveTo(pad + 18, pad)
-  ctx.lineTo(pad + 36, pad + 13)
-  ctx.lineTo(pad + 29, pad + 44)
-  ctx.lineTo(pad + 7, pad + 44)
-  ctx.lineTo(pad, pad + 13)
-  ctx.closePath()
-  ctx.stroke()
-  ctx.fillStyle = ink
-  ctx.font = '500 34px Geist, sans-serif'
-  ctx.textBaseline = 'middle'
-  ctx.fillText('Obsidian', pad + 56, pad + 23)
-
-  ctx.fillStyle = muted
-  ctx.font = '500 26px Geist, sans-serif'
-  ctx.textAlign = 'right'
-  ctx.fillText(CARD_TIER_LABELS[card.tier].toUpperCase(), width - pad, pad + 23)
-
-  ctx.textAlign = 'left'
-  ctx.fillStyle = ink
-  ctx.font = '400 54px "Geist Mono", monospace'
-  ctx.fillText(`•••• ${card.last4}`, pad, height - pad - 92)
-
-  ctx.fillStyle = muted
-  ctx.font = '500 26px Geist, sans-serif'
-  ctx.fillText(card.cardHolder.toUpperCase(), pad, height - pad - 10)
-  ctx.textAlign = 'right'
-  ctx.font = '400 26px "Geist Mono", monospace'
-  ctx.fillText(card.expiry, width - pad, height - pad - 10)
-
-  if (card.isFrozen) {
-    // Frost hatch, like the static card: dark, thin lines veil the face without brightening
-    // it, so a frozen card never reads lighter than an active one and reflections show through.
-    ctx.save()
-    ctx.strokeStyle = 'rgba(0,0,0,0.22)'
-    ctx.lineWidth = 6
-    for (let x = -height; x < width; x += 28) {
-      ctx.beginPath()
-      ctx.moveTo(x, height)
-      ctx.lineTo(x + height, 0)
-      ctx.stroke()
-    }
-    ctx.restore()
-    ctx.textAlign = 'center'
-    ctx.fillStyle = 'rgba(5,5,5,0.55)'
-    ctx.beginPath()
-    ctx.roundRect(width / 2 - 120, height / 2 - 36, 240, 72, 36)
-    ctx.fill()
-    ctx.fillStyle = '#ffffff'
-    ctx.font = '500 28px Geist, sans-serif'
-    ctx.fillText('FROZEN', width / 2, height / 2 + 2)
-  }
-  return canvas
 }

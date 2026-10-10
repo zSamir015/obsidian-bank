@@ -71,10 +71,12 @@ Apply the SQL in `supabase/migrations/` to your Supabase project, in order.
 
 1. **Route chunk.** `/cards` is a lazy route like every page; its chunk (~4 kB gzip) holds the page, the controls and the static card.
 2. **Capability check.** On mount, `CardVisual` runs the 3D card only if the browser has WebGL and the user has not asked for reduced motion.
-3. **3D chunk.** Only then does `React.lazy` request the 3D chunk: three.js, React Three Fiber and Drei, 253 kB gzip. While it downloads, the static CSS card is shown in its place, so the layout does not move.
+3. **3D chunk.** Only then does `React.lazy` request the 3D chunk: three.js, React Three Fiber, Drei, @use-gesture and maath, 273 kB gzip in the build output. While it downloads, the static CSS card is shown in its place, so the layout does not move.
 4. **Fallbacks.** An error boundary switches to the static card if the chunk fails to load, and so does a lost WebGL context (`webglcontextlost`). The static card shows the same details: tier, last four digits, holder, expiry and frozen state.
 
-Inside the 3D card, `frameloop="demand"` draws frames only while the card moves, pointer input lives in refs and is applied in `useFrame` (no React re-render per pointer move), `dpr` is capped at 2, reflections come from Lightformers built in code (no HDR files), and the card face is a canvas texture drawn after the web fonts load. On touch screens a vertical swipe keeps scrolling; tilting starts after a short horizontal drag. Freeze and limit controls are regular HTML, outside the canvas, which is marked decorative.
+The card is presented like a product on a studio set: drag it to turn it (free around the vertical axis, limited tilt) and on release it settles on the nearest face; "Show back / Show front" turns it with the keyboard too. At rest it floats and swings slowly, and stops after about 30 seconds without interaction. The entrance from edge-on plays once per session.
+
+Inside the 3D card, `frameloop="demand"` draws frames only while something moves, and the frame loop stops entirely while the card is off screen or the tab is in the background. Drag input is applied in `useFrame` (no React re-render per pointer move), with critically damped easing from maath (no bounce). `dpr` is capped at 2, reflections come from Lightformers built in code (no HDR files), the contact shadow is baked once, and both faces are canvas textures drawn after the web fonts load. On touch screens a vertical swipe keeps scrolling; a horizontal drag turns the card. With reduced motion the static card is shown and changes face instantly. Freeze and limit controls are regular HTML, outside the canvas, which is marked decorative.
 
 ## License
 

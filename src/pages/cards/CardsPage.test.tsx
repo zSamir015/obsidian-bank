@@ -11,8 +11,8 @@ const queries = vi.hoisted(() => ({ useCards: vi.fn(), useFreezeCard: vi.fn(), u
 vi.mock('@/hooks/queries', () => queries)
 // The visual is covered in CardVisual.test.tsx; here it only reports what it was given.
 vi.mock('./CardVisual', () => ({
-  CardVisual: ({ card }: { card: CreditCard }) => (
-    <div data-testid="visual" data-card={card.last4} data-frozen={card.isFrozen} />
+  CardVisual: ({ card, face }: { card: CreditCard; face: string }) => (
+    <div data-testid="visual" data-card={card.last4} data-frozen={card.isFrozen} data-face={face} />
   ),
 }))
 
@@ -149,5 +149,30 @@ describe('CardsPage limit form', () => {
     await userEvent.type(input, '0')
     expect(input).toHaveAccessibleDescription('Whole dollars from $12,848 to $100,000.')
     expect(input).toHaveAttribute('aria-invalid', 'false')
+  })
+})
+
+describe('CardsPage presentation', () => {
+  it('puts the card stage above the picker and the controls', () => {
+    renderPage()
+    const stage = screen.getByTestId('visual')
+    const picker = screen.getByRole('radiogroup', { name: 'Card' })
+    expect(stage.compareDocumentPosition(picker) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('turns the card over with a pressed-state button', async () => {
+    renderPage()
+    const button = screen.getByRole('button', { name: 'Show back' })
+    expect(button).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(button)
+    expect(screen.getByTestId('visual')).toHaveAttribute('data-face', 'back')
+    expect(screen.getByRole('button', { name: 'Show front' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('shows the front again when another card is picked', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Show back' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'Platinum •••• 0937' }))
+    expect(screen.getByTestId('visual')).toHaveAttribute('data-face', 'front')
   })
 })

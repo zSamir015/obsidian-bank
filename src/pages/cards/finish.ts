@@ -50,3 +50,9 @@ export const FINISH: Record<CardTier, Finish> = {
 
 /** ISO/IEC 7810 ID-1 proportions (85.60 × 53.98 mm). */
 export const CARD_ASPECT = 85.6 / 53.98
+
+/** Back of the card, shared by the 3D card and the static fallback. No real data: the CVV is decorative. */
+export const CARD_BACK = {
+  cvv: '•••',
+  legal: 'Demo card — not a payment card. Obsidian Bank is a portfolio project, not a bank.',
+} as const
