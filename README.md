@@ -6,13 +6,15 @@ Personal banking app built with React 19, TypeScript and Supabase: accounts, car
 
 Live demo: https://zsamir015.github.io/obsidian-bank/
 
-| Overview                                                                                                                       | Activity                                                                                         |
-| ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| ![Overview: total balance hero, accounts, cards, spending against budgets and recent activity](docs/screenshots/overview.webp) | ![Activity: transactions grouped by day with search and filters](docs/screenshots/activity.webp) |
-| **Move money**                                                                                                                 | **Budgets**                                                                                      |
-| ![Transfer form with a summary of balances after the transfer](docs/screenshots/transfer.webp)                                 | ![Budgets with spending against each monthly limit](docs/screenshots/budgets.webp)               |
-| **Cards**                                                                                                                      |                                                                                                  |
-| ![Cards: a 3D card with freeze and limit controls](docs/screenshots/cards.webp)                                                |                                                                                                  |
+**How to use it:** [user guide](docs/USER_GUIDE.md), screen by screen, for non-technical readers. **What's next:** [roadmap](ROADMAP.md).
+
+| Overview                                                                                                                         | Activity                                                                                         |
+| -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| ![Overview: total balance hero, accounts, cards, spending against budgets and recent activity](docs/screenshots/overview.webp)   | ![Activity: transactions grouped by day with search and filters](docs/screenshots/activity.webp) |
+| **Move money**                                                                                                                   | **Budgets**                                                                                      |
+| ![Transfer form with a summary of balances after the transfer](docs/screenshots/transfer.webp)                                   | ![Budgets with spending against each monthly limit](docs/screenshots/budgets.webp)               |
+| **Cards**                                                                                                                        |                                                                                                  |
+| ![Cards: the 3D card on a stage, with the card picker, Show back and the freeze and limit controls](docs/screenshots/cards.webp) |                                                                                                  |
 
 <sub>Screenshots at 1280px with local demo data.</sub>
 
