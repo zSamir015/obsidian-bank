@@ -102,3 +102,24 @@ describe('StaticCard', () => {
     expect(card.textContent).not.toMatch(/\d{5,}/)
   })
 })
+
+describe('CardVisual faces', () => {
+  it('passes the requested face to the 3D card', async () => {
+    function FaceProbe({ face }: Card3DProps) {
+      return <div data-card-visual="3d" data-face={face} />
+    }
+    render(<CardVisual card={black} face="back" Card3D={FaceProbe} />)
+    expect(await screen.findByText('', { selector: '[data-face="back"]' })).toBeInTheDocument()
+  })
+
+  it('shows the designed back on the static card, with a decorative CVV only', () => {
+    capabilities.supportsWebGL.mockReturnValue(false)
+    render(<CardVisual card={black} face="back" />)
+    const card = visual()!
+    expect(card).toHaveAttribute('data-face', 'back')
+    expect(card).toHaveAttribute('aria-hidden', 'true')
+    expect(card).toHaveTextContent('•••')
+    expect(card).toHaveTextContent('Demo card — not a payment card.')
+    expect(card.textContent).not.toMatch(/\d{3,}/)
+  })
+})

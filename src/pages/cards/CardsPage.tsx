@@ -1,4 +1,4 @@
-import { Snowflake } from 'lucide-react'
+import { RotateCw, Snowflake } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
@@ -15,6 +15,7 @@ import { asCents, formatDollars, formatMoney } from '@/lib/money'
 import type { CreditCard } from '@/types/bank'
 import { CardVisual } from './CardVisual'
 import { minimumLimit, validateCardLimit } from './limit'
+import type { Face } from './motion'
 
 const cardName = (card: CreditCard) => `${CARD_TIER_LABELS[card.tier]} •••• ${card.last4}`
 
@@ -22,6 +23,7 @@ export default function CardsPage() {
   const cards = useCards()
   const [selectedId, setSelectedId] = useState<string>()
   const [announcement, setAnnouncement] = useState('')
+  const [face, setFace] = useState<Face>('front')
   const card = cards.data?.find((c) => c.id === selectedId) ?? cards.data?.[0]
 
   return (
@@ -30,22 +32,28 @@ export default function CardsPage() {
       {cards.isError ? (
         <ErrorMessage onRetry={() => void cards.refetch()}>Couldn't load your cards.</ErrorMessage>
       ) : cards.isPending ? (
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <Skeleton className="aspect-[85.6/53.98] max-w-[520px] rounded-card" />
-          <Skeleton className="h-64 rounded-card" />
+        <div className="space-y-8">
+          <Skeleton className="h-[clamp(300px,58vw,600px)] rounded-card" />
+          <Skeleton className="h-48 rounded-card" />
         </div>
       ) : !card ? (
         <p className="text-muted">You don't have any cards yet.</p>
       ) : (
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-16">
-          <div className="min-w-0">
-            <fieldset>
+        <div className="space-y-8">
+          {/* The stage: the card alone, large and centered, with room around it. */}
+          <section aria-label="Card preview" className="-mx-5 md:mx-0">
+            <div className="flex h-[clamp(300px,58vw,600px)] items-center justify-center px-5 md:px-0">
+              <CardVisual key={card.id} card={card} face={face} onFaceChange={setFace} />
+            </div>
+          </section>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <fieldset className="min-w-0">
               <legend className="sr-only">Card</legend>
               <div
                 role="radiogroup"
                 aria-label="Card"
                 // Mobile: one swipeable row of chips. Wider screens: they wrap if needed.
-                className="-mx-5 mb-8 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
+                className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
               >
                 {cards.data.map((c) => (
                   <label
@@ -63,6 +71,7 @@ export default function CardsPage() {
                       checked={c.id === card.id}
                       onChange={() => {
                         setSelectedId(c.id)
+                        setFace('front')
                         setAnnouncement('')
                       }}
                       className="sr-only"
@@ -72,7 +81,15 @@ export default function CardsPage() {
                 ))}
               </div>
             </fieldset>
-            <CardVisual key={card.id} card={card} />
+            <Button
+              variant="secondary"
+              size="sm"
+              aria-pressed={face === 'back'}
+              onClick={() => setFace(face === 'back' ? 'front' : 'back')}
+            >
+              <RotateCw aria-hidden="true" className="size-4" />
+              {face === 'back' ? 'Show front' : 'Show back'}
+            </Button>
           </div>
           <CardControls key={card.id} card={card} onResult={setAnnouncement} />
         </div>
@@ -102,7 +119,10 @@ function CardControls({ card, onResult }: { readonly card: CreditCard; readonly 
   }
 
   return (
-    <section aria-label={`${name} settings`} className="rounded-card border border-hairline bg-sunken p-6">
+    <section
+      aria-label={`${name} settings`}
+      className="grid gap-8 rounded-card border border-hairline bg-sunken p-6 md:grid-cols-[1.3fr_1fr_1fr] md:gap-10"
+    >
       <dl className="grid grid-cols-2 gap-x-6 gap-y-5 text-sm">
         <div>
           <dt className="text-muted">Spent</dt>
@@ -128,7 +148,7 @@ function CardControls({ card, onResult }: { readonly card: CreditCard; readonly 
         </div>
       </dl>
 
-      <div className="mt-8 border-t border-hairline pt-6">
+      <div className="border-t border-hairline pt-6 md:border-t-0 md:border-l md:pt-0 md:pl-10">
         <Label>Card status</Label>
         <p className="mt-1.5 text-sm">{card.isFrozen ? 'Frozen: new payments are declined.' : 'Active'}</p>
         <Button
@@ -148,7 +168,7 @@ function CardControls({ card, onResult }: { readonly card: CreditCard; readonly 
         )}
       </div>
 
-      <div className="mt-8 border-t border-hairline pt-6">
+      <div className="border-t border-hairline pt-6 md:border-t-0 md:border-l md:pt-0 md:pl-10">
         <Label>Limit</Label>
         {editing ? (
           <LimitForm
