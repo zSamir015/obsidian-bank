@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "test:e2e": "playwright test",
     "test": "vitest run",
     "typecheck": "tsc -b",
     "notices": "node scripts/third-party-notices.mjs",
