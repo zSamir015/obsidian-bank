@@ -26,10 +26,20 @@ export function AccountsSection({ accounts }: { readonly accounts: QueryView<rea
                   </div>
                   {account.apyBps > 0 && <span className="text-sm text-muted">{formatApy(account.apyBps)}</span>}
                 </div>
-                <Money
-                  cents={account.balance}
-                  className="mt-8 block text-[2rem] leading-none font-medium tracking-[-0.01em]"
-                />
+                <dl className="mt-8">
+                  <div>
+                    <dt className="text-sm text-muted">Available</dt>
+                    <dd className="mt-1 text-[2rem] leading-none font-medium tracking-[-0.01em]">
+                      <Money cents={account.availableBalance} />
+                    </dd>
+                  </div>
+                  <div className="mt-3 flex gap-2 text-sm">
+                    <dt className="text-muted">Ledger</dt>
+                    <dd>
+                      <Money cents={account.ledgerBalance} />
+                    </dd>
+                  </div>
+                </dl>
               </Card>
             ))}
       </div>

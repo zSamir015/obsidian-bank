@@ -1,23 +1,27 @@
 import { expect, test } from '@playwright/test'
 import { DemoBackend } from './support/demoBackend'
 
-test('the demo sign-in, money, budget, and card journeys work without a live backend', async ({ page }) => {
+test('the demo sign-in, money, budget, and card journeys work without a live backend', async ({ page }, testInfo) => {
   const backend = new DemoBackend()
   await backend.route(page)
 
   await page.goto('')
   await expect(page.getByRole('heading', { name: 'A calm place for your money.' })).toBeVisible()
   await page.getByRole('button', { name: 'Explore the demo' }).click()
-  await expect(page.getByRole('heading', { name: 'Total balance' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Total available' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Everyday Checking' })).toBeVisible()
+  await page.screenshot({ path: testInfo.outputPath('overview-available-balances.png') })
 
   await page.getByRole('link', { name: 'Transfer' }).first().click()
   await expect(page.getByRole('heading', { name: 'Move money' })).toBeVisible()
+  await page.screenshot({ path: testInfo.outputPath('transfer-available-balances.png') })
   await page.getByLabel('Amount').fill('25.50')
   await page.getByRole('button', { name: 'Move money' }).click()
   await expect(page.getByRole('status')).toContainText('Moved $25.50 to Obsidian Vault')
-  expect(backend.accounts[0].balance_cents).toBe(1261505)
-  expect(backend.accounts[1].balance_cents).toBe(3559802)
+  expect(backend.accounts[0].available_balance_cents).toBe(1261505)
+  expect(backend.accounts[0].ledger_balance_cents).toBe(1391344)
+  expect(backend.accounts[1].available_balance_cents).toBe(3559802)
+  expect(backend.accounts[1].ledger_balance_cents).toBe(3559802)
   await page.getByRole('link', { name: 'Back to overview' }).click()
   await expect(page.getByText('$12,615.05').last()).toBeVisible()
   await expect(page.getByText('$35,598.02').last()).toBeVisible()

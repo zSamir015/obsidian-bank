@@ -27,9 +27,9 @@ The first screen after signing in. It summarises your money at a glance.
 
 **What you see**
 
-- **Total balance:** the sum of all your accounts. Below it, **In this month** is the money that came in since the 1st, and **Out this month** is the money that went out. Moving money between your own accounts doesn't count as either.
+- **Total available:** the money you can use across all accounts. **Ledger balance** is the settled total; available subtracts pending and under-review debits. Below it, **In this month** is the money that came in since the 1st, and **Out this month** is the money that went out. Moving money between your own accounts doesn't count as either.
 - **Move money:** a shortcut to the transfer screen.
-- **Accounts:** each account with its balance. A **Vault** also shows the interest rate it earns (for example _4.25% APY_).
+- **Accounts:** each account's available balance and its ledger balance. A **Vault** also shows the interest rate it earns (for example _4.25% APY_).
 - **Cards:** each card by tier and last four digits, with a bar showing how much of its limit is used. Frozen cards are marked **Frozen**. **Manage** opens the Cards screen.
 - **Spending this month:** what you've spent in each category, compared with the budget you set for it.
 - **Recent activity:** your latest transactions. **View all** opens the Activity screen.
@@ -66,13 +66,13 @@ Moves money between your own accounts, for example from Checking to your Vault. 
 2. In **To**, choose the account it goes to. The swap button between them (_Swap accounts_) switches From and To.
 3. Enter the **Amount** in dollars, using a dot for cents, like `25.50`.
 4. Optionally add a **Note** (up to 140 characters). Only you can see it.
-5. Check **After this transfer** on the right: it shows both balances as they'll be once the money moves.
+5. Check **After this transfer** on the right: it shows the available and ledger balances after the money moves.
 6. Select **Move money**. The transfer arrives instantly. Select **Make another transfer** to start again; the new balances already show on your Overview.
 
 **Rules**
 
 - The two accounts must be different.
-- The amount must be more than $0.00 and no more than the From account holds. If it's too much, the form tells you how much is available.
+- The amount must be more than $0.00 and no more than the From account's available balance. Pending and under-review debits reduce what's available even though they haven't settled. The server checks this balance when processing the transfer.
 - A transfer either completes in full or not at all: it never leaves money half-moved.
 - Transfers between your own accounts are not income or spending. They don't count in budgets or in _In this month_ and _Out this month_.
 
@@ -176,7 +176,9 @@ The address is wrong or out of date. Select **Back to overview**.
 ## Glossary
 
 - **APY (annual percentage yield):** the interest an account earns over a year, including interest on interest. Shown on the Vault, for example _4.25% APY_.
+- **Available balance:** the settled ledger balance minus pending and under-review debits. This is the amount an internal transfer can use.
+- **Ledger balance:** the net total of completed (settled) credits and debits in an account.
 - **Vault:** a savings account. Move money in and out of it with **Move money**.
 - **Pending:** a payment that has been made but not settled yet. It's already listed, and it can still change before it settles.
 - **Under review:** a transaction flagged for a check, for example an unusual payment. In a real bank someone would confirm it with you.
-- **Available:** on a card, how much you can still spend: credit limit minus what's been spent.
+- **Available (card):** how much you can still spend: credit limit minus what's been spent.

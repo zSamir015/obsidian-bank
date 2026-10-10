@@ -167,7 +167,20 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      account_balances: {
+        Row: {
+          apy_bps: number
+          available_balance_cents: number
+          created_at: string
+          currency: string
+          id: string
+          kind: string
+          ledger_balance_cents: number
+          name: string
+          user_id: string
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cleanup_inactive_anonymous_users: {

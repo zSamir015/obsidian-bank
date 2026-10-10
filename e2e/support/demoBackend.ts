@@ -26,7 +26,8 @@ export class DemoBackend {
       user_id: USER_ID,
       name: 'Everyday Checking',
       kind: 'checking',
-      balance_cents: 1264055,
+      ledger_balance_cents: 1393894,
+      available_balance_cents: 1264055,
       currency: 'USD',
       apy_bps: 0,
       created_at: daysAgo(90),
@@ -36,7 +37,8 @@ export class DemoBackend {
       user_id: USER_ID,
       name: 'Obsidian Vault',
       kind: 'vault',
-      balance_cents: 3557252,
+      ledger_balance_cents: 3557252,
+      available_balance_cents: 3557252,
       currency: 'USD',
       apy_bps: 425,
       created_at: daysAgo(90),
@@ -69,11 +71,13 @@ export class DemoBackend {
   private transfer(fromId: string, toId: string, cents: number) {
     const from = this.accounts.find((account) => account.id === fromId)
     const to = this.accounts.find((account) => account.id === toId)
-    if (!from || !to || cents <= 0 || Number(from.balance_cents) < cents) {
+    if (!from || !to || cents <= 0 || Number(from.available_balance_cents) < cents) {
       throw new Error('Invalid mocked transfer request')
     }
-    from.balance_cents = Number(from.balance_cents) - cents
-    to.balance_cents = Number(to.balance_cents) + cents
+    from.ledger_balance_cents = Number(from.ledger_balance_cents) - cents
+    from.available_balance_cents = Number(from.available_balance_cents) - cents
+    to.ledger_balance_cents = Number(to.ledger_balance_cents) + cents
+    to.available_balance_cents = Number(to.available_balance_cents) + cents
   }
 
   private transaction(
@@ -167,7 +171,7 @@ export class DemoBackend {
         return
       }
 
-      if (path === '/rest/v1/accounts' && route.request().method() === 'GET') {
+      if (path === '/rest/v1/account_balances' && route.request().method() === 'GET') {
         await this.fulfill(route, this.accounts)
         return
       }

@@ -21,11 +21,11 @@ export function makeTransferSchema(accounts: readonly Account[]) {
         return
       }
       const from = accounts.find((a) => a.id === values.fromId)
-      if (from && cents > from.balance) {
+      if (from && cents > from.availableBalance) {
         ctx.addIssue({
           code: 'custom',
           path: ['amount'],
-          message: `That's more than this account holds. Available: ${formatMoney(from.balance)}.`,
+          message: `That's more than this account has available. Available: ${formatMoney(from.availableBalance)}.`,
         })
       }
     })

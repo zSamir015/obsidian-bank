@@ -3,12 +3,13 @@ import type { Tables } from '@/types/database'
 import { toAccount, toBudget, toCard, toTransaction } from './mappers'
 
 describe('toAccount', () => {
-  const row: Tables<'accounts'> = {
+  const row: Tables<'account_balances'> = {
     id: 'a1',
     user_id: 'u1',
     name: 'Obsidian Vault',
     kind: 'vault',
-    balance_cents: 2_500_000,
+    ledger_balance_cents: 2_600_000,
+    available_balance_cents: 2_500_000,
     currency: 'USD',
     apy_bps: 425,
     created_at: '2026-10-01T00:00:00Z',
@@ -19,7 +20,8 @@ describe('toAccount', () => {
       id: 'a1',
       name: 'Obsidian Vault',
       type: 'vault',
-      balance: 2_500_000,
+      ledgerBalance: 2_600_000,
+      availableBalance: 2_500_000,
       currency: 'USD',
       apyBps: 425,
       createdAt: '2026-10-01T00:00:00Z',
@@ -29,7 +31,7 @@ describe('toAccount', () => {
   it.each([
     ['kind', 'savings'],
     ['currency', 'EUR'],
-    ['balance_cents', 10.5],
+    ['ledger_balance_cents', 10.5],
   ])('rejects an unexpected %s', (key, value) => {
     expect(() => toAccount({ ...row, [key]: value })).toThrow()
   })

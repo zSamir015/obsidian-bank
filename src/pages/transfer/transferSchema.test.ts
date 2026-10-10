@@ -2,16 +2,17 @@ import { describe, expect, it } from 'vitest'
 import type { Account, Cents } from '@/types/bank'
 import { makeTransferSchema } from './transferSchema'
 
-const account = (id: string, balance: number, type: Account['type']): Account => ({
+const account = (id: string, ledgerBalance: number, availableBalance: number, type: Account['type']): Account => ({
   id,
   name: id,
   type,
-  balance: balance as Cents,
+  ledgerBalance: ledgerBalance as Cents,
+  availableBalance: availableBalance as Cents,
   currency: 'USD',
   apyBps: 0,
   createdAt: '',
 })
-const accounts = [account('a', 10_000, 'checking'), account('b', 0, 'vault')]
+const accounts = [account('a', 12_000, 10_000, 'checking'), account('b', 0, 0, 'vault')]
 const schema = makeTransferSchema(accounts)
 const valid = { fromId: 'a', toId: 'b', amount: '25.50', description: 'Monthly savings' }
 

@@ -5,13 +5,14 @@ import lighthouseSession from './lighthouse-session.cjs'
 const { cardId, checkingId, createdAt, session, userId, vaultId } = lighthouseSession
 
 const fixtures = {
-  '/rest/v1/accounts': [
+  '/rest/v1/account_balances': [
     {
       id: checkingId,
       user_id: userId,
       name: 'Everyday Checking',
       kind: 'checking',
-      balance_cents: 1264055,
+      ledger_balance_cents: 1393894,
+      available_balance_cents: 1264055,
       currency: 'USD',
       apy_bps: 0,
       created_at: createdAt,
@@ -21,7 +22,8 @@ const fixtures = {
       user_id: userId,
       name: 'Obsidian Vault',
       kind: 'vault',
-      balance_cents: 3557252,
+      ledger_balance_cents: 3557252,
+      available_balance_cents: 3557252,
       currency: 'USD',
       apy_bps: 425,
       created_at: createdAt,
