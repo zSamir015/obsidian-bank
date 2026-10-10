@@ -52,19 +52,15 @@ Apply the SQL in `supabase/migrations/` to your Supabase project, in order.
 - **Simplified balances.** An account's balance is the sum of all its transactions, including `pending` and `flagged` ones. A real bank would separate the posted balance from the available balance and hold pending charges apart; this demo keeps a single balance.
 - **Migration tests run on PGlite.** `supabase/tests/` applies every migration to [PGlite](https://pglite.dev/) (Postgres compiled to WebAssembly, in memory) with a small stub of Supabase's `auth` schema and API roles. That checks constraints, Row Level Security, the transfer function and the demo data without Docker or a live database. It is close to Supabase but not identical, so migrations are still reviewed before being applied to production.
 - **Demo users are cleaned up automatically.** Each visit to the demo signs in anonymously and gets its own seeded data. A daily `pg_cron` job (04:17 UTC) deletes anonymous users with no activity for more than 7 days, together with their accounts, cards, transactions and budgets. Non-anonymous users are never touched. PGlite has no `pg_cron`, so the cleanup function is tested on its own and the scheduling migration is checked statically.
-- **Initial load: 179 kB of JavaScript (gzip).** Measured in Chrome as every JS file downloaded to render the overview from a cold cache (production build, Supabase responses mocked). Each route is its own chunk, so other pages add only a few kB when visited. By package, the minified code that loads is:
+- **Performance budgets:** Lighthouse CI audits Login, Overview and Cards in its mobile profile on every pull request. JavaScript transfer must stay under 180 kB per audited screen, LCP under 2.5 s, CLS under 0.1 and TBT under 200 ms. The table reports the worst of three runs per screen:
 
-  | Part                                     | Share |
-  | ---------------------------------------- | ----- |
-  | Supabase client (`@supabase/*`)          | 35%   |
-  | React + React DOM                        | 35%   |
-  | React Router                             | 15%   |
-  | TanStack Query                           | 6%    |
-  | Class merging (`tailwind-merge`, `clsx`) | 5%    |
-  | App code                                 | 4%    |
-  | Lucide icons                             | 1%    |
+  | Screen   | JavaScript transfer | LCP    | CLS   | TBT  |
+  | -------- | ------------------- | ------ | ----- | ---- |
+  | Login    | 142.8 kB            | 2.13 s | 0     | 0 ms |
+  | Overview | 156.6 kB            | 2.43 s | 0.004 | 0 ms |
+  | Cards    | 155.0 kB            | 2.43 s | 0     | 0 ms |
 
-  The Supabase client is needed at startup to restore the session, so it stays in the initial bundle. The pre-redesign single bundle was 306 kB.
+  Lighthouse runs against a production preview with a local mock backend and simulated mobile throttling. The build checks that the initial JavaScript bundle stays under 180 kB gzip and the lazy 3D card module is absent from the initial static import graph; the audited Login and Cards runs also confirm that the 3D module is not requested.
 
 - **Cards** only ever store the last four digits; never the full card number or CVV.
 

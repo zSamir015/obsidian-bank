@@ -27,12 +27,7 @@ The favicon (`public/favicon.svg`), UI components, database schema and demo data
 | [@remix-run/route-pattern](https://github.com/remix-run/remix/tree/main/packages/route-pattern#readme) | 0.22.1 | MIT |
 | [@standard-schema/utils](https://www.npmjs.com/package/@standard-schema/utils) | 0.3.0 | MIT |
 | [@supabase/auth-js](https://github.com/supabase/supabase-js/tree/master/packages/core/auth-js) | 2.117.3 | MIT |
-| [@supabase/functions-js](https://github.com/supabase/supabase-js/tree/master/packages/core/functions-js) | 2.117.3 | MIT |
-| [@supabase/phoenix](https://www.npmjs.com/package/@supabase/phoenix) | 0.4.5 | MIT |
 | [@supabase/postgrest-js](https://github.com/supabase/supabase-js/tree/master/packages/core/postgrest-js) | 2.117.3 | MIT |
-| [@supabase/realtime-js](https://github.com/supabase/supabase-js/tree/master/packages/core/realtime-js) | 2.117.3 | MIT |
-| [@supabase/storage-js](https://github.com/supabase/supabase-js/tree/master/packages/core/storage-js) | 2.117.3 | MIT |
-| [@supabase/supabase-js](https://github.com/supabase/supabase-js/tree/master/packages/core/supabase-js) | 2.117.3 | MIT |
 | [@tanstack/query-core](https://tanstack.com/query) | 5.104.1 | MIT |
 | [@tanstack/react-query](https://tanstack.com/query) | 5.104.1 | MIT |
 | [@use-gesture/core](https://use-gesture.netlify.app) | 10.3.1 | MIT |
@@ -50,7 +45,6 @@ The favicon (`public/favicon.svg`), UI components, database schema and demo data
 | [fflate](https://101arrowz.github.io/fflate) | 0.6.11 | MIT |
 | [glsl-noise](https://www.npmjs.com/package/glsl-noise) | 0.0.0 | MIT |
 | [hls.js](https://github.com/video-dev/hls.js) | 1.7.3 | Apache-2.0 |
-| [iceberg-js](https://github.com/supabase/iceberg-js#readme) | 0.8.1 | MIT |
 | [ieee754](https://www.npmjs.com/package/ieee754) | 1.2.1 | BSD-3-Clause |
 | [immediate](https://www.npmjs.com/package/immediate) | 3.0.6 | MIT |
 | [is-promise](https://www.npmjs.com/package/is-promise) | 2.2.2 | MIT |
@@ -75,7 +69,6 @@ The favicon (`public/favicon.svg`), UI components, database schema and demo data
 | [stats-gl](https://github.com/RenaudRohlinger/stats-gl) | 2.4.2 | MIT |
 | [stats.js](https://github.com/mrdoob/stats.js) | 0.17.0 | MIT |
 | [suspend-react](https://github.com/pmndrs/suspend-react#readme) | 0.1.3 | MIT |
-| [tailwind-merge](https://github.com/dcastil/tailwind-merge) | 3.7.0 | MIT |
 | [three](https://threejs.org/) | 0.186.1 | MIT |
 | [three-mesh-bvh](https://github.com/gkjohnson/three-mesh-bvh#readme) | 0.8.3 | MIT |
 | [three-stdlib](https://github.com/pmndrs/three-stdlib) | 2.36.1 | MIT |
@@ -487,138 +480,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @supabase/functions-js@2.117.3
-
-```
-MIT License
-
-Copyright (c) 2020 Supabase
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-### @supabase/phoenix@0.4.5
-
-```
-# MIT License
-
-Copyright (c) 2014 Chris McCord
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-```
-
 ### @supabase/postgrest-js@2.117.3
-
-```
-MIT License
-
-Copyright (c) 2020 Supabase
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-### @supabase/realtime-js@2.117.3
-
-```
-MIT License
-
-Copyright (c) 2020 Supabase
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-### @supabase/storage-js@2.117.3
-
-```
-MIT License
-
-Copyright (c) 2020 Supabase
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-### @supabase/supabase-js@2.117.3
 
 ```
 MIT License
@@ -1062,32 +924,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-```
-
-### iceberg-js@0.8.1
-
-```
-MIT License
-
-Copyright (c) 2025 Supabase
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
 ```
 
 ### ieee754@1.2.1
@@ -1785,32 +1621,6 @@ THE SOFTWARE.
 MIT License
 
 Copyright (c) 2021 Paul Henschel
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-### tailwind-merge@3.7.0
-
-```
-MIT License
-
-Copyright (c) 2021 Dany Castillo
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -5,7 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toCard } from '@/lib/mappers'
 import { cardRows } from '@/test/fixtures'
 import type { Cents, CreditCard } from '@/types/bank'
-import { queryKeys, useFreezeCard, useUpdateCardLimit } from './queries'
+import { useFreezeCard, useUpdateCardLimit } from './cardQueries'
+import { queryKeys } from './queryKeys'
 
 const rpc = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/supabase', () => ({ supabase: { rpc } }))

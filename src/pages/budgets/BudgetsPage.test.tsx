@@ -13,7 +13,12 @@ const queries = vi.hoisted(() => ({
   useUpdateBudget: vi.fn(),
   useCreateBudget: vi.fn(),
 }))
-vi.mock('@/hooks/queries', () => queries)
+vi.mock('@/hooks/budgetQueries', () => ({
+  useBudgets: queries.useBudgets,
+  useCreateBudget: queries.useCreateBudget,
+  useUpdateBudget: queries.useUpdateBudget,
+}))
+vi.mock('@/hooks/transactionQueries', () => ({ useTransactions: queries.useTransactions }))
 
 const ok = <T,>(data: T) => ({ data, isPending: false, isError: false, refetch: vi.fn() })
 const mutateAsync = vi.fn()

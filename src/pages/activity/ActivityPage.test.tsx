@@ -9,7 +9,8 @@ import type { Transaction } from '@/types/bank'
 import ActivityPage from './ActivityPage'
 
 const queries = vi.hoisted(() => ({ useAccounts: vi.fn(), useTransactions: vi.fn() }))
-vi.mock('@/hooks/queries', () => queries)
+vi.mock('@/hooks/accountQueries', () => ({ useAccounts: queries.useAccounts }))
+vi.mock('@/hooks/transactionQueries', () => ({ useTransactions: queries.useTransactions }))
 
 const ok = <T,>(data: T) => ({ data, isPending: false, isError: false, refetch: vi.fn() })
 const transactions = transactionRows.map(toTransaction)
