@@ -1,4 +1,4 @@
-import { ArrowLeftRight, ChartPie, CreditCard, LayoutGrid, LogOut, ReceiptText } from 'lucide-react'
+import { ArrowLeftRight, ChartPie, CircleHelp, CreditCard, LayoutGrid, LogOut, ReceiptText } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router'
 import { supabase } from '@/lib/supabase'
 import { Logo } from './Logo'
@@ -10,6 +10,8 @@ const NAV = [
   { to: '/budgets', label: 'Budgets', icon: ChartPie },
   { to: '/cards', label: 'Cards', icon: CreditCard },
 ] as const
+
+const userGuideUrl = 'https://github.com/zSamir015/obsidian-bank/blob/main/docs/USER_GUIDE.md'
 
 // Active items stay monochrome: each screen spends its single red accent on its own content.
 const itemClass = ({ isActive }: { isActive: boolean }) =>
@@ -42,25 +44,31 @@ export function AppShell() {
             </NavLink>
           ))}
         </nav>
-        <button
-          type="button"
-          onClick={() => void supabase.auth.signOut()}
-          className="mt-auto flex items-center gap-3 rounded-full px-4 py-2.5 text-sm text-muted hover:text-text"
-        >
-          <LogOut aria-hidden="true" className="size-[18px]" strokeWidth={1.75} />
-          Sign out
-        </button>
+        <div className="mt-auto flex items-center gap-1">
+          <HelpLink desktop />
+          <button
+            type="button"
+            onClick={() => void supabase.auth.signOut()}
+            className="flex items-center gap-3 rounded-full px-4 py-2.5 text-sm text-muted hover:text-text"
+          >
+            <LogOut aria-hidden="true" className="size-[18px]" strokeWidth={1.75} />
+            Sign out
+          </button>
+        </div>
       </aside>
 
       <header className="flex items-center justify-between px-5 pt-5 md:hidden">
         <Logo />
-        <button
-          type="button"
-          onClick={() => void supabase.auth.signOut()}
-          className="rounded-full px-3 py-2 text-sm text-muted hover:text-text"
-        >
-          Sign out
-        </button>
+        <div className="flex items-center gap-1">
+          <HelpLink />
+          <button
+            type="button"
+            onClick={() => void supabase.auth.signOut()}
+            className="rounded-full px-3 py-2 text-sm text-muted hover:text-text"
+          >
+            Sign out
+          </button>
+        </div>
       </header>
 
       <main
@@ -82,5 +90,23 @@ export function AppShell() {
         ))}
       </nav>
     </div>
+  )
+}
+
+function HelpLink({ desktop = false }: { readonly desktop?: boolean }) {
+  return (
+    <a
+      href={userGuideUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Help (opens in a new tab)"
+      className={`inline-flex items-center gap-2 rounded-full px-3 py-2.5 text-sm text-muted hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text ${
+        desktop ? '' : 'py-2'
+      }`}
+    >
+      <CircleHelp aria-hidden="true" className="size-[17px]" strokeWidth={1.75} />
+      Help
+      <span className="sr-only"> (opens in a new tab)</span>
+    </a>
   )
 }

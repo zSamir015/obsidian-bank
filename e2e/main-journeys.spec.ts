@@ -73,3 +73,28 @@ test('reduced motion uses the static card and flips it without animation', async
   await expect(card).toHaveAttribute('data-face', 'back')
   expect(backend.unexpectedRequests).toEqual([])
 })
+
+test('Help opens the user guide and leaves the mobile tab bar unchanged', async ({ page }) => {
+  const backend = new DemoBackend()
+  await backend.route(page)
+
+  await page.goto('')
+  await page.getByRole('button', { name: 'Explore the demo' }).click()
+
+  const helpLinks = page.getByRole('link', { name: 'Help (opens in a new tab)' })
+  await expect(helpLinks).toHaveCount(1)
+  await expect(helpLinks.first()).toHaveAttribute(
+    'href',
+    'https://github.com/zSamir015/obsidian-bank/blob/main/docs/USER_GUIDE.md',
+  )
+  await expect(helpLinks.first()).toHaveAttribute('target', '_blank')
+  await expect(helpLinks.first()).toHaveAttribute('rel', 'noopener noreferrer')
+
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await expect(helpLinks.first()).toBeVisible()
+
+  await page.setViewportSize({ width: 375, height: 812 })
+  await expect(helpLinks).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Main' }).last().getByRole('link')).toHaveCount(5)
+  expect(backend.unexpectedRequests).toEqual([])
+})
