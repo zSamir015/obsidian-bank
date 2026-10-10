@@ -1,6 +1,6 @@
 # Roadmap
 
-Obsidian Bank is a portfolio demo, not a real bank. This roadmap shows what has shipped and what is proposed next. Proposed items are ideas, not commitments: each one is a GitHub issue labelled `proposal`, grouped into a [milestone](https://github.com/zSamir015/obsidian-bank/milestones).
+Obsidian Bank is a portfolio demo, not a real bank. This roadmap shows what has shipped and what is proposed next. Proposed items are ideas, not commitments: each one is a GitHub issue labelled `proposal`, grouped into a [milestone](https://github.com/zSamir015/obsidian-bank/milestones). The [Obsidian Bank Roadmap](https://github.com/users/zSamir015/projects/1) project tracks them as a table and as a timeline by milestone.
 
 | Version  | Theme                                  | Status                 |
 | -------- | -------------------------------------- | ---------------------- |
@@ -45,6 +45,12 @@ Released as [v2.0.0](https://github.com/zSamir015/obsidian-bank/releases/tag/v2.
 - **Goal:** the main journeys tested end to end against the production build.
 - **Value:** the flows people use are proven to work together, not only in isolation.
 - **Done when:** sign-in, transfer, budget, card freeze/limit, card turn and reduced motion are covered; CI never touches production data; 10 consecutive runs pass without retries.
+
+### Help link to the user guide ([#27](https://github.com/zSamir015/obsidian-bank/issues/27))
+
+- **Goal:** a discreet "Help" link that opens the [user guide](docs/USER_GUIDE.md).
+- **Value:** visitors understand the demo and its rules without hunting for the docs.
+- **Done when:** the link sits next to "Sign out" (side menu on desktop, top bar on mobile), the bottom tab bar is unchanged, it opens in a new tab with a screen-reader notice, and it works with the keyboard.
 
 ## v2.2: features
 
