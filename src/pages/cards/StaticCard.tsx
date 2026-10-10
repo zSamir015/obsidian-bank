@@ -15,7 +15,7 @@ export function StaticCard({ card }: { readonly card: CreditCard }) {
       data-frozen={card.isFrozen}
       aria-hidden="true"
       className="relative isolate aspect-[85.6/53.98] w-full max-w-[520px] overflow-hidden rounded-[22px] border p-[6%] text-text"
-      style={{ background: finish.css, borderColor: finish.edge }}
+      style={{ background: card.isFrozen ? finish.frozenCss : finish.css, borderColor: finish.edge }}
     >
       <div className={`flex h-full flex-col justify-between ${card.isFrozen ? 'opacity-60 grayscale' : ''}`}>
         <div className="flex items-start justify-between">
@@ -38,7 +38,7 @@ export function StaticCard({ card }: { readonly card: CreditCard }) {
         </div>
       </div>
       {card.isFrozen && (
-        <div className="absolute inset-0 -z-10 bg-[repeating-linear-gradient(135deg,transparent_0_10px,rgb(255_255_255/0.04)_10px_20px)]">
+        <div className="absolute inset-0 -z-10 bg-[repeating-linear-gradient(135deg,transparent_0_10px,rgb(0_0_0/0.22)_10px_13px)]">
           <span className="absolute top-1/2 left-1/2 -translate-1/2 rounded-full border border-hairline bg-bg/70 px-3 py-1 text-label font-medium text-text uppercase">
             Frozen
           </span>

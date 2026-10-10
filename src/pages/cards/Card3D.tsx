@@ -1,7 +1,18 @@
 import { Environment, Lightformer } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
-import { CanvasTexture, Shape, ShapeGeometry, SRGBColorSpace, type Group } from 'three'
+import {
+  CanvasTexture,
+  DataTexture,
+  LinearFilter,
+  LinearMipmapLinearFilter,
+  RepeatWrapping,
+  Shape,
+  ShapeGeometry,
+  SRGBColorSpace,
+  Vector2,
+  type Group,
+} from 'three'
 import { CARD_TIER_LABELS } from '@/lib/labels'
 import type { CreditCard } from '@/types/bank'
 import { CARD_ASPECT, FINISH } from './finish'
@@ -23,7 +34,7 @@ const RADIUS = WIDTH * (3.18 / 85.6) // ISO/IEC 7810 corner radius, scaled
 const DEPTH = 0.03
 const BEVEL = 0.006
 const FACE_Z = DEPTH / 2 + BEVEL + 0.0008
-const MAX_TILT = 0.32 // radians
+const MAX_TILT = (9 * Math.PI) / 180 // 9° each way: enough to sweep the reflections, no visible perspective warp
 const TOUCH_THRESHOLD = 8 // px of horizontal drag before a touch starts tilting
 // Face texture: 2048px wide, over 2× the largest on-screen card (520 CSS px × dpr 2 = 1040px).
 const FACE_LAYOUT_WIDTH = 1024
@@ -94,8 +105,8 @@ export default function Card3D({ card, onFailure }: Card3DProps) {
         <Reflections />
         {/* No point-like key light: on the clearcoat it reads as a blown-out spot. The strips light the card. */}
         <ambientLight intensity={0.3} />
-        {/* The screen's single red accent: a rim light grazing the edge plus a faint reflection. */}
-        <pointLight position={[-2.6, 1.4, 0.8]} color="#ff2a3b" intensity={card.isFrozen ? 2 : 6} distance={7} />
+        {/* A trace of red on the left edge; the red flash itself is a reflection (see Reflections). */}
+        <pointLight position={[-2.6, 1.4, 0.8]} color="#ff2a3b" intensity={card.isFrozen ? 1 : 2} distance={7} />
         <CardMesh card={card} target={target} />
       </Canvas>
     </div>
@@ -103,22 +114,115 @@ export default function Card3D({ card, onFailure }: Card3DProps) {
 }
 
 /**
- * Studio reflections built in code (no HDR files): soft white strips and a faint red
- * panel. The environment stays still while the card rotates, so reflections slide on tilt.
+ * Studio reflections built in code (no HDR files). The environment stays still while the
+ * card rotates, so reflections slide across the clearcoat when it tilts.
+ *
+ * A glossy face pointing at the camera mirrors what is behind the camera (z > 0), and a
+ * 9° tilt swings that reflected direction by about ±18°. So everything meant to cross the
+ * face sits behind the camera, within that cone:
+ * - a large, very dim panel that keeps the body from reading as a hole;
+ * - a soft diagonal strip, visible at rest, that sweeps across on tilt;
+ * - a red strip about 31° to the side: just off the face at rest, it crosses the card as a
+ *   diagonal flash when tilted. It is the screen's single red accent (with a trace of rim light).
+ * The two side strips only catch the bevel, outlining the card's edge.
  */
 function Reflections() {
   return (
-    // A glossy face pointing at the camera mirrors what is behind the camera (z > 0),
-    // so the strips live there: soft horizontal bands at rest that slide as the card tilts.
     <Environment resolution={256} frames={1}>
-      <Lightformer form="rect" intensity={0.8} position={[0, 1.2, 5]} scale={[10, 0.6, 1]} />
-      <Lightformer form="rect" intensity={0.35} position={[0, -1.6, 5]} scale={[10, 0.3, 1]} />
-      <Lightformer form="rect" intensity={1} position={[-5, 0, 3]} scale={[0.4, 6, 1]} />
-      <Lightformer form="rect" intensity={0.8} position={[5, 0, 3]} scale={[0.4, 6, 1]} />
-      <Lightformer form="circle" color="#ff2a3b" intensity={0.35} position={[-3, -2, 4]} scale={2} />
+      <Lightformer form="rect" intensity={0.15} position={[0, 0, 6]} scale={[24, 24, 1]} />
+      <SoftStrip position={[-0.3, 0.4, 5]} angle={-0.55} length={16} width={0.9} intensity={2.4} />
+      <SoftStrip position={[3, -0.2, 5]} angle={0.35} length={9} width={0.8} intensity={4} color="#ff2a3b" />
+      <Lightformer form="rect" intensity={0.8} position={[-5, 0, 2.5]} scale={[0.4, 6, 1]} />
+      <Lightformer form="rect" intensity={0.6} position={[5, 0, 2.5]} scale={[0.4, 6, 1]} />
     </Environment>
   )
 }
+
+/**
+ * A strip with a soft falloff: three overlapping Lightformers, narrow and bright to wide and
+ * dim, so the reflection on the glossy clearcoat has no hard edges. Passing `rotation`
+ * keeps Lightformer from pointing itself at the origin (it would discard the angle).
+ */
+function SoftStrip({
+  position,
+  angle,
+  length,
+  width,
+  intensity,
+  color = '#ffffff',
+}: {
+  readonly position: [number, number, number]
+  readonly angle: number
+  readonly length: number
+  readonly width: number
+  readonly intensity: number
+  readonly color?: string
+}) {
+  return (
+    <>
+      {[
+        [0.35, 0.5],
+        [0.7, 0.3],
+        [1.4, 0.2],
+      ].map(([w, share]) => (
+        <Lightformer
+          key={w}
+          form="rect"
+          color={color}
+          intensity={intensity * share!}
+          position={position}
+          rotation={[0, 0, angle]}
+          scale={[w! * width, length, 1]}
+        />
+      ))}
+    </>
+  )
+}
+
+/**
+ * Fine volcanic-glass grain: a tiny tangent-space normal map from seeded value noise,
+ * generated in code (no image files). Mipmapped and anisotropic, so it fades instead of
+ * shimmering when the card is small or tilted; it only reads up close.
+ */
+function useGrainNormalMap(anisotropy: number) {
+  const texture = useMemo(() => {
+    const size = 256
+    let seed = 0x9e3779b9
+    const random = () => {
+      seed = (seed + 0x6d2b79f5) | 0
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+    }
+    const noise = Float32Array.from({ length: size * size }, random)
+    const height = (x: number, y: number) => noise[((y + size) % size) * size + ((x + size) % size)]!
+    const data = new Uint8Array(size * size * 4)
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const dx = height(x + 1, y) - height(x - 1, y)
+        const dy = height(x, y + 1) - height(x, y - 1)
+        const i = (y * size + x) * 4
+        data[i] = Math.round((dx * 0.5 + 0.5) * 255)
+        data[i + 1] = Math.round((dy * 0.5 + 0.5) * 255)
+        data[i + 2] = 255
+        data[i + 3] = 255
+      }
+    }
+    const map = new DataTexture(data, size, size)
+    map.wrapS = map.wrapT = RepeatWrapping
+    map.repeat.set(5, 3)
+    map.generateMipmaps = true
+    map.minFilter = LinearMipmapLinearFilter
+    map.magFilter = LinearFilter
+    map.anisotropy = anisotropy
+    map.needsUpdate = true
+    return map
+  }, [anisotropy])
+  useEffect(() => () => texture.dispose(), [texture])
+  return texture
+}
+
+const GRAIN_STRENGTH = new Vector2(0.035, 0.035)
 
 function roundedRectShape(width: number, height: number, radius: number) {
   const x = -width / 2
@@ -140,6 +244,8 @@ function CardMesh({ card, target }: { readonly card: CreditCard; readonly target
   const group = useRef<Group>(null)
   const face = useCardFace(card)
   const finish = FINISH[card.tier]
+  const maxAnisotropy = useThree((state) => state.gl.capabilities.getMaxAnisotropy())
+  const grain = useGrainNormalMap(maxAnisotropy)
   const shape = useMemo(() => roundedRectShape(WIDTH, HEIGHT, RADIUS), [])
   // Same rounded outline for the printed face, with UVs mapped 0..1 so the texture fits it.
   const faceGeometry = useMemo(() => {
@@ -179,21 +285,19 @@ function CardMesh({ card, target }: { readonly card: CreditCard; readonly target
             },
           ]}
         />
+        {/* High, smooth clearcoat: reflections read as light on polished glass. The grain sits
+            under it, in the base layer, so it only shows up close. */}
         <meshPhysicalMaterial
-          color={finish.base}
-          roughness={finish.roughness}
-          metalness={0.1}
-          clearcoat={0.7}
-          clearcoatRoughness={0.25}
-          envMapIntensity={0.9}
+          color={card.isFrozen ? finish.frozenBase : finish.base}
+          roughness={card.isFrozen ? finish.roughness + 0.15 : finish.roughness}
+          metalness={finish.metalness}
+          normalMap={grain}
+          normalScale={GRAIN_STRENGTH}
+          clearcoat={1}
+          clearcoatRoughness={card.isFrozen ? 0.16 : 0.1}
+          envMapIntensity={card.isFrozen ? 0.7 : 1}
         />
       </mesh>
-      {card.isFrozen && (
-        // Frost veil over the face, matching the static card.
-        <mesh geometry={faceGeometry} position={[0, 0, FACE_Z - 0.0004]}>
-          <meshBasicMaterial color="#a1a1aa" transparent opacity={0.14} toneMapped={false} />
-        </mesh>
-      )}
       {face && (
         <mesh geometry={faceGeometry} position={[0, 0, FACE_Z]}>
           <meshBasicMaterial map={face} transparent toneMapped={false} />
@@ -282,6 +386,18 @@ function drawFace(card: Pick<CreditCard, 'tier' | 'last4' | 'cardHolder' | 'expi
   ctx.fillText(card.expiry, width - pad, height - pad - 10)
 
   if (card.isFrozen) {
+    // Frost hatch, like the static card: dark, thin lines veil the face without brightening
+    // it, so a frozen card never reads lighter than an active one and reflections show through.
+    ctx.save()
+    ctx.strokeStyle = 'rgba(0,0,0,0.22)'
+    ctx.lineWidth = 6
+    for (let x = -height; x < width; x += 28) {
+      ctx.beginPath()
+      ctx.moveTo(x, height)
+      ctx.lineTo(x + height, 0)
+      ctx.stroke()
+    }
+    ctx.restore()
     ctx.textAlign = 'center'
     ctx.fillStyle = 'rgba(5,5,5,0.55)'
     ctx.beginPath()
