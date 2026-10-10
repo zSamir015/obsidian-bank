@@ -5,7 +5,7 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,
-  repeatEach: process.env.CI ? 10 : 1,
+  repeatEach: process.env.CI ? Number(process.env.E2E_REPEAT ?? 10) : 1,
   workers: 1,
   reporter: process.env.CI ? 'github' : 'list',
   outputDir: 'test-results',
