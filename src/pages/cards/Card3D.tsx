@@ -2,7 +2,16 @@ import { PerspectiveCamera } from '@react-three/drei'
 import { Canvas, useFrame, useThree, type RootState } from '@react-three/fiber'
 import { useDrag } from '@use-gesture/react'
 import { damp } from 'maath/easing'
-import { useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode, type Ref } from 'react'
+import {
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  type MutableRefObject,
+  type ReactNode,
+  type Ref,
+} from 'react'
 import { Shape, ShapeGeometry, Vector2, type Group } from 'three'
 import type { CreditCard } from '@/types/bank'
 import { drawBack, drawFront, useArtTexture, useGrainNormalMap } from './cardArt'
@@ -28,6 +37,9 @@ export interface Card3DProps {
   readonly face: Face
   /** Reports the face the card settled on after a drag. */
   readonly onFaceChange: (face: Face) => void
+  /** Optional native-scroll control used by the login story. */
+  readonly scrollProgressRef?: MutableRefObject<number>
+  readonly onInvalidateReady?: (invalidate: (() => void) | null) => void
   /** Called when the WebGL context is lost; the parent switches to the static card. */
   readonly onFailure: () => void
 }
@@ -67,17 +79,25 @@ interface PresentationHandle {
  * after ~30 s. Motion is applied in useFrame: React never re-renders per frame, and with
  * frameloop="demand" frames are only drawn while something moves.
  */
-export default function Card3D({ card, face, onFaceChange, onFailure }: Card3DProps) {
+export default function Card3D({
+  card,
+  face,
+  onFaceChange,
+  scrollProgressRef,
+  onInvalidateReady,
+  onFailure,
+}: Card3DProps) {
   const container = useRef<HTMLDivElement>(null)
   const presentation = useRef<PresentationHandle>(null)
   const scene = useRef<Pick<RootState, 'setFrameloop'> | null>(null)
   const active = useRenderGate(container)
-  const [playEntry] = useState(() => !hasPlayedEntry())
+  const [playEntry] = useState(() => !scrollProgressRef && !hasPlayedEntry())
   const [shadowReady, setShadowReady] = useState(!playEntry)
 
   useEffect(() => {
     if (playEntry) markEntryPlayed()
   }, [playEntry])
+  useEffect(() => () => onInvalidateReady?.(null), [onInvalidateReady])
 
   // The "Show back / Show front" button.
   useEffect(() => presentation.current?.showFace(face), [face])
@@ -116,6 +136,7 @@ export default function Card3D({ card, face, onFaceChange, onFailure }: Card3DPr
         onCreated={({ gl, invalidate, setFrameloop }) => {
           gl.setClearColor(0x000000, 0)
           scene.current = { setFrameloop }
+          onInvalidateReady?.(invalidate)
           gl.domElement.addEventListener('webglcontextlost', (event) => {
             event.preventDefault()
             onFailure()
@@ -128,6 +149,7 @@ export default function Card3D({ card, face, onFaceChange, onFailure }: Card3DPr
         <Presentation
           ref={presentation}
           initialFace={face}
+          scrollProgressRef={scrollProgressRef}
           playEntry={playEntry}
           onEntryDone={() => setShadowReady(true)}
           onFaceSettled={onFaceChange}
@@ -165,6 +187,7 @@ interface Motion {
 function Presentation({
   ref,
   initialFace,
+  scrollProgressRef,
   playEntry,
   onEntryDone,
   onFaceSettled,
@@ -172,6 +195,7 @@ function Presentation({
 }: {
   readonly ref: Ref<PresentationHandle>
   readonly initialFace: Face
+  readonly scrollProgressRef?: MutableRefObject<number>
   readonly playEntry: boolean
   readonly onEntryDone: () => void
   readonly onFaceSettled: (face: Face) => void
@@ -249,6 +273,11 @@ function Presentation({
     const g = turn.current
     const f = float.current
     if (!g || !f) return
+    if (scrollProgressRef) {
+      g.rotation.set(0, Math.PI * scrollProgressRef.current, 0)
+      f.position.y = LIFT
+      return
+    }
     const now = performance.now()
     let moving = false
 

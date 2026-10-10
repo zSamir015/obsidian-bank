@@ -1,4 +1,4 @@
-import { Component, lazy, Suspense, useState, type ComponentType, type ReactNode } from 'react'
+import { Component, lazy, Suspense, useState, type ComponentType, type MutableRefObject, type ReactNode } from 'react'
 import type { CreditCard } from '@/types/bank'
 import type { Card3DProps } from './Card3D'
 import { prefersReducedMotion, supportsWebGL } from './capabilities'
@@ -16,12 +16,17 @@ export function CardVisual({
   card,
   face = 'front',
   onFaceChange = () => {},
+  scrollProgressRef,
+  onInvalidateReady,
   Card3D = LazyCard3D,
 }: {
   readonly card: CreditCard
   readonly face?: Face
   /** The 3D card reports the face it settled on after a drag. */
   readonly onFaceChange?: (face: Face) => void
+  /** Optional native-scroll control for a story presentation. */
+  readonly scrollProgressRef?: MutableRefObject<number>
+  readonly onInvalidateReady?: (invalidate: (() => void) | null) => void
   /** Injectable for tests; defaults to the lazily loaded 3D chunk. */
   readonly Card3D?: ComponentType<Card3DProps>
 }) {
@@ -33,7 +38,14 @@ export function CardVisual({
   return (
     <FallbackOnError fallback={fallback} onError={() => setFailed(true)}>
       <Suspense fallback={fallback}>
-        <Card3D card={card} face={face} onFaceChange={onFaceChange} onFailure={() => setFailed(true)} />
+        <Card3D
+          card={card}
+          face={face}
+          onFaceChange={onFaceChange}
+          scrollProgressRef={scrollProgressRef}
+          onInvalidateReady={onInvalidateReady}
+          onFailure={() => setFailed(true)}
+        />
       </Suspense>
     </FallbackOnError>
   )
