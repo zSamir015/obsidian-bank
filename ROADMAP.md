@@ -1,13 +1,13 @@
 # Roadmap
 
-Obsidian Bank is a portfolio demo, not a real bank. This roadmap shows what has shipped and what is proposed next. Proposed items are ideas, not commitments: each one is a GitHub issue labelled `proposal`, grouped into a [milestone](https://github.com/zSamir015/obsidian-bank/milestones). The [Obsidian Bank Roadmap](https://github.com/users/zSamir015/projects/1) project tracks them as a table and as a timeline by milestone.
+Obsidian Bank is a portfolio demo, not a real bank. This roadmap shows what has shipped and what is proposed next. Proposed items are ideas, not commitments: each one is a GitHub issue labelled `proposal`, grouped into a [GitHub milestone](https://github.com/zSamir015/obsidian-bank/milestones).
 
-| Version  | Theme                                  | Status                 |
-| -------- | -------------------------------------- | ---------------------- |
-| **v2.0** | Redesign, data foundation and 3D cards | Shipped (October 2026) |
-| **v2.1** | Polish                                 | Proposed               |
-| **v2.2** | Features                               | Proposed               |
-| **v3.0** | Platform                               | Proposed               |
+| Version  | Theme                                  | Status                 | Target date        |
+| -------- | -------------------------------------- | ---------------------- | ------------------ |
+| **v2.0** | Redesign, data foundation and 3D cards | Shipped (October 2026) | —                  |
+| **v2.1** | Polish                                 | Proposed               | 15 November 2026   |
+| **v2.2** | Features                               | Proposed               | 31 January 2027    |
+| **v3.0** | Platform                               | Proposed               | 30 April 2027      |
 
 ## v2.0: shipped
 
