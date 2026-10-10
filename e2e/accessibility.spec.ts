@@ -11,7 +11,7 @@ async function enterDemo(page: Page) {
   await page.goto('')
   await expect(page.getByRole('heading', { name: 'A calm place for your money.' })).toBeVisible()
   await page.getByRole('button', { name: 'Explore the demo' }).click()
-  await expect(page.getByRole('heading', { name: 'Total balance' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Total available' })).toBeVisible()
 }
 
 async function collectSeriousViolations(page: Page, label: string) {
@@ -40,7 +40,7 @@ for (const { name, size } of viewports) {
       await expect(page.getByRole('heading', { name: 'A calm place for your money.' })).toBeVisible()
       const violations = await collectSeriousViolations(page, 'Login')
       await page.getByRole('button', { name: 'Explore the demo' }).click()
-      await expect(page.getByRole('heading', { name: 'Total balance' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Total available' })).toBeVisible()
       violations.push(...(await collectSeriousViolations(page, 'Overview')))
 
       for (const screen of [

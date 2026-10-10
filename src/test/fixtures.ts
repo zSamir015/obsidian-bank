@@ -13,13 +13,14 @@ const daysAgo = (days: number, hours = 10) => {
   return date.toISOString()
 }
 
-export const accountRows: Tables<'accounts'>[] = [
+export const accountRows: Tables<'account_balances'>[] = [
   {
     id: CHECKING,
     user_id: USER,
     name: 'Everyday Checking',
     kind: 'checking',
-    balance_cents: 1264055,
+    ledger_balance_cents: 1393894,
+    available_balance_cents: 1264055,
     currency: 'USD',
     apy_bps: 0,
     created_at: daysAgo(90),
@@ -29,7 +30,8 @@ export const accountRows: Tables<'accounts'>[] = [
     user_id: USER,
     name: 'Obsidian Vault',
     kind: 'vault',
-    balance_cents: 3557252,
+    ledger_balance_cents: 3557252,
+    available_balance_cents: 3557252,
     currency: 'USD',
     apy_bps: 425,
     created_at: daysAgo(90),

@@ -37,15 +37,17 @@ const renderPage = async () => {
 }
 
 describe('OverviewPage', () => {
-  it('leads with the total balance of all accounts', async () => {
+  it('leads with total available funds and shows the settled ledger total secondarily', async () => {
     await renderPage()
-    const hero = screen.getByRole('region', { name: 'Total balance' })
+    const hero = screen.getByRole('region', { name: 'Total available' })
     expect(within(hero).getByText('$48,213.07')).toBeInTheDocument()
+    expect(within(hero).getByText('$49,511.46')).toBeInTheDocument()
+    expect(within(hero).getByText(/Available excludes pending and under-review debits/)).toBeInTheDocument()
   })
 
   it("summarizes this month's money in and out, without transfers", async () => {
     await renderPage()
-    const hero = screen.getByRole('region', { name: 'Total balance' })
+    const hero = screen.getByRole('region', { name: 'Total available' })
     expect(within(hero).getByText('+$4,125.00')).toBeInTheDocument()
     expect(within(hero).getByText('−$2,513.49')).toBeInTheDocument()
   })

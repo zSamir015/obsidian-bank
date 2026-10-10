@@ -33,7 +33,7 @@ test.describe('desktop login scroll story', () => {
     await expect(story.getByTestId('login-story-card-frame')).toHaveCSS('transform', 'none')
     await expect.poll(() => page.evaluate(() => sessionStorage.getItem('obsidian-bank:card-entry-played'))).toBe(null)
     await cta.click()
-    await expect(page.getByRole('heading', { name: 'Total balance' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Total available' })).toBeVisible()
     expect(backend.unexpectedRequests).toEqual([])
   })
 

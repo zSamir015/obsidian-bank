@@ -16,14 +16,15 @@ export function BalanceHero({
   readonly accounts: QueryView<readonly Account[]>
   readonly transactions: readonly Transaction[] | undefined
 }) {
-  const total = asCents(accounts.data?.reduce((sum, a) => sum + a.balance, 0) ?? 0)
+  const available = asCents(accounts.data?.reduce((sum, a) => sum + a.availableBalance, 0) ?? 0)
+  const ledger = asCents(accounts.data?.reduce((sum, a) => sum + a.ledgerBalance, 0) ?? 0)
   const flow = transactions && cashflowThisMonth(transactions)
 
   return (
     <section aria-labelledby="total-balance" className="relative isolate pt-4">
       <Glow />
       <h1 id="total-balance">
-        <Label as="span">Total balance</Label>
+        <Label as="span">Total available</Label>
       </h1>
 
       {accounts.isError ? (
@@ -35,9 +36,15 @@ export function BalanceHero({
       ) : (
         <Money
           display
-          cents={total}
+          cents={available}
           className="mt-3 block text-[clamp(3.25rem,11vw,7.5rem)] leading-[0.95] font-medium tracking-display"
         />
+      )}
+
+      {!accounts.isPending && !accounts.isError && (
+        <p className="mt-3 text-sm text-muted">
+          Ledger balance <Money cents={ledger} /> · Available excludes pending and under-review debits.
+        </p>
       )}
 
       {flow && (

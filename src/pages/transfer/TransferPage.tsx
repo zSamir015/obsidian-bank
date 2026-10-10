@@ -72,7 +72,9 @@ export default function TransferPage() {
 
   return (
     <div>
-      <PageHeader title="Move money">Between your own accounts. Transfers arrive instantly.</PageHeader>
+      <PageHeader title="Move money">
+        Between your own accounts. Available excludes pending and under-review debits; ledger reflects settled activity.
+      </PageHeader>
 
       {accounts.isError ? (
         <ErrorMessage onRetry={() => void accounts.refetch()}>Couldn't load your accounts.</ErrorMessage>
@@ -101,7 +103,7 @@ export default function TransferPage() {
                 <Select {...props} {...register('fromId')}>
                   {accounts.data.map((a) => (
                     <option key={a.id} value={a.id}>
-                      {`${a.name} · ${formatMoney(a.balance)}`}
+                      {`${a.name} · ${formatMoney(a.availableBalance)} available`}
                     </option>
                   ))}
                 </Select>
@@ -123,7 +125,7 @@ export default function TransferPage() {
                 <Select {...props} {...register('toId')}>
                   {accounts.data.map((a) => (
                     <option key={a.id} value={a.id}>
-                      {`${a.name} · ${formatMoney(a.balance)}`}
+                      {`${a.name} · ${formatMoney(a.availableBalance)} available`}
                     </option>
                   ))}
                 </Select>
@@ -157,15 +159,21 @@ function Summary({ preview }: { readonly preview: TransferPreview }) {
       <Label>After this transfer</Label>
       <dl className="mt-5 space-y-5">
         <div>
-          <dt className="text-sm text-muted">{preview.from.name}</dt>
+          <dt className="text-sm text-muted">{preview.from.name} · Available</dt>
           <dd className="mt-1 text-2xl font-medium tracking-[-0.01em]">
-            <Money cents={preview.from.after} />
+            <Money cents={preview.from.availableAfter} />
+          </dd>
+          <dd className="mt-1 text-sm text-muted">
+            Ledger <Money cents={preview.from.ledgerAfter} />
           </dd>
         </div>
         <div>
-          <dt className="text-sm text-muted">{preview.to.name}</dt>
+          <dt className="text-sm text-muted">{preview.to.name} · Available</dt>
           <dd className="mt-1 text-2xl font-medium tracking-[-0.01em]">
-            <Money cents={preview.to.after} />
+            <Money cents={preview.to.availableAfter} />
+          </dd>
+          <dd className="mt-1 text-sm text-muted">
+            Ledger <Money cents={preview.to.ledgerAfter} />
           </dd>
           {preview.to.apyBps > 0 && <dd className="mt-1 text-sm text-muted">Earns {formatApy(preview.to.apyBps)}</dd>}
         </div>

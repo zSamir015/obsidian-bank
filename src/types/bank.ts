@@ -10,7 +10,8 @@ export interface Account {
   readonly id: string
   readonly name: string
   readonly type: AccountType
-  readonly balance: Cents
+  readonly ledgerBalance: Cents
+  readonly availableBalance: Cents
   readonly currency: Currency
   /** Annual percentage yield in basis points (425 = 4.25%). */
   readonly apyBps: number

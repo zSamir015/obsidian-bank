@@ -27,12 +27,13 @@ const STATUSES: readonly TransactionStatus[] = ['completed', 'pending', 'flagged
 const TYPES: readonly TransactionType[] = ['debit', 'credit']
 const BUDGET_CATEGORIES = CATEGORIES.filter((c): c is BudgetCategory => c !== 'transfer')
 
-export function toAccount(row: Tables<'accounts'>): Account {
+export function toAccount(row: Tables<'account_balances'>): Account {
   return {
     id: row.id,
     name: row.name,
     type: oneOf(ACCOUNT_TYPES, row.kind, 'account kind'),
-    balance: asCents(row.balance_cents),
+    ledgerBalance: asCents(row.ledger_balance_cents),
+    availableBalance: asCents(row.available_balance_cents),
     currency: oneOf(['USD'] as const, row.currency, 'currency'),
     apyBps: row.apy_bps,
     createdAt: row.created_at,

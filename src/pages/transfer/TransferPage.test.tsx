@@ -32,8 +32,8 @@ const submit = () => userEvent.click(screen.getByRole('button', { name: 'Move mo
 describe('TransferPage', () => {
   it('starts from checking into the vault, with balances in the source list', () => {
     renderPage()
-    expect(screen.getByRole('combobox', { name: 'From' })).toHaveDisplayValue('Everyday Checking · $12,640.55')
-    expect(screen.getByRole('combobox', { name: 'To' })).toHaveDisplayValue('Obsidian Vault · $35,572.52')
+    expect(screen.getByRole('combobox', { name: 'From' })).toHaveDisplayValue('Everyday Checking · $12,640.55 available')
+    expect(screen.getByRole('combobox', { name: 'To' })).toHaveDisplayValue('Obsidian Vault · $35,572.52 available')
   })
 
   it('sends the amount as integer cents and confirms with the same verb', async () => {
@@ -59,7 +59,10 @@ describe('TransferPage', () => {
 
   it('blocks moving money into the same account', async () => {
     renderPage()
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'To' }), 'Everyday Checking · $12,640.55')
+    await userEvent.selectOptions(
+      screen.getByRole('combobox', { name: 'To' }),
+      'Everyday Checking · $12,640.55 available',
+    )
     await userEvent.type(amount(), '10')
     await submit()
     expect(screen.getByRole('combobox', { name: 'To' })).toHaveAccessibleDescription(/Choose a different account/)
@@ -87,6 +90,7 @@ describe('TransferPage summary', () => {
     renderPage()
     await userEvent.type(amount(), '25.50')
     expect(within(summary()).getByText('$12,615.05')).toHaveClass('sr-only')
+    expect(within(summary()).getByText('$13,913.44')).toHaveClass('sr-only')
   })
 
   it('mentions the APY when money goes into the vault', () => {
@@ -97,8 +101,8 @@ describe('TransferPage summary', () => {
   it('swaps source and destination', async () => {
     renderPage()
     await userEvent.click(screen.getByRole('button', { name: 'Swap accounts' }))
-    expect(screen.getByRole('combobox', { name: 'From' })).toHaveDisplayValue('Obsidian Vault · $35,572.52')
-    expect(screen.getByRole('combobox', { name: 'To' })).toHaveDisplayValue('Everyday Checking · $12,640.55')
+    expect(screen.getByRole('combobox', { name: 'From' })).toHaveDisplayValue('Obsidian Vault · $35,572.52 available')
+    expect(screen.getByRole('combobox', { name: 'To' })).toHaveDisplayValue('Everyday Checking · $12,640.55 available')
     expect(within(summary()).queryByText('Earns 4.25% APY')).not.toBeInTheDocument()
   })
 })
