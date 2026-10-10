@@ -12,10 +12,11 @@ const noFile = (license, source) =>
   `No license file is shipped in the npm package; its package.json declares ${license}.\nSee ${source}`
 const missingTextNotes = {
   '@react-three/fiber': noFile('MIT', 'https://github.com/pmndrs/react-three-fiber/blob/master/LICENSE'),
+  // Used by the 3D card for its spring easing; the package ships no license file.
+  maath: noFile('MIT', 'https://github.com/pmndrs/maath/blob/main/LICENSE'),
   // The packages below come with @react-three/drei; tree-shaking keeps them out of the build.
   '@mediapipe/tasks-vision': noFile('Apache-2.0', 'https://github.com/google-ai-edge/mediapipe/blob/master/LICENSE'),
   draco3d: noFile('Apache-2.0', 'https://github.com/google/draco/blob/main/LICENSE'),
-  maath: noFile('MIT', 'https://github.com/pmndrs/maath/blob/main/LICENSE'),
   'stats-gl': noFile('MIT', 'https://github.com/RenaudRohlinger/stats-gl/blob/main/LICENSE'),
 }
 
@@ -29,7 +30,11 @@ const packages = new Map()
 ;(function walk(node) {
   for (const [name, dep] of Object.entries(node.dependencies ?? {})) {
     // Unmet optional peers (e.g. the many validators @hookform/resolvers supports) have no version.
-    if (!dep.version || dep.missing || isTypeOnly(name) || packages.has(name)) continue
+    if (!dep.version || dep.missing || isTypeOnly(name)) continue
+    // npm lists a package's children once and marks later copies "deduped" without them,
+    // so a package seen before is still walked: this copy may be the one with children.
+    walk(dep)
+    if (packages.has(name)) continue
     const dir = join(root, 'node_modules', name)
     const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'))
     const licenseFile = readdirSync(dir).find((f) => /^(licen[sc]e|copying)/i.test(f))
@@ -39,7 +44,6 @@ const packages = new Map()
       homepage: pkg.homepage ?? `https://www.npmjs.com/package/${name}`,
       text: licenseFile ? readFileSync(join(dir, licenseFile), 'utf8').trim() : (missingTextNotes[name] ?? null),
     })
-    walk(dep)
   }
 })(tree)
 
