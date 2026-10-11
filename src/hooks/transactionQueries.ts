@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toTransaction } from '@/lib/mappers'
 import { supabase } from '@/lib/supabase'
 import type { Transaction } from '@/types/bank'
@@ -6,10 +6,11 @@ import { queryKeys } from './queryKeys'
 import { settleDueTransfers } from './settlement'
 
 export function useTransactions() {
+  const queryClient = useQueryClient()
   return useQuery({
     queryKey: queryKeys.transactions,
     queryFn: async (): Promise<Transaction[]> => {
-      await settleDueTransfers()
+      void settleDueTransfers(queryClient)
       const { data, error } = await supabase
         .from('transactions')
         .select('*')

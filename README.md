@@ -59,7 +59,7 @@ A visit goes like this:
 1. "Explore the demo" calls Supabase's anonymous sign-in. A database trigger on the new user (`handle_new_user`) runs `seed_demo_data`, which creates a checking account, a savings vault, about 50 transactions over three months, two cards and three budgets.
 2. Pages read their data through PostgREST. Row Level Security limits every query to rows where `user_id = auth.uid()`, so a user can only ever see their own data.
 3. Anything that changes money or cards is a call to a Postgres function (`transfer_funds`, `create_external_transfer`, `freeze_card`, `update_card_limit`). Each one checks the caller, validates its arguments and does the whole change in one transaction. After it returns, TanStack Query invalidates the affected queries so every screen shows the new state.
-4. Before balances or activity load, the client calls `settle_external_transfers`, which marks the caller's external transfers as completed once their two-minute delay has passed. This is how settlement is simulated; nothing runs in the background.
+4. Whenever balances or activity load, the client also calls `settle_external_transfers`, which marks the caller's external transfers as completed once their two-minute delay has passed. It runs alongside the read rather than before it, and if anything settled, balances and activity are fetched again. This is how settlement is simulated; nothing runs in the background.
 5. A `pg_cron` job runs every day at 04:17 UTC and deletes anonymous users that have been inactive for more than 7 days. Their accounts, cards, transactions and budgets go with them through `ON DELETE CASCADE`.
 
 ## Data model
@@ -213,7 +213,7 @@ docs/                user guide, screenshots and design notes
 - **Balances are computed from transactions** in the `account_balances` view, rather than kept in a column that has to stay in sync. For a demo with a few hundred rows per user this is fast, and it removes a whole class of drift bugs.
 - **Anonymous sessions instead of sign-up.** Visitors can try the app in one click, and the daily cleanup keeps the database small. The trade-off is that a session is tied to one browser.
 - **A mocked backend for end-to-end tests.** It makes them fast, deterministic and safe to run on every pull request. Database behaviour is covered separately by the PGlite tests, so the two together cover the full path.
-- **Settlement is simulated on read.** An external transfer is a pending debit with a `settles_at` two minutes ahead. The client asks the server to settle due transfers before it reads balances or activity, so there is no job to schedule and the behaviour can be tested entirely in PGlite. The trade-off is that a transfer only settles when the app is used, which is fine for a demo and is stated in the interface. The seeded pending and under-review transactions never settle.
+- **Settlement is simulated on read.** An external transfer is a pending debit with a `settles_at` two minutes ahead. Each time balances or activity load, the client asks the server to settle due transfers in parallel with the read, and refetches only if something settled. There is no job to schedule, the page is never slowed down by the extra call, and the behaviour can be tested entirely in PGlite. The trade-off is that a transfer only settles when the app is used, which is fine for a demo and is stated in the interface. The seeded pending and under-review transactions never settle.
 
 ## License
 
