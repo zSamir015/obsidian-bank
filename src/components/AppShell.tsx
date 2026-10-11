@@ -1,13 +1,10 @@
 import { ArrowLeftRight, ChartPie, CircleHelp, CreditCard, LayoutGrid, LogOut, ReceiptText } from 'lucide-react'
-import { lazy, Suspense } from 'react'
 import { NavLink, Outlet } from 'react-router'
 import { useI18n } from '@/i18n/useI18n'
 import { supabase } from '@/lib/supabase'
 import { LanguagePicker } from './LanguagePicker'
 import { Logo } from './Logo'
-import { NotificationsLink } from './NotificationsLink'
-
-const NotificationsLinkLive = lazy(() => import('./NotificationsLinkLive'))
+import { NotificationsBell } from './NotificationsBell'
 
 const NAV = [
   { to: '/', key: 'overview', icon: LayoutGrid, end: true },
@@ -52,9 +49,7 @@ export function AppShell() {
           ))}
         </nav>
         <div className="mt-auto flex flex-col items-start gap-1">
-          <Suspense fallback={<NotificationsLink desktop />}>
-            <NotificationsLinkLive desktop />
-          </Suspense>
+          <NotificationsBell desktop />
           <LanguagePicker className="px-4" />
           <HelpLink desktop />
           <button
@@ -71,9 +66,7 @@ export function AppShell() {
       <header className="flex items-center justify-between gap-2 px-5 pt-5 md:hidden">
         <Logo collapse />
         <div className="flex items-center">
-          <Suspense fallback={<NotificationsLink />}>
-            <NotificationsLinkLive />
-          </Suspense>
+          <NotificationsBell />
           <LanguagePicker compact className="px-2.5" />
           <HelpLink />
           {/* Phones show the icon only, like Help; the label stays for screen readers. */}

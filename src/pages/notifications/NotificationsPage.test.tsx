@@ -9,8 +9,7 @@ import { notificationRows } from '@/test/fixtures'
 import NotificationsPage from './NotificationsPage'
 
 const queries = vi.hoisted(() => ({ useNotifications: vi.fn(), useMarkNotificationsRead: vi.fn() }))
-vi.mock('@/hooks/notificationQueries', () => ({ useNotifications: queries.useNotifications }))
-vi.mock('@/hooks/notificationMutations', () => ({ useMarkNotificationsRead: queries.useMarkNotificationsRead }))
+vi.mock('@/hooks/notificationQueries', () => queries)
 
 const mutate = vi.fn()
 const unread = notificationRows.map(toNotification)

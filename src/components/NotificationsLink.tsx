@@ -6,8 +6,7 @@ import { cn } from '@/lib/cn'
 
 /**
  * Bell with the unread count. The count is part of the link's name, so it is announced too.
- * The shell renders it with no count until NotificationsLinkLive (a separate chunk, so the
- * query code stays out of the initial JavaScript) has loaded the notifications.
+ * NotificationsBell shows it without a count until the count has loaded.
  */
 export function NotificationsLink({
   desktop = false,

@@ -1,24 +1,22 @@
-import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
-import { useNotifications } from '@/hooks/notificationQueries'
-import { queryKeys } from '@/hooks/queryKeys'
+import { useUnreadNotificationCount } from '@/hooks/unreadNotificationQuery'
 import { NotificationsLink } from './NotificationsLink'
 
-export default function NotificationsLinkLive({ desktop = false }: { readonly desktop?: boolean }) {
-  const notifications = useNotifications()
-  const queryClient = useQueryClient()
-  const unread = notifications.data?.filter((notification) => !notification.isRead).length ?? 0
+export default function NotificationsLinkLive({
+  desktop = false,
+  onNewNotification,
+}: {
+  readonly desktop?: boolean
+  /** Called when the unread count goes up while the app is open. */
+  readonly onNewNotification: () => void
+}) {
+  const unread = useUnreadNotificationCount()
 
-  // A new notification means a transaction just changed status: refresh activity so it
-  // shows "Under review" too, instead of waiting for it to go stale.
-  const latest = notifications.data?.[0]?.id
-  const seen = useRef(latest)
+  const previous = useRef(unread)
   useEffect(() => {
-    if (latest && seen.current && latest !== seen.current) {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.transactions })
-    }
-    if (latest) seen.current = latest
-  }, [latest, queryClient])
+    if (unread !== undefined && previous.current !== undefined && unread > previous.current) onNewNotification()
+    if (unread !== undefined) previous.current = unread
+  }, [unread, onNewNotification])
 
-  return <NotificationsLink desktop={desktop} unread={unread} live />
+  return <NotificationsLink desktop={desktop} unread={unread ?? 0} live={unread !== undefined} />
 }
