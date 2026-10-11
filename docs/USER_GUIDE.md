@@ -171,6 +171,16 @@ The back has a magnetic stripe, a signature panel and a note that it's a demo ca
 - From **$500 to $100,000**, in whole dollars.
 - Never below what has already been spent on the card. The field tells you the real minimum, rounded up to the next dollar, for example _Whole dollars from $12,848 to $100,000_.
 
+## Notifications
+
+When a payment is placed **Under review**, you get a notification. The bell (at the bottom of the side menu on a computer, at the top on a phone) shows how many you haven't read.
+
+- Each notification says the amount, the merchant and the last four digits of the card used, for example _$989.99 at Unrecognized merchant — online on the card ending in 4821 is under review._ It never includes anything else.
+- New notifications appear when you come back to the tab, or within a minute while it's open.
+- **Mark all as read** clears the count.
+
+Notifications only appear inside the demo. It never sends emails, text messages or browser notifications.
+
 ## Accessibility
 
 - **Keyboard:** everything works without a mouse. Press **Tab** to move between controls and **Enter** or **Space** to use them. The first Tab offers **Skip to content**, which jumps past the menu. On Cards, use the arrow keys to switch between cards and **Show back / Show front** to turn the card.

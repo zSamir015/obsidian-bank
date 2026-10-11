@@ -60,18 +60,20 @@ A visit goes like this:
 2. Pages read their data through PostgREST. Row Level Security limits every query to rows where `user_id = auth.uid()`, so a user can only ever see their own data.
 3. Anything that changes money or cards is a call to a Postgres function (`transfer_funds`, `create_external_transfer`, `freeze_card`, `update_card_limit`). Each one checks the caller, validates its arguments and does the whole change in one transaction. After it returns, TanStack Query invalidates the affected queries so every screen shows the new state.
 4. Whenever balances or activity load, the client also calls `settle_external_transfers`, which marks the caller's external transfers as completed once their two-minute delay has passed. It runs alongside the read rather than before it, and if anything settled, balances and activity are fetched again. This is how settlement is simulated; nothing runs in the background.
-5. A `pg_cron` job runs every day at 04:17 UTC and deletes anonymous users that have been inactive for more than 7 days. Their accounts, cards, transactions and budgets go with them through `ON DELETE CASCADE`.
+5. When a transaction is created as, or moves to, Under review (`flagged`), a trigger (`notify_flagged_transaction`) writes a notification for its owner. The app shows the unread count on a bell and checks for new notifications when the tab regains focus and once a minute. There is no push and no service worker.
+6. A `pg_cron` job runs every day at 04:17 UTC and deletes anonymous users that have been inactive for more than 7 days. Their accounts, cards, transactions and budgets go with them through `ON DELETE CASCADE`.
 
 ## Data model
 
-| Table / view         | Purpose                                                                                      | Who can write                                  |
-| -------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `accounts`           | Checking and vault accounts, with an APY in basis points for vaults                          | Only server functions                          |
-| `transactions`       | Positive amount in cents, `type` (`debit`/`credit`), category, status, optional transfer id  | Only server functions                          |
-| `cards`              | Tier, last four digits, expiry, credit limit, amount spent, frozen flag                      | Only server functions                          |
-| `budgets`            | Monthly limit per spending category                                                          | The owner, through an owner-only RLS policy    |
-| `external_transfers` | Recipient name, routing number, last four digits of the account, amount and settlement times | Only server functions                          |
-| `account_balances`   | View with the ledger and available balance of each account                                   | Read-only; `SELECT` granted to signed-in users |
+| Table / view         | Purpose                                                                                              | Who can write                                                  |
+| -------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `accounts`           | Checking and vault accounts, with an APY in basis points for vaults                                  | Only server functions                                          |
+| `transactions`       | Positive amount in cents, `type` (`debit`/`credit`), category, status, optional transfer id and card | Only server functions                                          |
+| `cards`              | Tier, last four digits, expiry, credit limit, amount spent, frozen flag                              | Only server functions                                          |
+| `budgets`            | Monthly limit per spending category                                                                  | The owner, through an owner-only RLS policy                    |
+| `external_transfers` | Recipient name, routing number, last four digits of the account, amount and settlement times         | Only server functions                                          |
+| `notifications`      | One per transaction placed under review: merchant, amount, card last four, read time                 | Only the trigger; `mark_notifications_read` sets the read time |
+| `account_balances`   | View with the ledger and available balance of each account                                           | Read-only; `SELECT` granted to signed-in users                 |
 
 A few rules hold everywhere:
 
@@ -80,6 +82,7 @@ A few rules hold everywhere:
 - Transfers between your own accounts use the `transfer` category. They are left out of budgets and out of income and spending totals, since moving money between your own accounts is neither.
 - Transfers to another bank use the `external` category. They count as money out, but they have no budget category.
 - For external transfers, only the last four digits of the recipient's account number reach the server. The browser validates the full number (4 to 17 digits) and sends `last4` alone, so the full number is never in a request, a log or the database.
+- A notification is a copy of three things: merchant, amount and the card's last four digits. It holds no account, balance or other card data, so whatever it is shown in, it can't reveal more than that. The client reads exactly those columns.
 - Cards only ever store the last four digits. There is no full card number or CVV anywhere, including fixtures and tests.
 
 ## Security
