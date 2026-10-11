@@ -292,6 +292,12 @@ export const en = {
     markAllRead: 'Mark all as read',
     flagged: (merchant: string, amount: string, last4: string) =>
       `${amount} at ${merchant} on the card ending in ${last4} is under review.`,
+    flaggedWithoutCard: (merchant: string, amount: string) => `${amount} at ${merchant} is under review.`,
+    intro: 'Payments placed under review show up here.',
+    link: (count: number, formatted: string) => (count > 0 ? `Notifications, ${formatted} unread` : 'Notifications'),
+    unreadItem: 'Unread',
+    failed: "Couldn't load your notifications.",
+    allRead: 'All notifications marked as read.',
   },
 }
 

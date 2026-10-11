@@ -70,6 +70,16 @@ const fixtures = {
       created_at: createdAt,
     },
   ],
+  '/rest/v1/notifications': [
+    {
+      id: '00000000-0000-4000-8000-0000000000d1',
+      merchant: 'Unrecognized merchant — online',
+      amount_cents: 98999,
+      card_last4: '4821',
+      created_at: createdAt,
+      read_at: null,
+    },
+  ],
   '/rest/v1/budgets': [
     { id: '00000000-0000-4000-8000-0000000000b1', user_id: userId, category: 'travel', limit_cents: 120000 },
   ],

@@ -1,9 +1,13 @@
 import { ArrowLeftRight, ChartPie, CircleHelp, CreditCard, LayoutGrid, LogOut, ReceiptText } from 'lucide-react'
+import { lazy, Suspense } from 'react'
 import { NavLink, Outlet } from 'react-router'
 import { useI18n } from '@/i18n/useI18n'
 import { supabase } from '@/lib/supabase'
 import { LanguagePicker } from './LanguagePicker'
 import { Logo } from './Logo'
+import { NotificationsLink } from './NotificationsLink'
+
+const NotificationsLinkLive = lazy(() => import('./NotificationsLinkLive'))
 
 const NAV = [
   { to: '/', key: 'overview', icon: LayoutGrid, end: true },
@@ -48,6 +52,9 @@ export function AppShell() {
           ))}
         </nav>
         <div className="mt-auto flex flex-col items-start gap-1">
+          <Suspense fallback={<NotificationsLink desktop />}>
+            <NotificationsLinkLive desktop />
+          </Suspense>
           <LanguagePicker className="px-4" />
           <HelpLink desktop />
           <button
@@ -64,14 +71,19 @@ export function AppShell() {
       <header className="flex items-center justify-between gap-2 px-5 pt-5 md:hidden">
         <Logo collapse />
         <div className="flex items-center">
+          <Suspense fallback={<NotificationsLink />}>
+            <NotificationsLinkLive />
+          </Suspense>
           <LanguagePicker compact className="px-2.5" />
           <HelpLink />
+          {/* Phones show the icon only, like Help; the label stays for screen readers. */}
           <button
             type="button"
             onClick={() => void supabase.auth.signOut()}
-            className="rounded-full px-3 py-2 text-sm whitespace-nowrap text-muted hover:text-text"
+            className="inline-flex items-center gap-2 rounded-full px-2.5 py-2 text-sm whitespace-nowrap text-muted hover:text-text sm:px-3"
           >
-            {t.nav.signOut}
+            <LogOut aria-hidden="true" className="size-[17px] sm:hidden" strokeWidth={1.75} />
+            <span className="sr-only sm:not-sr-only">{t.nav.signOut}</span>
           </button>
         </div>
       </header>

@@ -26,6 +26,7 @@ export const routes: RouteObject[] = [
               { path: 'transfer', lazy: page(() => import('@/pages/transfer/TransferPage')) },
               { path: 'budgets', lazy: page(() => import('@/pages/budgets/BudgetsPage')) },
               { path: 'cards', lazy: page(() => import('@/pages/cards/CardsPage')) },
+              { path: 'notifications', lazy: page(() => import('@/pages/notifications/NotificationsPage')) },
               ...legacyRedirects,
             ],
           },

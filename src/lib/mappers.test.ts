@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Tables } from '@/types/database'
-import { toAccount, toBudget, toCard, toTransaction } from './mappers'
+import { toAccount, toBudget, toCard, toNotification, toTransaction } from './mappers'
 
 describe('toAccount', () => {
   const row: Tables<'account_balances'> = {
@@ -48,6 +48,7 @@ describe('toTransaction', () => {
     category: 'travel',
     description: 'Uber',
     transfer_id: null,
+    card_id: null,
     created_at: '2026-10-09T08:00:00Z',
   }
 
@@ -124,5 +125,33 @@ describe('toBudget', () => {
 
   it('rejects a transfer budget', () => {
     expect(() => toBudget({ id: 'b1', user_id: 'u1', category: 'transfer', limit_cents: 1 })).toThrow()
+  })
+})
+
+describe('toNotification', () => {
+  const row = {
+    id: 'n1',
+    merchant: 'Unrecognized merchant — online',
+    amount_cents: 98999,
+    card_last4: '4821',
+    created_at: '2026-10-09T10:00:00Z',
+    read_at: null,
+  }
+
+  it('keeps only merchant, amount, last four digits and read state', () => {
+    expect(toNotification(row)).toEqual({
+      id: 'n1',
+      merchant: 'Unrecognized merchant — online',
+      amount: 98999,
+      cardLast4: '4821',
+      createdAt: '2026-10-09T10:00:00Z',
+      isRead: false,
+    })
+    expect(toNotification({ ...row, read_at: '2026-10-10T10:00:00Z' }).isRead).toBe(true)
+    expect(toNotification({ ...row, card_last4: null }).cardLast4).toBeNull()
+  })
+
+  it.each(['4111111111111111', '48', 'abcd'])('refuses card digits other than the last four: %s', (value) => {
+    expect(() => toNotification({ ...row, card_last4: value })).toThrow(TypeError)
   })
 })
