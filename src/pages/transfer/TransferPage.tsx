@@ -57,7 +57,8 @@ export default function TransferPage() {
                   />
                   <span
                     className={cn(
-                      'inline-flex h-9 cursor-pointer items-center rounded-full px-4 text-sm font-medium text-muted transition-colors',
+                      // No colour transition: a half-faded state fails contrast while it animates.
+                      'inline-flex h-9 cursor-pointer items-center rounded-full px-4 text-sm font-medium text-muted',
                       'peer-checked:bg-text peer-checked:text-bg peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-text',
                       'hover:text-text peer-checked:hover:text-bg',
                     )}
