@@ -5,9 +5,10 @@ Obsidian Bank is a portfolio demo, not a real bank. This roadmap shows what has 
 | Version  | Theme                                  | Status                 | Target date      |
 | -------- | -------------------------------------- | ---------------------- | ---------------- |
 | **v2.0** | Redesign, data foundation and 3D cards | Shipped (October 2026) | —                |
-| **v2.1** | Polish                                 | Shipped (October 2026) | 15 November 2026 |
+| **v2.1** | Polish                                 | In progress (#17 open) | 15 November 2026 |
 | **v2.2** | Features                               | In progress            | 31 January 2027  |
 | **v3.0** | Platform                               | Proposed               | 30 April 2027    |
+| Backlog  | Frozen proposals                       | No milestone           | —                |
 
 ## v2.0: shipped
 
@@ -20,7 +21,7 @@ Released as [v2.0.0](https://github.com/zSamir015/obsidian-bank/releases/tag/v2.
 - **Cards.** `/cards` with freeze/unfreeze and limit changes, a 3D card that never reaches the initial bundle and a static fallback ([#6](https://github.com/zSamir015/obsidian-bank/issues/6)); obsidian material finish ([#11](https://github.com/zSamir015/obsidian-bank/issues/11)); product-presentation stage with drag to turn and a designed back ([#14](https://github.com/zSamir015/obsidian-bank/issues/14)).
 - **Maintenance.** Class merging with `cn()` ([#4](https://github.com/zSamir015/obsidian-bank/issues/4)), current screenshots ([#5](https://github.com/zSamir015/obsidian-bank/issues/5)), CI on every pull request (lint, typecheck, tests, build) and a [user guide](docs/USER_GUIDE.md).
 
-## v2.1: polish (shipped)
+## v2.1: polish (in progress)
 
 ### Login scroll story ([#15](https://github.com/zSamir015/obsidian-bank/issues/15))
 
@@ -54,19 +55,19 @@ Released as [v2.0.0](https://github.com/zSamir015/obsidian-bank/releases/tag/v2.
 
 ## v2.2: features
 
-### Available vs ledger balance ([#20](https://github.com/zSamir015/obsidian-bank/issues/20))
+### Available vs ledger balance ([#20](https://github.com/zSamir015/obsidian-bank/issues/20)): shipped
 
 - Goal: two balances per account, ledger (settled) and available (minus pending and under-review debits).
 - Value: people see what they can spend now and why it differs from the settled balance.
 - Done when: both are computed on the server with migration tests, shown on Overview and Move money, and transfers are checked against the available balance.
 
-### Export transactions to CSV ([#21](https://github.com/zSamir015/obsidian-bank/issues/21))
+### Export transactions to CSV ([#21](https://github.com/zSamir015/obsidian-bank/issues/21)): shipped
 
 - Goal: download the filtered Activity list as a CSV file.
 - Value: history goes straight into a spreadsheet.
 - Done when: the export matches the filters, uses documented columns, escapes values (including protection against spreadsheet formulas) and is covered by tests.
 
-### External transfers with validated ABA routing numbers ([#22](https://github.com/zSamir015/obsidian-bank/issues/22))
+### External transfers with validated ABA routing numbers ([#22](https://github.com/zSamir015/obsidian-bank/issues/22)): shipped
 
 - Goal: send money to a fictional external US account by routing and account number.
 - Value: covers the most common real transfer, with mistakes caught before sending.
@@ -76,18 +77,22 @@ Released as [v2.0.0](https://github.com/zSamir015/obsidian-bank/releases/tag/v2.
 
 - Goal: the whole app in Spanish as well as English.
 - Value: Spanish speakers use the demo in their language.
-- Done when: all copy comes from message catalogues, a language picker follows the browser by default, dates and numbers use the chosen locale (amounts stay in USD), and the user guide exists in Spanish.
+- Done when: all copy comes from message catalogues, a language picker follows the browser by default and is remembered per device, dates and numbers use the chosen locale (amounts stay in USD), and the full suite runs in English with Spanish smoke tests for sign-in, balance, transfer and the error page.
+- Not included: the Spanish user guide ([#41](https://github.com/zSamir015/obsidian-bank/issues/41)) and full bilingual test parity ([#42](https://github.com/zSamir015/obsidian-bank/issues/42)), both in the backlog.
 
 ## v3.0: platform
 
-### Installable PWA ([#24](https://github.com/zSamir015/obsidian-bank/issues/24))
+### In-app notifications for flagged activity ([#25](https://github.com/zSamir015/obsidian-bank/issues/25))
 
-- Goal: install the demo on phones and desktops, with an offline shell.
-- Value: it opens like an app and explains when it's offline instead of failing.
-- Done when: it passes installability checks in Chrome and Safari, only the app shell is cached (never financial data), and updates don't leave stale chunks.
-
-### Notifications for flagged activity ([#25](https://github.com/zSamir015/obsidian-bank/issues/25))
-
-- Goal: tell the user when a transaction is marked Under review.
+- Goal: tell the user in the app when a transaction is marked Under review.
 - Value: unusual payments are noticed straight away.
-- Done when: the server creates an in-app notification for each flagged transaction, web push is opt-in only, notifications carry no sensitive data beyond merchant, amount and last four digits, and the flow is tested.
+- Done when: the server creates an in-app notification for each flagged transaction, notifications carry no sensitive data beyond merchant, amount and last four digits, and the flow is covered by RLS, PGlite and e2e tests. No web push and no service worker.
+
+## Backlog
+
+Frozen proposals with no milestone or date. They keep their issues and context and can be scheduled later.
+
+- **Installable PWA** ([#24](https://github.com/zSamir015/obsidian-bank/issues/24)): install the demo with an offline app shell; financial data is never cached.
+- **Web push for flagged activity** ([#40](https://github.com/zSamir015/obsidian-bank/issues/40)): opt-in push on top of #25. Needs the service worker from #24.
+- **Spanish user guide** ([#41](https://github.com/zSamir015/obsidian-bank/issues/41)): split out of #23.
+- **Bilingual test parity** ([#42](https://github.com/zSamir015/obsidian-bank/issues/42)): every e2e journey in both languages. Split out of #23.
