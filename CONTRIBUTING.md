@@ -24,6 +24,13 @@ These are the rules the codebase follows. Most of them exist because the app han
 - Every animation respects `prefers-reduced-motion`, whether it is CSS or three.js.
 - Routes are lazy-loaded, and the initial JavaScript must stay under 180 kB gzip (`npm run check:initial-bundle`). three.js and its helpers must never be imported statically from code that loads on first paint.
 
+## Copy and languages
+
+- No visible text is written in components. Add it to `src/i18n/messages/en.ts`, then to every other catalogue, and read it with `useI18n()`. Outside React (validation, error messages, formatters) use `getMessages()`. `npm run lint` fails on hard-coded copy in JSX, and the type checker fails if a catalogue is missing a key.
+- Text that needs values is a function in the catalogue, such as `sent(amount, recipient)`. Pass amounts already formatted with `formatMoney`, so a catalogue never decides the currency.
+- Format dates and numbers with the helpers in `src/lib/dates.ts`, `src/lib/money.ts` and `formatNumber`, which follow the active language. Amounts are always USD.
+- To add a language, write its catalogue in `src/i18n/messages/` typed as `Messages`, and add one entry to `LOCALES` in `src/i18n/locales.ts`.
+
 ## Database
 
 - Schema changes are forward-only migrations in `supabase/migrations/`. Never edit a migration that has been applied; add a new one.

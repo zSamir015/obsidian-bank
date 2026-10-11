@@ -19,6 +19,8 @@ Open the demo at <https://zsamir015.github.io/obsidian-bank/> and select **Explo
 
 The menu is on the left on a computer and at the bottom of the screen on a phone.
 
+**Language.** The demo is available in English and Spanish. It starts in your browser's language and you can change it with the language menu (on the sign-in page, at the bottom of the side menu on a computer, or at the top on a phone). Your choice is remembered on that device. Amounts are always in US dollars.
+
 ## Overview
 
 The first screen after signing in. It summarises your money at a glance.
