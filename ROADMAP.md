@@ -5,8 +5,8 @@ Obsidian Bank is a portfolio demo, not a real bank. This roadmap shows what has 
 | Version  | Theme                                  | Status                 | Target date      |
 | -------- | -------------------------------------- | ---------------------- | ---------------- |
 | **v2.0** | Redesign, data foundation and 3D cards | Shipped (October 2026) | —                |
-| **v2.1** | Polish                                 | In progress (#17 open) | 15 November 2026 |
-| **v2.2** | Features                               | In progress            | 31 January 2027  |
+| **v2.1** | Polish                                 | Shipped (October 2026) | 15 November 2026 |
+| **v2.2** | Features                               | Shipped (October 2026) | 31 January 2027  |
 | **v3.0** | Platform                               | Proposed               | 30 April 2027    |
 | Backlog  | Frozen proposals                       | No milestone           | —                |
 
@@ -21,7 +21,7 @@ Released as [v2.0.0](https://github.com/zSamir015/obsidian-bank/releases/tag/v2.
 - **Cards.** `/cards` with freeze/unfreeze and limit changes, a 3D card that never reaches the initial bundle and a static fallback ([#6](https://github.com/zSamir015/obsidian-bank/issues/6)); obsidian material finish ([#11](https://github.com/zSamir015/obsidian-bank/issues/11)); product-presentation stage with drag to turn and a designed back ([#14](https://github.com/zSamir015/obsidian-bank/issues/14)).
 - **Maintenance.** Class merging with `cn()` ([#4](https://github.com/zSamir015/obsidian-bank/issues/4)), current screenshots ([#5](https://github.com/zSamir015/obsidian-bank/issues/5)), CI on every pull request (lint, typecheck, tests, build) and a [user guide](docs/USER_GUIDE.md).
 
-## v2.1: polish (in progress)
+## v2.1: polish (shipped)
 
 ### Login scroll story ([#15](https://github.com/zSamir015/obsidian-bank/issues/15))
 
@@ -53,7 +53,7 @@ Released as [v2.0.0](https://github.com/zSamir015/obsidian-bank/releases/tag/v2.
 - Value: visitors understand the demo and its rules without hunting for the docs.
 - Done when: the link sits next to "Sign out" (side menu on desktop, top bar on mobile), the bottom tab bar is unchanged, it opens in a new tab with a screen-reader notice, and it works with the keyboard.
 
-## v2.2: features
+## v2.2: features (shipped)
 
 ### Available vs ledger balance ([#20](https://github.com/zSamir015/obsidian-bank/issues/20)): shipped
 
@@ -73,7 +73,7 @@ Released as [v2.0.0](https://github.com/zSamir015/obsidian-bank/releases/tag/v2.
 - Value: covers the most common real transfer, with mistakes caught before sending.
 - Done when: routing numbers pass the ABA checksum on client and server, recipient accounts are stored masked, the transfer is atomic and pending until settled (simulated), and no real payment network is ever contacted.
 
-### Spanish version ([#23](https://github.com/zSamir015/obsidian-bank/issues/23))
+### Spanish version ([#23](https://github.com/zSamir015/obsidian-bank/issues/23)): shipped
 
 - Goal: the whole app in Spanish as well as English.
 - Value: Spanish speakers use the demo in their language.
