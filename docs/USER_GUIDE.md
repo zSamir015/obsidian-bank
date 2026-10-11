@@ -56,9 +56,11 @@ Every transaction, newest first, grouped by day (_Today_, _Yesterday_, then date
 
 ## Move money
 
-Moves money between your own accounts, for example from Checking to your Vault. In the menu it's called **Transfer**.
+Moves money between your own accounts, for example from Checking to your Vault, or sends it to an account at another US bank. In the menu it's called **Transfer**. Choose **Between my accounts** or **To another bank** at the top of the page.
 
 ![Move money: transfer form with the balances after the transfer](screenshots/transfer.webp)
+
+### Between my accounts
 
 **Step by step**
 
@@ -75,6 +77,36 @@ Moves money between your own accounts, for example from Checking to your Vault. 
 - The amount must be more than $0.00 and no more than the From account's available balance. Pending and under-review debits reduce what's available even though they haven't settled. The server checks this balance when processing the transfer.
 - A transfer either completes in full or not at all: it never leaves money half-moved.
 - Transfers between your own accounts are not income or spending. They don't count in budgets or in _In this month_ and _Out this month_.
+
+### To another bank
+
+Sends money to someone else's account at a US bank, using the bank's routing number and the account number.
+
+This is a demo. Obsidian Bank doesn't connect to ACH, Fedwire or any other payment network, the recipient and their bank are not contacted, and no money leaves the app. The page says so above the form.
+
+**Step by step**
+
+1. Select **To another bank**.
+2. In **From**, choose the account the money leaves.
+3. Enter the **Recipient name**.
+4. Enter the 9-digit **Routing number**. It's printed at the bottom left of a check, before the account number.
+5. Enter the **Account number** (4 to 17 digits). When you leave the field it's replaced by _Ending in_ and its last four digits; the full number is not kept anywhere. Select **Change** to enter it again.
+6. Enter the **Amount** and, optionally, a **Note**.
+7. Select **Send transfer**.
+
+**What happens next**
+
+- The transfer shows in Activity straight away as **Pending**, with the category _External transfer_, the recipient's name and the last four digits of their account.
+- It's taken from your available balance at once. Your ledger balance changes when it settles.
+- Settling is simulated: about 2 minutes after you send it, the transfer is marked as completed the next time your balances or activity load (for example when you open Overview or Activity, or reload the page). It doesn't happen while the app is closed, and nothing runs in the background.
+
+**Rules**
+
+- The routing number must be a valid US (ABA) routing number. The app checks its prefix and its check digit, both in the browser and again on the server.
+- Each transfer can be up to $10,000.00, and external transfers can add up to $25,000.00 in any 24 hours, counting pending and settled ones from all your accounts.
+- The amount can't be more than the From account's available balance.
+- Money sent to another bank counts in _Out this month_. It has no budget category, so it doesn't count against any budget.
+- A transfer is either recorded in full or not at all.
 
 ## Budgets
 
@@ -179,6 +211,8 @@ The address is wrong or out of date. Select **Back to overview**.
 - **Available balance:** the settled ledger balance minus pending and under-review debits. This is the amount an internal transfer can use.
 - **Ledger balance:** the net total of completed (settled) credits and debits in an account.
 - **Vault:** a savings account. Move money in and out of it with **Move money**.
+- **Routing number (ABA):** the 9-digit number that identifies a US bank. Its last digit is a check digit, so most typing mistakes are caught.
+- **Settlement:** when a pending payment becomes final. In this demo, transfers to another bank settle about 2 minutes after they're sent, the next time your balances or activity load.
 - **Pending:** a payment that has been made but not settled yet. It's already listed, and it can still change before it settles.
 - **Under review:** a transaction flagged for a check, for example an unusual payment. In a real bank someone would confirm it with you.
 - **Available (card):** how much you can still spend: credit limit minus what's been spent.
