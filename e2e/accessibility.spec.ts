@@ -53,6 +53,15 @@ for (const { name, size } of viewports) {
         await expect(page.getByRole('heading', { name: screen.heading }).first()).toBeVisible()
         violations.push(...(await collectSeriousViolations(page, screen.name)))
 
+        if (screen.path === 'transfer') {
+          await page.getByText('To another bank').click()
+          await expect(page.getByRole('button', { name: 'Send transfer' })).toBeVisible()
+          violations.push(...(await collectSeriousViolations(page, 'Move money (another bank)')))
+          await page.getByRole('button', { name: 'Send transfer' }).click()
+          await expect(page.getByText('Enter the 9-digit routing number.')).toBeVisible()
+          violations.push(...(await collectSeriousViolations(page, 'Move money (another bank, errors)')))
+        }
+
         if (screen.path === 'cards') {
           await page.getByRole('button', { name: 'Show back' }).click()
           await expect(page.locator('[data-card-visual="static"]')).toHaveAttribute('data-face', 'back')

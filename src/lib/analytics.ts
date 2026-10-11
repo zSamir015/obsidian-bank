@@ -1,5 +1,13 @@
 // Transfers between the user's own accounts move money but are neither income nor spending.
-import type { Budget, BudgetCategory, Category, Cents, Transaction } from '@/types/bank'
+// External transfers are money out, but they have no budget category.
+import {
+  isBudgetCategory,
+  type Budget,
+  type BudgetCategory,
+  type Category,
+  type Cents,
+  type Transaction,
+} from '@/types/bank'
 import { isInCurrentMonth } from './dates'
 
 const isMonthlyFlow = (t: Transaction) => t.category !== 'transfer' && isInCurrentMonth(t.date)
@@ -12,7 +20,7 @@ export interface CategorySpending {
 export function spendingByCategory(transactions: readonly Transaction[]): CategorySpending[] {
   const totals = new Map<BudgetCategory, number>()
   for (const t of transactions) {
-    if (t.type !== 'debit' || t.category === 'transfer' || !isMonthlyFlow(t)) continue
+    if (t.type !== 'debit' || !isBudgetCategory(t.category) || !isMonthlyFlow(t)) continue
     totals.set(t.category, (totals.get(t.category) ?? 0) + t.amount)
   }
   return [...totals].map(([category, cents]) => ({ category, cents: cents as Cents })).sort((a, b) => b.cents - a.cents)

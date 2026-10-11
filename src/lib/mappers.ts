@@ -3,10 +3,10 @@
 import type { Tables } from '@/types/database'
 import {
   CATEGORIES,
+  isBudgetCategory,
   type Account,
   type AccountType,
   type Budget,
-  type BudgetCategory,
   type CardTier,
   type Category,
   type CreditCard,
@@ -25,7 +25,7 @@ const ACCOUNT_TYPES: readonly AccountType[] = ['checking', 'vault']
 const CARD_TIERS: readonly CardTier[] = ['black', 'platinum', 'corporate']
 const STATUSES: readonly TransactionStatus[] = ['completed', 'pending', 'flagged']
 const TYPES: readonly TransactionType[] = ['debit', 'credit']
-const BUDGET_CATEGORIES = CATEGORIES.filter((c): c is BudgetCategory => c !== 'transfer')
+const BUDGET_CATEGORIES = CATEGORIES.filter(isBudgetCategory)
 
 export function toAccount(row: Tables<'account_balances'>): Account {
   return {
