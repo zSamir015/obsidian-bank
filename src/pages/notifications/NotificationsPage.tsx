@@ -1,14 +1,13 @@
-import { ShieldAlert } from 'lucide-react'
 import { useState } from 'react'
 import { Button, ButtonLink } from '@/components/ui/Button'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
+import { Money } from '@/components/ui/Money'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { useMarkNotificationsRead } from '@/hooks/notificationMutations'
-import { useNotifications } from '@/hooks/notificationQueries'
-import { formatNumber } from '@/i18n/runtime'
+import { useMarkNotificationsRead, useNotifications } from '@/hooks/notificationQueries'
+import { formatNumber, intlLocale } from '@/i18n/runtime'
 import { useI18n } from '@/i18n/useI18n'
-import { formatShortDate } from '@/lib/dates'
+import { cn } from '@/lib/cn'
 import { formatMoney } from '@/lib/money'
 import type { FlaggedNotification } from '@/types/bank'
 
@@ -73,22 +72,32 @@ export default function NotificationsPage() {
 function NotificationRow({ notification }: { readonly notification: FlaggedNotification }) {
   const { t } = useI18n()
   const amount = formatMoney(notification.amount)
+  // Formatted here rather than with lib/dates: importing it from this page would split it
+  // into a chunk of its own and add a request to every screen that uses it.
+  const date = new Date(notification.createdAt).toLocaleDateString(intlLocale(), { day: 'numeric', month: 'short' })
   const message = notification.cardLast4
     ? t.notifications.flagged(notification.merchant, amount, notification.cardLast4)
     : t.notifications.flaggedWithoutCard(notification.merchant, amount)
+  const context = [notification.cardLast4 && `${t.overview.cardEndingIn}${notification.cardLast4}`, date]
+    .filter(Boolean)
+    .join(' · ')
 
   return (
-    <li className="flex items-start gap-4 py-4" data-read={notification.isRead}>
-      <ShieldAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-muted" strokeWidth={1.75} />
-      <div className="min-w-0 flex-1">
-        <p className={notification.isRead ? 'text-muted' : undefined}>{message}</p>
-        <p className="mt-1 text-sm text-muted">{formatShortDate(notification.createdAt)}</p>
+    <li className="flex items-center gap-3 py-4" data-read={notification.isRead}>
+      {/* Read out as one sentence; the row below is the same information laid out visually. */}
+      <p className="sr-only">{`${message} ${date}.`}</p>
+      <span
+        className={cn('size-2 shrink-0 rounded-full', notification.isRead ? 'bg-transparent' : 'bg-text')}
+        aria-hidden="true"
+      />
+      <div aria-hidden="true" className="flex min-w-0 flex-1 items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className={cn('truncate', notification.isRead && 'text-muted')}>{notification.merchant}</p>
+          <p className="mt-0.5 truncate text-sm text-muted">{context}</p>
+        </div>
+        <Money cents={notification.amount} type="debit" className="shrink-0" />
       </div>
-      {!notification.isRead && (
-        <span className="mt-2 size-2 shrink-0 rounded-full bg-text">
-          <span className="sr-only">{t.notifications.unreadItem}</span>
-        </span>
-      )}
+      {!notification.isRead && <span className="sr-only">{t.notifications.unreadItem}</span>}
     </li>
   )
 }
