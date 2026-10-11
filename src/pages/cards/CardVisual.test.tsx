@@ -119,7 +119,7 @@ describe('CardVisual faces', () => {
     expect(card).toHaveAttribute('data-face', 'back')
     expect(card).toHaveAttribute('aria-hidden', 'true')
     expect(card).toHaveTextContent('•••')
-    expect(card).toHaveTextContent('Demo card — not a payment card.')
+    expect(card).toHaveTextContent('Demo card, not a payment card.')
     expect(card.textContent).not.toMatch(/\d{3,}/)
   })
 })

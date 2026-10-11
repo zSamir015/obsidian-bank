@@ -1,4 +1,4 @@
-# Phase 1 — Data foundation (design)
+# Phase 1: data foundation (design)
 
 Approved 2026-10-09. Rebuild Obsidian Bank on top of the existing repo, phase by phase, keeping Supabase, auth, RLS and the server-side transfer. This phase changes data and rules only; the visual design is untouched.
 

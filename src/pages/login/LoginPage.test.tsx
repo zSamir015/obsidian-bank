@@ -26,7 +26,7 @@ const renderPage = () =>
 describe('LoginPage', () => {
   it('says plainly that this is a demo, not a real bank', () => {
     renderPage()
-    expect(screen.getByText('Demo project — not a real bank')).toBeInTheDocument()
+    expect(screen.getByText('Demo project, not a real bank')).toBeInTheDocument()
   })
 
   it('starts an anonymous demo session and shows progress', async () => {
