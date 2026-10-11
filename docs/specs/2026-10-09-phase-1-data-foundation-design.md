@@ -20,7 +20,7 @@ Approved 2026-10-09. Rebuild Obsidian Bank on top of the existing repo, phase by
 
 ## Deliverables
 
-1. `CLAUDE.md` with permanent rules, palette and stack.
+1. `CONTRIBUTING.md` with permanent rules, palette and stack.
 2. `supabase/migrations/002_usd_vault_cards.sql` (001 stays untouched).
 3. Migration tests on PGlite (`supabase/tests/`), run by Vitest and CI.
 4. `src/types/database.ts` (generator format; regenerate after applying 002) and `src/types/bank.ts` (readonly domain types, branded `Cents`, row mappers).
