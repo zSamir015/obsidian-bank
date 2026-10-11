@@ -3,13 +3,19 @@ import type { Transaction } from '@/types/bank'
 
 const HEADERS = ['date', 'merchant', 'category', 'account', 'type', 'amount', 'status', 'note'] as const
 
+/** Lets Excel detect UTF-8, so accents and em dashes survive the import. */
+const UTF8_BOM = '\uFEFF'
+
 function neutralizeFormula(value: string): string {
   return /^[=+\-@]/.test(value) ? `'${value}` : value
 }
 
-function escapeCsv(value: string): string {
-  const safe = neutralizeFormula(value)
-  return `"${safe.replaceAll('"', '""')}"`
+function quote(value: string): string {
+  return `"${value.replaceAll('"', '""')}"`
+}
+
+function textCell(value: string): string {
+  return quote(neutralizeFormula(value))
 }
 
 function signedAmount(transaction: Transaction): string {
@@ -28,20 +34,20 @@ export function transactionsToCsv(
 ): string {
   const rows = transactions.map((transaction) => {
     const isTransfer = transaction.category === 'transfer'
-    const cells = [
-      new Date(transaction.date).toISOString(),
-      isTransfer ? '' : transaction.merchant,
-      CATEGORY_LABELS[transaction.category],
-      accountNames.get(transaction.accountId) ?? transaction.accountId,
-      transaction.type,
-      signedAmount(transaction),
-      statusLabel(transaction.status),
-      isTransfer ? transaction.merchant : '',
-    ]
-    return cells.map(escapeCsv).join(',')
+    return [
+      textCell(new Date(transaction.date).toISOString()),
+      textCell(isTransfer ? '' : transaction.merchant),
+      textCell(CATEGORY_LABELS[transaction.category]),
+      textCell(accountNames.get(transaction.accountId) ?? transaction.accountId),
+      textCell(transaction.type),
+      // Generated as /^[+-]\d+\.\d{2}$/, so it stays a number in spreadsheets.
+      quote(signedAmount(transaction)),
+      textCell(statusLabel(transaction.status)),
+      textCell(isTransfer ? transaction.merchant : ''),
+    ].join(',')
   })
 
-  return [HEADERS.map(escapeCsv).join(','), ...rows].join('\r\n') + '\r\n'
+  return UTF8_BOM + [HEADERS.map(textCell).join(','), ...rows].join('\r\n') + '\r\n'
 }
 
 export function downloadCsv(filename: string, contents: string): void {

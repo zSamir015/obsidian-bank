@@ -22,8 +22,8 @@ test('Activity exports the filtered transactions as an RFC 4180 CSV download', a
   const contents = await readFile((await download.path())!, 'utf8')
 
   expect(download.suggestedFilename()).toMatch(/^transactions-\d{4}-\d{2}-\d{2}\.csv$/)
-  expect(contents).toContain('"date","merchant","category","account","type","amount","status","note"')
-  expect(contents).toContain('"Delta Air Lines","Travel","Everyday Checking","debit","\'-412.80","Completed",""')
+  expect(contents.split('\r\n')[0]).toBe('\uFEFF"date","merchant","category","account","type","amount","status","note"')
+  expect(contents).toContain('"Delta Air Lines","Travel","Everyday Checking","debit","-412.80","Completed",""')
   expect(contents).not.toContain('Uber')
   expect(contents.trim().split('\r\n')).toHaveLength(2)
   expect(backend.unexpectedRequests).toEqual([])
