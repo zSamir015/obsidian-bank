@@ -68,7 +68,28 @@ export class DemoBackend {
     this.transaction(4, 'Delta Air Lines', 41280, 'debit', 'travel', daysAgo(3)),
     this.transaction(5, 'Payroll — Obsidian Labs Inc.', 412500, 'credit', 'payroll', daysAgo(4)),
   ]
+  /** What the server's notify_flagged_transaction trigger has written so far. */
+  readonly notifications: Row[] = [this.notification(this.transactions[2]!, CARD_ID)]
   readonly budgets: Row[] = [{ id: BUDGET_ID, user_id: USER_ID, category: 'travel', limit_cents: 120000 }]
+
+  private notification(transaction: Row, cardId: string | null): Row {
+    return {
+      id: `00000000-0000-4000-8000-0000000d${String(transaction.id).slice(-4)}`,
+      merchant: transaction.description,
+      amount_cents: transaction.amount_cents,
+      card_last4: this.cards.find((card) => card.id === cardId)?.last4 ?? null,
+      created_at: new Date().toISOString(),
+      read_at: null,
+    }
+  }
+
+  /** Moves a transaction to Under review the way the server would, trigger included. */
+  flag(description: string) {
+    const transaction = this.transactions.find((row) => row.description === description)
+    if (!transaction || transaction.status === 'flagged') throw new Error(`Cannot flag ${description}`)
+    transaction.status = 'flagged'
+    this.notifications.unshift(this.notification(transaction, CARD_ID))
+  }
 
   private transfer(fromId: string, toId: string, cents: number) {
     const from = this.accounts.find((account) => account.id === fromId)
@@ -185,6 +206,16 @@ export class DemoBackend {
       }
       if (path === '/rest/v1/transactions' && route.request().method() === 'GET') {
         await this.fulfill(route, this.transactions)
+        return
+      }
+      if (path === '/rest/v1/notifications' && route.request().method() === 'GET') {
+        await this.fulfill(route, this.notifications)
+        return
+      }
+      if (path === '/rest/v1/rpc/mark_notifications_read') {
+        const unread = this.notifications.filter((row) => row.read_at === null)
+        for (const row of unread) row.read_at = new Date().toISOString()
+        await this.fulfill(route, unread.length)
         return
       }
       if (path === '/rest/v1/budgets') {
