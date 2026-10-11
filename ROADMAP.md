@@ -2,12 +2,12 @@
 
 Obsidian Bank is a portfolio demo, not a real bank. This roadmap shows what has shipped and what is proposed next. Proposed items are ideas, not commitments: each one is a GitHub issue labelled `proposal`, grouped into a [GitHub milestone](https://github.com/zSamir015/obsidian-bank/milestones).
 
-| Version  | Theme                                  | Status                 | Target date        |
-| -------- | -------------------------------------- | ---------------------- | ------------------ |
-| **v2.0** | Redesign, data foundation and 3D cards | Shipped (October 2026) | —                  |
-| **v2.1** | Polish                                 | Proposed               | 15 November 2026   |
-| **v2.2** | Features                               | Proposed               | 31 January 2027    |
-| **v3.0** | Platform                               | Proposed               | 30 April 2027      |
+| Version  | Theme                                  | Status                 | Target date      |
+| -------- | -------------------------------------- | ---------------------- | ---------------- |
+| **v2.0** | Redesign, data foundation and 3D cards | Shipped (October 2026) | —                |
+| **v2.1** | Polish                                 | Shipped (October 2026) | 15 November 2026 |
+| **v2.2** | Features                               | In progress            | 31 January 2027  |
+| **v3.0** | Platform                               | Proposed               | 30 April 2027    |
 
 ## v2.0: shipped
 
@@ -20,7 +20,7 @@ Released as [v2.0.0](https://github.com/zSamir015/obsidian-bank/releases/tag/v2.
 - **Cards.** `/cards` with freeze/unfreeze and limit changes, a 3D card that never reaches the initial bundle and a static fallback ([#6](https://github.com/zSamir015/obsidian-bank/issues/6)); obsidian material finish ([#11](https://github.com/zSamir015/obsidian-bank/issues/11)); product-presentation stage with drag to turn and a designed back ([#14](https://github.com/zSamir015/obsidian-bank/issues/14)).
 - **Maintenance.** Class merging with `cn()` ([#4](https://github.com/zSamir015/obsidian-bank/issues/4)), current screenshots ([#5](https://github.com/zSamir015/obsidian-bank/issues/5)), CI on every pull request (lint, typecheck, tests, build) and a [user guide](docs/USER_GUIDE.md).
 
-## v2.1: polish
+## v2.1: polish (shipped)
 
 ### Login scroll story ([#15](https://github.com/zSamir015/obsidian-bank/issues/15))
 
