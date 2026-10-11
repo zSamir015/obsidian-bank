@@ -6,7 +6,7 @@
 
 Obsidian Bank is a personal banking web app built as a portfolio project. It is not a real bank: no real money, accounts or cards are involved, and it never talks to a payment network.
 
-It has checking and savings accounts, available and ledger balances, transfers between your own accounts, an activity feed with filters and CSV export, monthly budgets, and cards that can be frozen or have their limit changed. Every visitor gets an anonymous session with three months of generated activity, so the demo works without signing up.
+It has checking and savings accounts, available and ledger balances, transfers between your own accounts, simulated transfers to other US banks, an activity feed with filters and CSV export, monthly budgets, and cards that can be frozen or have their limit changed. Every visitor gets an anonymous session with three months of generated activity, so the demo works without signing up.
 
 Live demo: https://zsamir015.github.io/obsidian-bank/
 User guide for non-technical readers: [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
@@ -58,24 +58,28 @@ A visit goes like this:
 
 1. "Explore the demo" calls Supabase's anonymous sign-in. A database trigger on the new user (`handle_new_user`) runs `seed_demo_data`, which creates a checking account, a savings vault, about 50 transactions over three months, two cards and three budgets.
 2. Pages read their data through PostgREST. Row Level Security limits every query to rows where `user_id = auth.uid()`, so a user can only ever see their own data.
-3. Anything that changes money or cards is a call to a Postgres function (`transfer_funds`, `freeze_card`, `update_card_limit`). Each one checks the caller, validates its arguments and does the whole change in one transaction. After it returns, TanStack Query invalidates the affected queries so every screen shows the new state.
-4. A `pg_cron` job runs every day at 04:17 UTC and deletes anonymous users that have been inactive for more than 7 days. Their accounts, cards, transactions and budgets go with them through `ON DELETE CASCADE`.
+3. Anything that changes money or cards is a call to a Postgres function (`transfer_funds`, `create_external_transfer`, `freeze_card`, `update_card_limit`). Each one checks the caller, validates its arguments and does the whole change in one transaction. After it returns, TanStack Query invalidates the affected queries so every screen shows the new state.
+4. Before balances or activity load, the client calls `settle_external_transfers`, which marks the caller's external transfers as completed once their two-minute delay has passed. This is how settlement is simulated; nothing runs in the background.
+5. A `pg_cron` job runs every day at 04:17 UTC and deletes anonymous users that have been inactive for more than 7 days. Their accounts, cards, transactions and budgets go with them through `ON DELETE CASCADE`.
 
 ## Data model
 
-| Table / view       | Purpose                                                                                     | Who can write                                  |
-| ------------------ | ------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `accounts`         | Checking and vault accounts, with an APY in basis points for vaults                         | Only server functions                          |
-| `transactions`     | Positive amount in cents, `type` (`debit`/`credit`), category, status, optional transfer id | Only server functions                          |
-| `cards`            | Tier, last four digits, expiry, credit limit, amount spent, frozen flag                     | Only server functions                          |
-| `budgets`          | Monthly limit per spending category                                                         | The owner, through an owner-only RLS policy    |
-| `account_balances` | View with the ledger and available balance of each account                                  | Read-only; `SELECT` granted to signed-in users |
+| Table / view         | Purpose                                                                                      | Who can write                                  |
+| -------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `accounts`           | Checking and vault accounts, with an APY in basis points for vaults                          | Only server functions                          |
+| `transactions`       | Positive amount in cents, `type` (`debit`/`credit`), category, status, optional transfer id  | Only server functions                          |
+| `cards`              | Tier, last four digits, expiry, credit limit, amount spent, frozen flag                      | Only server functions                          |
+| `budgets`            | Monthly limit per spending category                                                          | The owner, through an owner-only RLS policy    |
+| `external_transfers` | Recipient name, routing number, last four digits of the account, amount and settlement times | Only server functions                          |
+| `account_balances`   | View with the ledger and available balance of each account                                   | Read-only; `SELECT` granted to signed-in users |
 
 A few rules hold everywhere:
 
 - Money is stored as `bigint` cents and handled in TypeScript as a branded `Cents` integer type. Amounts are always positive and the direction comes from `type`, so the sign never has to be trusted or inferred.
 - The ledger balance is the net of completed transactions. The available balance is the ledger minus pending and under-review (`flagged`) debits, which is what a transfer is allowed to spend.
 - Transfers between your own accounts use the `transfer` category. They are left out of budgets and out of income and spending totals, since moving money between your own accounts is neither.
+- Transfers to another bank use the `external` category. They count as money out, but they have no budget category.
+- For external transfers, only the last four digits of the recipient's account number reach the server. The browser validates the full number (4 to 17 digits) and sends `last4` alone, so the full number is never in a request, a log or the database.
 - Cards only ever store the last four digits. There is no full card number or CVV anywhere, including fixtures and tests.
 
 ## Security
@@ -87,6 +91,7 @@ The server functions follow the same pattern:
 - They are `SECURITY DEFINER` with `search_path` pinned to an empty string, so a function cannot be tricked into resolving a table or operator from another schema.
 - They start by reading `auth.uid()` and refuse to run without it. Internal helpers such as `seed_demo_data` are not executable by the API roles at all.
 - `transfer_funds` locks both accounts with `SELECT ... FOR UPDATE` in a fixed order (by id), then checks the available balance. Two concurrent transfers from the same account are serialised, and neither can spend money the other has already taken.
+- `create_external_transfer` takes a transaction-scoped advisory lock per user before checking the $25,000 rolling 24-hour limit, so two requests from different source accounts cannot both pass it. It then locks the source account and checks the available balance. Routing numbers are validated with the ABA rules (assigned prefix and check digit) both in `src/lib/aba.ts` and in the database.
 - Card functions report `card_not_found` both for a card that doesn't exist and for a card owned by someone else, so they never reveal whether an id is valid.
 - Errors are short codes (`insufficient_funds`, `limit_below_spent` and so on). The frontend maps them to messages in `src/lib/errors.ts` and never shows raw database errors.
 
@@ -123,7 +128,7 @@ On desktop, the sign-in page reuses the same card in a scroll story. The 3D chun
 | ------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | Unit and component | Vitest, Testing Library, jsdom | Money parsing and formatting, dates, mappers, analytics, CSV export, query hooks, and page states such as loading, errors and empty results |
 | Database           | Vitest, PGlite                 | Every migration applied in order, then RLS isolation between users, grants, constraints and server functions                                |
-| End to end         | Playwright                     | Sign-in, transfers, budgets, cards, reduced motion and CSV download, run against the production build                                       |
+| End to end         | Playwright                     | Sign-in, internal and external transfers, budgets, cards, reduced motion and CSV download, run against the production build                 |
 | Accessibility      | axe-core inside Playwright     | No serious or critical violations on the main screens at 1280px and 375px                                                                   |
 | Performance        | Lighthouse CI                  | Login, Overview and Cards in the mobile profile                                                                                             |
 
@@ -208,7 +213,7 @@ docs/                user guide, screenshots and design notes
 - **Balances are computed from transactions** in the `account_balances` view, rather than kept in a column that has to stay in sync. For a demo with a few hundred rows per user this is fast, and it removes a whole class of drift bugs.
 - **Anonymous sessions instead of sign-up.** Visitors can try the app in one click, and the daily cleanup keeps the database small. The trade-off is that a session is tied to one browser.
 - **A mocked backend for end-to-end tests.** It makes them fast, deterministic and safe to run on every pull request. Database behaviour is covered separately by the PGlite tests, so the two together cover the full path.
-- **Settlement is simulated.** Pending and under-review transactions come from the seed data, and nothing settles on its own yet. External transfers with simulated settlement are planned in [#22](https://github.com/zSamir015/obsidian-bank/issues/22).
+- **Settlement is simulated on read.** An external transfer is a pending debit with a `settles_at` two minutes ahead. The client asks the server to settle due transfers before it reads balances or activity, so there is no job to schedule and the behaviour can be tested entirely in PGlite. The trade-off is that a transfer only settles when the app is used, which is fine for a demo and is stated in the interface. The seeded pending and under-review transactions never settle.
 
 ## License
 
