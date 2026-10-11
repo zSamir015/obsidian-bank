@@ -7,12 +7,14 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useBudgets, useCreateBudget, useUpdateBudget } from '@/hooks/budgetQueries'
 import { useTransactions } from '@/hooks/transactionQueries'
+import { useI18n } from '@/i18n/useI18n'
 import { NEAR_LIMIT_RATIO, spendingAgainstBudgets, type BudgetProgress } from '@/lib/analytics'
-import { CATEGORY_LABELS } from '@/lib/labels'
+import { categoryLabel } from '@/lib/labels'
 import { asCents, parseCents, toAmountInput } from '@/lib/money'
 import type { Budget, Cents } from '@/types/bank'
 
 export default function BudgetsPage() {
+  const { t } = useI18n()
   const budgets = useBudgets()
   const transactions = useTransactions()
   const rows = spendingAgainstBudgets(transactions.data ?? [], budgets.data ?? [])
@@ -20,9 +22,9 @@ export default function BudgetsPage() {
 
   return (
     <div className="max-w-3xl">
-      <PageHeader title="Budgets">Monthly limits for each spending category. Transfers don't count.</PageHeader>
+      <PageHeader title={t.budgets.title}>{t.budgets.intro}</PageHeader>
       {budgets.isError ? (
-        <ErrorMessage onRetry={() => void budgets.refetch()}>Couldn't load your budgets.</ErrorMessage>
+        <ErrorMessage onRetry={() => void budgets.refetch()}>{t.budgets.failed}</ErrorMessage>
       ) : budgets.isPending || transactions.isPending ? (
         <div className="space-y-6">
           {[0, 1, 2].map((i) => (
@@ -33,9 +35,7 @@ export default function BudgetsPage() {
         <>
           {transactions.isError && (
             <div className="mb-8">
-              <ErrorMessage onRetry={() => void transactions.refetch()}>
-                Couldn't load this month's spending, so amounts show $0.00.
-              </ErrorMessage>
+              <ErrorMessage onRetry={() => void transactions.refetch()}>{t.budgets.spendingFailed}</ErrorMessage>
             </div>
           )}
           <ul className="divide-y divide-hairline rounded-card border border-hairline bg-sunken px-6">
@@ -51,7 +51,8 @@ export default function BudgetsPage() {
 
 function BudgetRow({ row, budget }: { readonly row: BudgetProgress; readonly budget: Budget | undefined }) {
   const titleId = useId()
-  const label = CATEGORY_LABELS[row.category]
+  const { t } = useI18n()
+  const label = categoryLabel(row.category, t)
   const [editing, setEditing] = useState(false)
   const update = useUpdateBudget()
   const create = useCreateBudget()
@@ -69,7 +70,7 @@ function BudgetRow({ row, budget }: { readonly row: BudgetProgress; readonly bud
           {row.limit !== null && (
             <span className="text-muted">
               {' '}
-              of <Money cents={row.limit} />
+              {t.budgets.of} <Money cents={row.limit} />
             </span>
           )}
         </span>
@@ -78,7 +79,7 @@ function BudgetRow({ row, budget }: { readonly row: BudgetProgress; readonly bud
       {row.limit !== null && row.ratio !== null && (
         <div
           role="meter"
-          aria-label={`${label}: ${Math.round(row.ratio * 100)}% of budget`}
+          aria-label={t.overview.ofBudget(label, Math.round(row.ratio * 100))}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(row.ratio * 100)}
@@ -109,19 +110,19 @@ function BudgetRow({ row, budget }: { readonly row: BudgetProgress; readonly bud
           {/* Going over is information, not an error: no amber here. */}
           <p className={over ? 'text-text' : 'text-muted'}>
             {row.limit === null ? (
-              'No budget'
+              t.budgets.noBudget
             ) : over ? (
               <>
-                Over by <Money cents={asCents(row.spent - row.limit)} />
+                {t.budgets.overBy} <Money cents={asCents(row.spent - row.limit)} />
               </>
             ) : (
               <>
-                <Money cents={asCents(row.limit - row.spent)} /> left
+                <Money cents={asCents(row.limit - row.spent)} /> {t.budgets.left}
               </>
             )}
           </p>
           <Button variant="ghost" size="sm" className="-mr-4" onClick={() => setEditing(true)}>
-            {budget ? 'Edit limit' : 'Set budget'}
+            {budget ? t.budgets.editLimit : t.budgets.setBudget}
           </Button>
         </div>
       )}
@@ -144,18 +145,19 @@ function LimitForm({
 }) {
   const [draft, setDraft] = useState(initial === null ? '' : toAmountInput(initial))
   const [error, setError] = useState<string>()
+  const { t } = useI18n()
 
   async function save() {
     const limit = parseCents(draft)
     if (limit === null || limit <= 0) {
-      setError('Enter a limit greater than $0.00, like 1500.')
+      setError(t.budgets.limitFormat)
       return
     }
     try {
       await onSave(limit)
       onDone()
     } catch {
-      setError("Couldn't save the limit. Check your connection and try again.")
+      setError(t.budgets.saveFailed)
     }
   }
 
@@ -169,7 +171,7 @@ function LimitForm({
       }}
     >
       <div className="sm:w-56">
-        <Field label={`Monthly limit for ${label}`} error={error}>
+        <Field label={t.budgets.limitFor(label)} error={error}>
           {(props) => (
             <MoneyInput
               {...props}
@@ -185,10 +187,10 @@ function LimitForm({
       </div>
       <div className="flex gap-2 sm:mt-7">
         <Button type="submit" loading={pending}>
-          Save limit
+          {t.budgets.save}
         </Button>
         <Button variant="ghost" onClick={onDone}>
-          Cancel
+          {t.app.cancel}
         </Button>
       </div>
     </form>

@@ -3,37 +3,30 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useAccounts } from '@/hooks/accountQueries'
+import { useI18n } from '@/i18n/useI18n'
 import { cn } from '@/lib/cn'
 import { ExternalTransferForm } from './ExternalTransferForm'
 import { InternalTransferForm } from './InternalTransferForm'
 
 type Mode = 'internal' | 'external'
 
-const MODES: readonly { readonly value: Mode; readonly label: string; readonly intro: string }[] = [
-  {
-    value: 'internal',
-    label: 'Between my accounts',
-    intro:
-      'Between your own accounts. Available excludes pending and under-review debits; ledger reflects settled activity.',
-  },
-  {
-    value: 'external',
-    label: 'To another bank',
-    intro: 'To an account at another US bank, by routing and account number. A demo: nothing is really sent.',
-  },
-]
+const MODES = [
+  { value: 'internal', label: 'internalMode', intro: 'internalIntro' },
+  { value: 'external', label: 'externalMode', intro: 'externalIntro' },
+] as const satisfies readonly { readonly value: Mode; readonly label: string; readonly intro: string }[]
 
 export default function TransferPage() {
   const accounts = useAccounts()
   const [mode, setMode] = useState<Mode>('internal')
+  const { t } = useI18n()
   const current = MODES.find((m) => m.value === mode)!
 
   return (
     <div>
-      <PageHeader title="Move money">{current.intro}</PageHeader>
+      <PageHeader title={t.transfer.title}>{t.transfer[current.intro]}</PageHeader>
 
       {accounts.isError ? (
-        <ErrorMessage onRetry={() => void accounts.refetch()}>Couldn't load your accounts.</ErrorMessage>
+        <ErrorMessage onRetry={() => void accounts.refetch()}>{t.transfer.accountsFailed}</ErrorMessage>
       ) : accounts.isPending ? (
         <div className="space-y-6">
           {[0, 1, 2].map((i) => (
@@ -43,7 +36,7 @@ export default function TransferPage() {
       ) : (
         <>
           <fieldset className="mb-10">
-            <legend className="sr-only">Where the money goes</legend>
+            <legend className="sr-only">{t.transfer.modeLegend}</legend>
             <div className="inline-flex flex-wrap gap-1 rounded-full border border-hairline p-1">
               {MODES.map((m) => (
                 <label key={m.value} className="relative">
@@ -63,7 +56,7 @@ export default function TransferPage() {
                       'hover:text-text peer-checked:hover:text-bg',
                     )}
                   >
-                    {m.label}
+                    {t.transfer[m.label]}
                   </span>
                 </label>
               ))}

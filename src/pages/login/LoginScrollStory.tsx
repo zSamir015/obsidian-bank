@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ComponentType, type MutableRefObject } from 'react'
+import { useI18n } from '@/i18n/useI18n'
 import { asCents } from '@/lib/money'
 import type { CreditCard } from '@/types/bank'
 import type { Face } from '@/pages/cards/motion'
@@ -16,7 +17,8 @@ const STORY_CARD: CreditCard = {
   isFrozen: false,
 }
 
-const PHRASES = ['Clarity in every detail.', 'Your money, in view.', 'A calmer way to move forward.']
+// Every language has the same number of story phrases as English.
+const STEPS = 3
 
 type CardVisualComponent = ComponentType<{
   readonly card: CreditCard
@@ -30,6 +32,8 @@ type IdleWindow = Window & {
 }
 
 export function LoginScrollStory() {
+  const { t } = useI18n()
+  const phrases = t.login.storyPhrases
   const storyRef = useRef<HTMLElement>(null)
   const scrollProgressRef = useRef(0)
   const invalidateRef = useRef<(() => void) | null>(null)
@@ -93,7 +97,7 @@ export function LoginScrollStory() {
         const distance = story.offsetHeight - window.innerHeight
         const progress = distance > 0 ? Math.max(0, Math.min(1, (window.scrollY - start) / distance)) : 0
         scrollProgressRef.current = progress
-        const nextStep = Math.min(PHRASES.length - 1, Math.floor(progress * PHRASES.length))
+        const nextStep = Math.min(STEPS - 1, Math.floor(progress * STEPS))
         setStep((current) => (current === nextStep ? current : nextStep))
         if (!reducedMotion) invalidateRef.current?.()
       })
@@ -116,7 +120,7 @@ export function LoginScrollStory() {
   return (
     <section
       ref={storyRef}
-      aria-label="A closer look at the demo card"
+      aria-label={t.login.storyLabel}
       data-testid="login-scroll-story"
       data-step={step}
       className="relative hidden h-[300dvh] lg:block"
@@ -140,11 +144,11 @@ export function LoginScrollStory() {
             )}
           </div>
           <div className="mt-12 min-h-36">
-            <p className="text-label text-muted uppercase">OBSIDIAN BANK · A DEMO</p>
+            <p className="text-label text-muted uppercase">{t.login.storyEyebrow}</p>
             <div className="mt-3 grid">
-              {PHRASES.map((phrase, index) => (
+              {phrases.map((phrase, index) => (
                 <p
-                  key={phrase}
+                  key={index}
                   aria-hidden={step !== index}
                   className={`col-start-1 row-start-1 text-3xl leading-tight font-medium tracking-[-0.01em] transition-opacity duration-300 motion-reduce:transition-none ${
                     step === index ? 'opacity-100' : 'pointer-events-none opacity-0'
@@ -159,12 +163,10 @@ export function LoginScrollStory() {
             <div className="h-px flex-1 bg-hairline">
               <div
                 className="h-px bg-muted transition-[width] duration-300"
-                style={{ width: `${((step + 1) / PHRASES.length) * 100}%` }}
+                style={{ width: `${((step + 1) / STEPS) * 100}%` }}
               />
             </div>
-            <span className="font-mono text-xs text-muted">
-              0{step + 1} / 0{PHRASES.length}
-            </span>
+            <span className="font-mono text-xs text-muted">{`0${step + 1} / 0${STEPS}`}</span>
           </div>
         </div>
       </div>

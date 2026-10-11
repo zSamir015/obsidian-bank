@@ -34,7 +34,7 @@ describe('toFriendlyMessage for card controls', () => {
   })
 
   it('names the action in the generic fallback', () => {
-    expect(toFriendlyMessage(new Error('fetch failed'), 'update the card')).toBe(
+    expect(toFriendlyMessage(new Error('fetch failed'), 'updateCard')).toBe(
       "Couldn't update the card. Check your connection and try again.",
     )
   })

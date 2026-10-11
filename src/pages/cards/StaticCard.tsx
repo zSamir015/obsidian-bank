@@ -1,15 +1,17 @@
-import { CARD_TIER_LABELS } from '@/lib/labels'
+import { useI18n } from '@/i18n/useI18n'
+import { cardTierLabel } from '@/lib/labels'
 import type { CreditCard } from '@/types/bank'
 import { CARD_BACK, FINISH } from './finish'
 import type { Face } from './motion'
 
 function Mark({ className = '' }: { readonly className?: string }) {
+  const { t } = useI18n()
   return (
     <span className={`flex items-center gap-2 text-sm font-medium ${className}`}>
       <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.5">
         <path d="M12 2.5 19.5 8 16.8 21H7.2L4.5 8Z" />
       </svg>
-      Obsidian
+      {t.app.mark}
     </span>
   )
 }
@@ -21,6 +23,7 @@ function Mark({ className = '' }: { readonly className?: string }) {
  */
 export function StaticCard({ card, face = 'front' }: { readonly card: CreditCard; readonly face?: Face }) {
   const finish = FINISH[card.tier]
+  const { t } = useI18n()
   return (
     <div
       data-card-visual="static"
@@ -34,7 +37,7 @@ export function StaticCard({ card, face = 'front' }: { readonly card: CreditCard
         <div className={`flex h-full flex-col justify-between p-[6%] ${card.isFrozen ? 'opacity-60 grayscale' : ''}`}>
           <div className="flex items-start justify-between">
             <Mark />
-            <span className="text-label font-medium text-muted uppercase">{CARD_TIER_LABELS[card.tier]}</span>
+            <span className="text-label font-medium text-muted uppercase">{cardTierLabel(card.tier, t)}</span>
           </div>
           <div>
             <p className="text-xl tracking-[0.12em]">
@@ -53,7 +56,7 @@ export function StaticCard({ card, face = 'front' }: { readonly card: CreditCard
             <span className="rounded-sm bg-white px-2 font-mono text-sm text-[#050505]">{CARD_BACK.cvv}</span>
           </div>
           <div className="mt-auto flex items-end justify-between gap-6 p-[6%]">
-            <p className="max-w-[70%] text-[10px] leading-snug text-muted">{CARD_BACK.legal}</p>
+            <p className="max-w-[70%] text-[10px] leading-snug text-muted">{t.cards.legal}</p>
             <Mark className="text-muted" />
           </div>
         </div>
@@ -61,7 +64,7 @@ export function StaticCard({ card, face = 'front' }: { readonly card: CreditCard
       {card.isFrozen && (
         <div className="absolute inset-0 -z-10 bg-[repeating-linear-gradient(135deg,transparent_0_10px,rgb(0_0_0/0.22)_10px_13px)]">
           <span className="absolute top-1/2 left-1/2 -translate-1/2 rounded-full border border-hairline bg-bg/70 px-3 py-1 text-label font-medium text-text uppercase">
-            Frozen
+            {t.cards.frozen}
           </span>
         </div>
       )}

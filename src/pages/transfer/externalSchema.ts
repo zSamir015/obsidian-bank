@@ -1,5 +1,7 @@
 import { z } from 'zod'
 import { isValidRoutingNumber } from '@/lib/aba'
+import type { Messages } from '@/i18n/messages/en'
+import { getMessages } from '@/i18n/runtime'
 import { asCents, formatMoney, parseCents } from '@/lib/money'
 import type { Account } from '@/types/bank'
 
@@ -7,45 +9,38 @@ import type { Account } from '@/types/bank'
 export const EXTERNAL_PER_TRANSFER_LIMIT = asCents(1_000_000)
 export const EXTERNAL_DAILY_LIMIT = asCents(2_500_000)
 
-export function makeExternalTransferSchema(accounts: readonly Account[]) {
+export function makeExternalTransferSchema(accounts: readonly Account[], t: Messages = getMessages()) {
+  const v = t.validation
   return z
     .object({
-      fromId: z.string().min(1, 'Choose the account to send from.'),
-      recipientName: z
-        .string()
-        .trim()
-        .min(1, "Enter the recipient's name.")
-        .max(70, 'Keep the name under 70 characters.'),
+      fromId: z.string().min(1, v.chooseSendFrom),
+      recipientName: z.string().trim().min(1, v.recipientRequired).max(70, v.recipientTooLong),
       routingNumber: z.string().trim(),
       /** Set by the account number field once it has been validated; never the full number. */
-      accountLast4: z.string().regex(/^\d{4}$/, "Enter the recipient's account number, 4 to 17 digits."),
-      amount: z.string().trim().min(1, 'Enter an amount.'),
-      note: z.string().trim().max(140, 'Keep the note under 140 characters.'),
+      accountLast4: z.string().regex(/^\d{4}$/, v.accountNumberRequired),
+      amount: z.string().trim().min(1, v.enterAmount),
+      note: z.string().trim().max(140, v.noteTooLong),
     })
     .superRefine((values, ctx) => {
       if (!values.routingNumber) {
-        ctx.addIssue({ code: 'custom', path: ['routingNumber'], message: 'Enter the 9-digit routing number.' })
+        ctx.addIssue({ code: 'custom', path: ['routingNumber'], message: v.routingRequired })
       } else if (!/^\d{9}$/.test(values.routingNumber)) {
-        ctx.addIssue({ code: 'custom', path: ['routingNumber'], message: 'Routing numbers have exactly 9 digits.' })
+        ctx.addIssue({ code: 'custom', path: ['routingNumber'], message: v.routingFormat })
       } else if (!isValidRoutingNumber(values.routingNumber)) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['routingNumber'],
-          message: "That isn't a valid US routing number. Check the 9 digits.",
-        })
+        ctx.addIssue({ code: 'custom', path: ['routingNumber'], message: v.routingChecksum })
       }
 
       if (!values.amount) return
       const cents = parseCents(values.amount)
       if (cents === null || cents <= 0) {
-        ctx.addIssue({ code: 'custom', path: ['amount'], message: 'Enter an amount like 25.50, greater than $0.00.' })
+        ctx.addIssue({ code: 'custom', path: ['amount'], message: v.amountFormat })
         return
       }
       if (cents > EXTERNAL_PER_TRANSFER_LIMIT) {
         ctx.addIssue({
           code: 'custom',
           path: ['amount'],
-          message: `External transfers are limited to ${formatMoney(EXTERNAL_PER_TRANSFER_LIMIT)} each.`,
+          message: v.perTransferLimit(formatMoney(EXTERNAL_PER_TRANSFER_LIMIT)),
         })
         return
       }
@@ -54,7 +49,7 @@ export function makeExternalTransferSchema(accounts: readonly Account[]) {
         ctx.addIssue({
           code: 'custom',
           path: ['amount'],
-          message: `That's more than this account has available. Available: ${formatMoney(from.availableBalance)}.`,
+          message: v.overAvailable(formatMoney(from.availableBalance)),
         })
       }
     })

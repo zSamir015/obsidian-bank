@@ -7,9 +7,11 @@ import { Input, Select } from '@/components/ui/form'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useAccounts } from '@/hooks/accountQueries'
 import { useTransactions } from '@/hooks/transactionQueries'
+import { formatNumber } from '@/i18n/runtime'
+import { useI18n } from '@/i18n/useI18n'
 import { filterTransactions, type FlowFilter, type TransactionFilters } from '@/lib/analytics'
 import { groupByDay } from '@/lib/dates'
-import { CATEGORY_LABELS } from '@/lib/labels'
+import { categoryLabel } from '@/lib/labels'
 import { downloadCsv, transactionsToCsv } from '@/lib/transactionCsv'
 import { CATEGORIES, type Category } from '@/types/bank'
 
@@ -17,6 +19,7 @@ const PAGE_SIZE = 30
 const NO_FILTERS: TransactionFilters = { search: '', category: 'all', flow: 'all', accountId: 'all' }
 
 export default function ActivityPage() {
+  const { t } = useI18n()
   const transactions = useTransactions()
   const accounts = useAccounts()
   const [filters, setFilters] = useState(NO_FILTERS)
@@ -41,11 +44,9 @@ export default function ActivityPage() {
     <>
       <header className="mb-10 flex flex-wrap items-end justify-between gap-4 md:mb-14">
         <div>
-          <h1 className="text-[2.5rem] leading-tight font-medium tracking-[-0.01em]">Activity</h1>
+          <h1 className="text-[2.5rem] leading-tight font-medium tracking-[-0.01em]">{t.activity.title}</h1>
           {transactions.data && (
-            <p className="mt-2 text-muted">
-              {filtered.length} {filtered.length === 1 ? 'transaction' : 'transactions'}
-            </p>
+            <p className="mt-2 text-muted">{t.activity.count(filtered.length, formatNumber(filtered.length))}</p>
           )}
         </div>
         <Button
@@ -54,7 +55,7 @@ export default function ActivityPage() {
           disabled={transactions.isPending || accounts.isPending || transactions.isError || accounts.isError}
         >
           <Download aria-hidden="true" className="size-4" />
-          Export CSV
+          {t.activity.exportCsv}
         </Button>
       </header>
 
@@ -66,8 +67,8 @@ export default function ActivityPage() {
           />
           <Input
             type="search"
-            aria-label="Search transactions"
-            placeholder="Search merchants"
+            aria-label={t.activity.search}
+            placeholder={t.activity.searchPlaceholder}
             value={filters.search}
             onChange={(e) => update('search', e.target.value)}
             className="pl-11"
@@ -84,14 +85,14 @@ export default function ActivityPage() {
             <div className="shrink-0">
               <Select
                 className="w-auto md:w-full"
-                aria-label="Category"
+                aria-label={t.activity.category}
                 value={filters.category}
                 onChange={(e) => update('category', e.target.value as Category | 'all')}
               >
-                <option value="all">All categories</option>
+                <option value="all">{t.activity.allCategories}</option>
                 {CATEGORIES.map((c) => (
                   <option key={c} value={c}>
-                    {CATEGORY_LABELS[c]}
+                    {categoryLabel(c, t)}
                   </option>
                 ))}
               </Select>
@@ -99,23 +100,23 @@ export default function ActivityPage() {
             <div className="shrink-0">
               <Select
                 className="w-auto md:w-full"
-                aria-label="Type"
+                aria-label={t.activity.type}
                 value={filters.flow}
                 onChange={(e) => update('flow', e.target.value as FlowFilter)}
               >
-                <option value="all">Money in and out</option>
-                <option value="in">Money in</option>
-                <option value="out">Money out</option>
+                <option value="all">{t.activity.allFlows}</option>
+                <option value="in">{t.activity.moneyIn}</option>
+                <option value="out">{t.activity.moneyOut}</option>
               </Select>
             </div>
             <div className="shrink-0">
               <Select
                 className="w-auto md:w-full"
-                aria-label="Account"
+                aria-label={t.activity.account}
                 value={filters.accountId}
                 onChange={(e) => update('accountId', e.target.value)}
               >
-                <option value="all">All accounts</option>
+                <option value="all">{t.activity.allAccounts}</option>
                 {accounts.data?.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.name}
@@ -127,9 +128,9 @@ export default function ActivityPage() {
         </div>
       </div>
 
-      <section aria-label="Transactions">
+      <section aria-label={t.activity.list}>
         {transactions.isError ? (
-          <ErrorMessage onRetry={() => void transactions.refetch()}>Couldn't load your transactions.</ErrorMessage>
+          <ErrorMessage onRetry={() => void transactions.refetch()}>{t.activity.failed}</ErrorMessage>
         ) : transactions.isPending ? (
           <div className="space-y-4">
             {[0, 1, 2, 3].map((i) => (
@@ -138,9 +139,9 @@ export default function ActivityPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="rounded-card border border-hairline bg-sunken p-8 text-center">
-            <p className="text-muted">No transactions match these filters.</p>
+            <p className="text-muted">{t.activity.noMatches}</p>
             <Button variant="secondary" className="mt-5" onClick={() => setFilters(NO_FILTERS)}>
-              Clear filters
+              {t.activity.clearFilters}
             </Button>
           </div>
         ) : (
@@ -165,7 +166,7 @@ export default function ActivityPage() {
             {visibleCount < filtered.length && (
               <div className="text-center">
                 <Button variant="secondary" onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}>
-                  Show more
+                  {t.activity.showMore}
                 </Button>
               </div>
             )}

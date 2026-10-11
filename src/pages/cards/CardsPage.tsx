@@ -8,18 +8,21 @@ import { Money } from '@/components/ui/Money'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useCards, useFreezeCard, useUpdateCardLimit } from '@/hooks/cardQueries'
+import { useI18n } from '@/i18n/useI18n'
 import { cn } from '@/lib/cn'
 import { toFriendlyMessage } from '@/lib/errors'
-import { CARD_TIER_LABELS } from '@/lib/labels'
+import { cardTierLabel } from '@/lib/labels'
 import { asCents, formatDollars, formatMoney } from '@/lib/money'
+import type { Messages } from '@/i18n/messages/en'
 import type { CreditCard } from '@/types/bank'
 import { CardVisual } from './CardVisual'
-import { minimumLimit, validateCardLimit } from './limit'
+import { LIMIT_MAX, minimumLimit, validateCardLimit } from './limit'
 import type { Face } from './motion'
 
-const cardName = (card: CreditCard) => `${CARD_TIER_LABELS[card.tier]} •••• ${card.last4}`
+const cardName = (card: CreditCard, t: Messages) => `${cardTierLabel(card.tier, t)} •••• ${card.last4}`
 
 export default function CardsPage() {
+  const { t } = useI18n()
   const cards = useCards()
   const [selectedId, setSelectedId] = useState<string>()
   const [announcement, setAnnouncement] = useState('')
@@ -28,30 +31,30 @@ export default function CardsPage() {
 
   return (
     <>
-      <PageHeader title="Cards">Freeze a card or change its limit. Changes apply right away.</PageHeader>
+      <PageHeader title={t.cards.title}>{t.cards.intro}</PageHeader>
       {cards.isError ? (
-        <ErrorMessage onRetry={() => void cards.refetch()}>Couldn't load your cards.</ErrorMessage>
+        <ErrorMessage onRetry={() => void cards.refetch()}>{t.cards.failed}</ErrorMessage>
       ) : cards.isPending ? (
         <div className="space-y-8">
           <Skeleton className="h-[clamp(300px,58vw,600px)] rounded-card" />
           <Skeleton className="h-48 rounded-card" />
         </div>
       ) : !card ? (
-        <p className="text-muted">You don't have any cards yet.</p>
+        <p className="text-muted">{t.cards.none}</p>
       ) : (
         <div className="space-y-8">
           {/* The stage: the card alone, large and centered, with room around it. */}
-          <section aria-label="Card preview" className="-mx-5 md:mx-0">
+          <section aria-label={t.cards.preview} className="-mx-5 md:mx-0">
             <div className="flex h-[clamp(300px,58vw,600px)] items-center justify-center px-5 md:px-0">
               <CardVisual key={card.id} card={card} face={face} onFaceChange={setFace} />
             </div>
           </section>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <fieldset className="min-w-0">
-              <legend className="sr-only">Card</legend>
+              <legend className="sr-only">{t.cards.card}</legend>
               <div
                 role="radiogroup"
-                aria-label="Card"
+                aria-label={t.cards.card}
                 // Mobile: one swipeable row of chips. Wider screens: they wrap if needed.
                 className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
               >
@@ -67,7 +70,7 @@ export default function CardsPage() {
                       type="radio"
                       name="card"
                       value={c.id}
-                      aria-label={cardName(c)}
+                      aria-label={cardName(c, t)}
                       checked={c.id === card.id}
                       onChange={() => {
                         setSelectedId(c.id)
@@ -76,7 +79,7 @@ export default function CardsPage() {
                       }}
                       className="sr-only"
                     />
-                    {CARD_TIER_LABELS[c.tier]} <span className="font-mono">•••• {c.last4}</span>
+                    {cardTierLabel(c.tier, t)} <span className="font-mono">•••• {c.last4}</span>
                   </label>
                 ))}
               </div>
@@ -88,7 +91,7 @@ export default function CardsPage() {
               onClick={() => setFace(face === 'back' ? 'front' : 'back')}
             >
               <RotateCw aria-hidden="true" className="size-4" />
-              {face === 'back' ? 'Show front' : 'Show back'}
+              {face === 'back' ? t.cards.showFront : t.cards.showBack}
             </Button>
           </div>
           <CardControls key={card.id} card={card} onResult={setAnnouncement} />
@@ -105,52 +108,53 @@ function CardControls({ card, onResult }: { readonly card: CreditCard; readonly 
   const freeze = useFreezeCard()
   const [freezeError, setFreezeError] = useState<string>()
   const [editing, setEditing] = useState(false)
-  const name = `${CARD_TIER_LABELS[card.tier]} card ending in ${card.last4}`
+  const { t } = useI18n()
+  const name = t.cards.fullName(cardTierLabel(card.tier, t), card.last4)
 
   async function toggleFreeze() {
     const frozen = !card.isFrozen
     setFreezeError(undefined)
     try {
       await freeze.mutateAsync({ cardId: card.id, frozen })
-      onResult(`${name} ${frozen ? 'frozen' : 'unfrozen'}.`)
+      onResult(frozen ? t.cards.frozenResult(name) : t.cards.unfrozenResult(name))
     } catch (error) {
-      setFreezeError(toFriendlyMessage(error, 'update the card'))
+      setFreezeError(toFriendlyMessage(error, 'updateCard'))
     }
   }
 
   return (
     <section
-      aria-label={`${name} settings`}
+      aria-label={t.cards.settings(name)}
       className="grid gap-8 rounded-card border border-hairline bg-sunken p-6 md:grid-cols-[1.3fr_1fr_1fr] md:gap-10"
     >
       <dl className="grid grid-cols-2 gap-x-6 gap-y-5 text-sm">
         <div>
-          <dt className="text-muted">Spent</dt>
+          <dt className="text-muted">{t.cards.spent}</dt>
           <dd className="mt-1 text-lg">
             <Money cents={card.spent} />
           </dd>
         </div>
         <div>
-          <dt className="text-muted">Credit limit</dt>
+          <dt className="text-muted">{t.cards.creditLimit}</dt>
           <dd className="mt-1 text-lg">
             <Money cents={card.limit} />
           </dd>
         </div>
         <div>
-          <dt className="text-muted">Available</dt>
+          <dt className="text-muted">{t.cards.available}</dt>
           <dd className="mt-1">
             <Money cents={asCents(card.limit - card.spent)} />
           </dd>
         </div>
         <div>
-          <dt className="text-muted">Expires</dt>
+          <dt className="text-muted">{t.cards.expires}</dt>
           <dd className="mt-1 font-mono">{card.expiry}</dd>
         </div>
       </dl>
 
       <div className="border-t border-hairline pt-6 md:border-t-0 md:border-l md:pt-0 md:pl-10">
-        <Label>Card status</Label>
-        <p className="mt-1.5 text-sm">{card.isFrozen ? 'Frozen: new payments are declined.' : 'Active'}</p>
+        <Label>{t.cards.status}</Label>
+        <p className="mt-1.5 text-sm">{card.isFrozen ? t.cards.frozenStatus : t.cards.active}</p>
         <Button
           variant="secondary"
           className="mt-4"
@@ -159,7 +163,7 @@ function CardControls({ card, onResult }: { readonly card: CreditCard; readonly 
           onClick={() => void toggleFreeze()}
         >
           <Snowflake aria-hidden="true" className="size-4" />
-          {card.isFrozen ? 'Unfreeze card' : 'Freeze card'}
+          {card.isFrozen ? t.cards.unfreeze : t.cards.freeze}
         </Button>
         {freezeError && (
           <div className="mt-4">
@@ -169,18 +173,18 @@ function CardControls({ card, onResult }: { readonly card: CreditCard; readonly 
       </div>
 
       <div className="border-t border-hairline pt-6 md:border-t-0 md:border-l md:pt-0 md:pl-10">
-        <Label>Limit</Label>
+        <Label>{t.cards.limit}</Label>
         {editing ? (
           <LimitForm
             card={card}
             onDone={(cents) => {
               setEditing(false)
-              if (cents !== undefined) onResult(`Limit updated to ${formatMoney(cents)}.`)
+              if (cents !== undefined) onResult(t.cards.limitUpdated(formatMoney(cents)))
             }}
           />
         ) : (
           <Button variant="secondary" className="mt-4" onClick={() => setEditing(true)}>
-            Change limit
+            {t.cards.changeLimit}
           </Button>
         )}
       </div>
@@ -199,6 +203,7 @@ function LimitForm({
   // Limits are whole dollars, so the cents part is always zero.
   const [draft, setDraft] = useState(String(Math.trunc(card.limit / 100)))
   const [error, setError] = useState<string>()
+  const { t } = useI18n()
 
   async function save() {
     const check = validateCardLimit(draft, card.spent)
@@ -207,7 +212,7 @@ function LimitForm({
       await update.mutateAsync({ cardId: card.id, limit: check.cents })
       onDone(check.cents)
     } catch (err) {
-      setError(toFriendlyMessage(err, 'update the limit'))
+      setError(toFriendlyMessage(err, 'updateLimit'))
     }
   }
 
@@ -221,8 +226,8 @@ function LimitForm({
       }}
     >
       <Field
-        label="New credit limit"
-        hint={`Whole dollars from ${formatDollars(minimumLimit(card.spent))} to $100,000.`}
+        label={t.cards.newLimit}
+        hint={t.cards.limitHint(formatDollars(minimumLimit(card.spent)), formatDollars(LIMIT_MAX))}
         error={error}
       >
         {(props) => (
@@ -239,10 +244,10 @@ function LimitForm({
       </Field>
       <div className="flex gap-2">
         <Button type="submit" loading={update.isPending}>
-          Save limit
+          {t.cards.save}
         </Button>
         <Button variant="ghost" onClick={() => onDone()}>
-          Cancel
+          {t.app.cancel}
         </Button>
       </div>
     </form>

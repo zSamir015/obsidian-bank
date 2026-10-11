@@ -1,8 +1,22 @@
-const shortDate = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short' })
-const longDate = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+import { getMessages, intlLocale } from '@/i18n/runtime'
+
+const formatters = new Map<string, Intl.DateTimeFormat>()
+function dateFormat(withYear: boolean): Intl.DateTimeFormat {
+  const key = `${intlLocale()}|${withYear}`
+  let format = formatters.get(key)
+  if (!format) {
+    format = new Intl.DateTimeFormat(intlLocale(), {
+      day: 'numeric',
+      month: 'short',
+      ...(withYear && { year: 'numeric' }),
+    })
+    formatters.set(key, format)
+  }
+  return format
+}
 
 export function formatShortDate(iso: string): string {
-  return shortDate.format(new Date(iso))
+  return dateFormat(false).format(new Date(iso))
 }
 
 export function isInCurrentMonth(iso: string, now = new Date()): boolean {
@@ -12,13 +26,14 @@ export function isInCurrentMonth(iso: string, now = new Date()): boolean {
 
 const dayKey = (date: Date) => `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
 
-/** "Today", "Yesterday", "Oct 7", or "Dec 31, 2025" outside the current year (local time). */
+/** "Today", "Yesterday", "Oct 7", or "Dec 31, 2025" outside the current year (local time), in the active language. */
 export function dayLabel(iso: string, now = new Date()): string {
   const date = new Date(iso)
   const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
-  if (dayKey(date) === dayKey(now)) return 'Today'
-  if (dayKey(date) === dayKey(yesterday)) return 'Yesterday'
-  return date.getFullYear() === now.getFullYear() ? shortDate.format(date) : longDate.format(date)
+  const t = getMessages()
+  if (dayKey(date) === dayKey(now)) return t.dates.today
+  if (dayKey(date) === dayKey(yesterday)) return t.dates.yesterday
+  return dateFormat(date.getFullYear() !== now.getFullYear()).format(date)
 }
 
 export interface DayGroup<T> {

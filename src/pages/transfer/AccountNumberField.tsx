@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Input, type ControlProps } from '@/components/ui/form'
+import { useI18n } from '@/i18n/useI18n'
 import { lastFourOfAccountNumber } from '@/lib/aba'
 
 /**
@@ -20,6 +21,7 @@ export function AccountNumberField({
   readonly onFormatError: (message: string | null) => void
 }) {
   const [draft, setDraft] = useState('')
+  const { t } = useI18n()
   const inputRef = useRef<HTMLInputElement>(null)
   const focusInput = useRef(false)
 
@@ -41,24 +43,24 @@ export function AccountNumberField({
       onFormatError(null)
       onLast4Change(lastFour)
     } else {
-      onFormatError('Account numbers have 4 to 17 digits.')
+      onFormatError(t.transfer.accountNumberFormat)
     }
   }
 
   if (last4) {
     return (
       <div className="flex items-center gap-2">
-        <Input {...control} readOnly value={`Ending in ${last4}`} className="tabular-nums" />
+        <Input {...control} readOnly value={t.transfer.endingIn(last4)} className="tabular-nums" />
         <button
           type="button"
-          aria-label="Change account number"
+          aria-label={t.transfer.changeAccountNumber}
           onClick={() => {
             focusInput.current = true
             onLast4Change('')
           }}
           className="h-12 shrink-0 rounded-full border border-hairline px-5 text-sm font-medium transition-colors hover:bg-surface-2"
         >
-          Change
+          {t.transfer.change}
         </button>
       </div>
     )
@@ -73,7 +75,7 @@ export function AccountNumberField({
       autoComplete="off"
       spellCheck={false}
       maxLength={21}
-      placeholder="4 to 17 digits"
+      placeholder={t.transfer.accountNumberPlaceholder}
       className="font-mono"
       value={draft}
       onChange={(event) => setDraft(event.target.value)}

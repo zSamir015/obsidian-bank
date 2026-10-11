@@ -8,6 +8,7 @@ import { Field, Input, MoneyInput, Select } from '@/components/ui/form'
 import { Label } from '@/components/ui/Label'
 import { Money } from '@/components/ui/Money'
 import { useExternalTransfer } from '@/hooks/transferQueries'
+import { useI18n } from '@/i18n/useI18n'
 import { toFriendlyMessage } from '@/lib/errors'
 import { asCents, formatMoney, parseCents } from '@/lib/money'
 import type { Account, Cents } from '@/types/bank'
@@ -31,7 +32,8 @@ export function ExternalTransferForm({ accounts }: { readonly accounts: readonly
   const transfer = useExternalTransfer()
   const [sent, setSent] = useState<Sent | null>(null)
   const [accountNumberError, setAccountNumberError] = useState<string | null>(null)
-  const schema = useMemo(() => makeExternalTransferSchema(accounts), [accounts])
+  const { t } = useI18n()
+  const schema = useMemo(() => makeExternalTransferSchema(accounts, t), [accounts, t])
 
   const {
     register,
@@ -76,20 +78,17 @@ export function ExternalTransferForm({ accounts }: { readonly accounts: readonly
     return (
       <div role="status" className="max-w-[520px] rounded-card border border-hairline bg-surface p-8">
         <p className="text-2xl font-medium tracking-[-0.01em]">
-          Sent {formatMoney(sent.amount)} to {sent.recipientName}
+          {t.transfer.sent(formatMoney(sent.amount), sent.recipientName)}
         </p>
         <p className="mt-2 text-muted">
-          Account ending <span className="font-mono">{sent.accountLast4}</span>, routing number{' '}
+          {t.transfer.sentAccount} <span className="font-mono">{sent.accountLast4}</span>, {t.transfer.sentRouting}{' '}
           <span className="font-mono">{sent.routingNumber}</span>.
         </p>
-        <p className="mt-4 text-muted">
-          It's pending, and it already counts against your available balance. About 2 minutes from now it will show as
-          settled, the next time your balances or activity load. No real payment network was contacted.
-        </p>
+        <p className="mt-4 text-muted">{t.transfer.sentDetail}</p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Button onClick={() => setSent(null)}>Send another</Button>
+          <Button onClick={() => setSent(null)}>{t.transfer.sendAnother}</Button>
           <ButtonLink to="/activity" variant="secondary">
-            View activity
+            {t.app.viewActivity}
           </ButtonLink>
         </div>
       </div>
@@ -101,25 +100,21 @@ export function ExternalTransferForm({ accounts }: { readonly accounts: readonly
       <form onSubmit={handleSubmit((v) => onSubmit(v).catch(() => {}))} noValidate className="space-y-6">
         <DemoNetworkNotice />
 
-        <Field label="From" error={errors.fromId?.message}>
+        <Field label={t.transfer.from} error={errors.fromId?.message}>
           {(props) => (
             <Select {...props} {...register('fromId')}>
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {`${a.name} · ${formatMoney(a.availableBalance)} available`}
+                  {t.transfer.accountOption(a.name, formatMoney(a.availableBalance))}
                 </option>
               ))}
             </Select>
           )}
         </Field>
-        <Field label="Recipient name" error={errors.recipientName?.message}>
+        <Field label={t.transfer.recipientName} error={errors.recipientName?.message}>
           {(props) => <Input {...props} maxLength={70} autoComplete="off" {...register('recipientName')} />}
         </Field>
-        <Field
-          label="Routing number"
-          hint="9 digits, printed at the bottom left of a check."
-          error={errors.routingNumber?.message}
-        >
+        <Field label={t.transfer.routingNumber} hint={t.transfer.routingHint} error={errors.routingNumber?.message}>
           {(props) => (
             <Input
               {...props}
@@ -136,8 +131,8 @@ export function ExternalTransferForm({ accounts }: { readonly accounts: readonly
           name="accountLast4"
           render={({ field }) => (
             <Field
-              label="Account number"
-              hint="Only the last four digits are kept once you leave this field."
+              label={t.transfer.accountNumber}
+              hint={t.transfer.accountNumberHint}
               error={accountNumberError ?? errors.accountLast4?.message}
             >
               {(props) => (
@@ -152,38 +147,46 @@ export function ExternalTransferForm({ accounts }: { readonly accounts: readonly
           )}
         />
         <Field
-          label="Amount"
-          hint={`Up to ${formatMoney(EXTERNAL_PER_TRANSFER_LIMIT)} per transfer and ${formatMoney(EXTERNAL_DAILY_LIMIT)} in 24 hours.`}
+          label={t.transfer.amount}
+          hint={t.transfer.externalAmountHint(
+            formatMoney(EXTERNAL_PER_TRANSFER_LIMIT),
+            formatMoney(EXTERNAL_DAILY_LIMIT),
+          )}
           error={errors.amount?.message}
         >
           {(props) => <MoneyInput {...props} {...register('amount')} className="h-16 text-2xl" />}
         </Field>
-        <Field label="Note" hint="Optional. Only you can see it." error={errors.note?.message}>
-          {(props) => <Input {...props} maxLength={140} placeholder="Rent for May" {...register('note')} />}
+        <Field label={t.transfer.note} hint={t.transfer.noteHint} error={errors.note?.message}>
+          {(props) => (
+            <Input {...props} maxLength={140} placeholder={t.transfer.externalNotePlaceholder} {...register('note')} />
+          )}
         </Field>
 
-        {transfer.error && <ErrorMessage>{toFriendlyMessage(transfer.error, 'send the transfer')}</ErrorMessage>}
+        {transfer.error && <ErrorMessage>{toFriendlyMessage(transfer.error, 'sendTransfer')}</ErrorMessage>}
 
         <Button type="submit" loading={isSubmitting || transfer.isPending} className="w-full sm:w-auto">
-          Send transfer
+          {t.transfer.submitExternal}
         </Button>
       </form>
       {from && amount !== null && amount > 0 && amount <= from.availableBalance && (
-        <section aria-label="Summary" className="rounded-card border border-hairline bg-sunken p-6 lg:sticky lg:top-16">
-          <Label>After this transfer</Label>
+        <section
+          aria-label={t.transfer.summary}
+          className="rounded-card border border-hairline bg-sunken p-6 lg:sticky lg:top-16"
+        >
+          <Label>{t.transfer.after}</Label>
           <dl className="mt-5 space-y-5">
             <div>
-              <dt className="text-sm text-muted">{from.name} · Available</dt>
+              <dt className="text-sm text-muted">{t.transfer.availableAfter(from.name)}</dt>
               <dd className="mt-1 text-2xl font-medium tracking-[-0.01em]">
                 <Money cents={asCents(from.availableBalance - amount)} />
               </dd>
               <dd className="mt-1 text-sm text-muted">
-                Ledger <Money cents={from.ledgerBalance} /> until it settles
+                {t.transfer.ledger} <Money cents={from.ledgerBalance} /> {t.transfer.ledgerUntilSettled}
               </dd>
             </div>
             <div>
-              <dt className="text-sm text-muted">Status</dt>
-              <dd className="mt-1">Pending, settles in about 2 minutes (simulated)</dd>
+              <dt className="text-sm text-muted">{t.transfer.status}</dt>
+              <dd className="mt-1">{t.transfer.pendingStatus}</dd>
             </div>
           </dl>
         </section>
@@ -193,13 +196,12 @@ export function ExternalTransferForm({ accounts }: { readonly accounts: readonly
 }
 
 function DemoNetworkNotice() {
+  const { t } = useI18n()
   return (
     <div role="note" className="flex items-start gap-3 rounded-card border border-hairline bg-sunken p-5 text-sm">
       <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-muted" />
       <p className="text-muted">
-        <span className="font-medium text-text">Demo only.</span> Obsidian Bank doesn't connect to ACH, Fedwire or any
-        other payment network, and no money leaves the app. The transfer is recorded as pending, and about 2 minutes
-        later it's marked as settled the next time your balances or activity load.
+        <span className="font-medium text-text">{t.transfer.demoOnly}</span> {t.transfer.demoNotice}
       </p>
     </div>
   )
