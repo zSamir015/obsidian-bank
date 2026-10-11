@@ -104,6 +104,7 @@ On the client, every row coming from the database goes through the mappers in `s
 - Server data is only kept in TanStack Query. Forms use React Hook Form with Zod schemas, and the same limits are enforced again on the server.
 - The interface is dark and mostly monochrome. Red marks at most one element per screen, and amber is reserved for errors, always with an icon and text so colour is never the only signal. Fonts (Geist and Geist Mono) are self-hosted.
 - Every animation respects `prefers-reduced-motion`.
+- The interface is available in English and Spanish. Copy lives in typed message catalogues (`src/i18n/messages/`), with no i18n library: English ships with the app and other languages load as a separate chunk before the first render. The language follows the browser until the visitor picks one, and the choice is kept on that device. Dates and numbers are formatted with `Intl` for the active language; amounts are always US dollars. Spanish uses the `es-US` locale, so amounts keep the `$1,234.56` shape the amount fields accept. The CSV export stays in English because its columns are a documented format.
 
 ## How the 3D card loads
 
@@ -129,6 +130,7 @@ On desktop, the sign-in page reuses the same card in a scroll story. The 3D chun
 | Unit and component | Vitest, Testing Library, jsdom | Money parsing and formatting, dates, mappers, analytics, CSV export, query hooks, and page states such as loading, errors and empty results |
 | Database           | Vitest, PGlite                 | Every migration applied in order, then RLS isolation between users, grants, constraints and server functions                                |
 | End to end         | Playwright                     | Sign-in, internal and external transfers, budgets, cards, reduced motion and CSV download, run against the production build                 |
+| Spanish            | Playwright                     | Smoke tests for sign-in, balance, transfer and the error pages in Spanish, and the language picker                                          |
 | Accessibility      | axe-core inside Playwright     | No serious or critical violations on the main screens at 1280px and 375px                                                                   |
 | Performance        | Lighthouse CI                  | Login, Overview and Cards in the mobile profile                                                                                             |
 
@@ -194,6 +196,7 @@ src/
   auth/              session context and the protected route
   components/        app shell, transaction row and the small UI kit in ui/
   hooks/             TanStack Query hooks, one file per resource
+  i18n/              message catalogues, language detection and the language context
   lib/               money, dates, mappers, analytics, CSV export, error messages
   pages/             one folder per route, each with its tests
   router/            route table and legacy redirects
