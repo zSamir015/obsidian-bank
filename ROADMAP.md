@@ -24,70 +24,70 @@ Released as [v2.0.0](https://github.com/zSamir015/obsidian-bank/releases/tag/v2.
 
 ### Login scroll story ([#15](https://github.com/zSamir015/obsidian-bank/issues/15))
 
-- **Goal:** on desktop, the sign-in page tells the product's story as you scroll, with the 3D card.
-- **Value:** visitors understand what the demo offers before they start it.
-- **Done when:** the issue's three conditions hold (desktop only from 1024 px; the 3D chunk loads in idle time after first paint; "Explore the demo" stays visible and usable throughout), scroll is never hijacked, reduced motion gets a static version, and Lighthouse performance on the login page doesn't drop.
+- Goal: on desktop, the sign-in page tells the product's story as you scroll, with the 3D card.
+- Value: visitors understand what the demo offers before they start it.
+- Done when: the issue's three conditions hold (desktop only from 1024 px; the 3D chunk loads in idle time after first paint; "Explore the demo" stays visible and usable throughout), scroll is never hijacked, reduced motion gets a static version, and Lighthouse performance on the login page doesn't drop.
 
 ### Accessibility audit with axe in CI ([#17](https://github.com/zSamir015/obsidian-bank/issues/17))
 
-- **Goal:** automated accessibility checks (axe-core) on every screen in CI.
-- **Value:** keyboard and screen-reader users keep a working app; regressions are caught before they ship.
-- **Done when:** axe runs on all screens at 1280 and 375 px with zero serious or critical violations, a new violation fails CI, and a manual keyboard and VoiceOver pass is recorded.
+- Goal: automated accessibility checks (axe-core) on every screen in CI.
+- Value: keyboard and screen-reader users keep a working app; regressions are caught before they ship.
+- Done when: axe runs on all screens at 1280 and 375 px with zero serious or critical violations, a new violation fails CI, and a manual keyboard and VoiceOver pass is recorded.
 
 ### Performance budget with Lighthouse CI ([#18](https://github.com/zSamir015/obsidian-bank/issues/18))
 
-- **Goal:** a written performance budget enforced by Lighthouse CI.
-- **Value:** the demo stays fast on mid-range phones and slow connections.
-- **Done when:** Lighthouse CI runs on every pull request (mobile profile) against Login, Overview and Cards; budgets for initial JavaScript, LCP, CLS and TBT are written down; breaking one fails CI.
+- Goal: a written performance budget enforced by Lighthouse CI.
+- Value: the demo stays fast on mid-range phones and slow connections.
+- Done when: Lighthouse CI runs on every pull request (mobile profile) against Login, Overview and Cards; budgets for initial JavaScript, LCP, CLS and TBT are written down; breaking one fails CI.
 
 ### End-to-end tests with Playwright in CI ([#19](https://github.com/zSamir015/obsidian-bank/issues/19))
 
-- **Goal:** the main journeys tested end to end against the production build.
-- **Value:** the flows people use are proven to work together, not only in isolation.
-- **Done when:** sign-in, transfer, budget, card freeze/limit, card turn and reduced motion are covered; CI never touches production data; 10 consecutive runs pass without retries.
+- Goal: the main journeys tested end to end against the production build.
+- Value: the flows people use are proven to work together, not only in isolation.
+- Done when: sign-in, transfer, budget, card freeze/limit, card turn and reduced motion are covered; CI never touches production data; 10 consecutive runs pass without retries.
 
 ### Help link to the user guide ([#27](https://github.com/zSamir015/obsidian-bank/issues/27))
 
-- **Goal:** a discreet "Help" link that opens the [user guide](docs/USER_GUIDE.md).
-- **Value:** visitors understand the demo and its rules without hunting for the docs.
-- **Done when:** the link sits next to "Sign out" (side menu on desktop, top bar on mobile), the bottom tab bar is unchanged, it opens in a new tab with a screen-reader notice, and it works with the keyboard.
+- Goal: a discreet "Help" link that opens the [user guide](docs/USER_GUIDE.md).
+- Value: visitors understand the demo and its rules without hunting for the docs.
+- Done when: the link sits next to "Sign out" (side menu on desktop, top bar on mobile), the bottom tab bar is unchanged, it opens in a new tab with a screen-reader notice, and it works with the keyboard.
 
 ## v2.2: features
 
 ### Available vs ledger balance ([#20](https://github.com/zSamir015/obsidian-bank/issues/20))
 
-- **Goal:** two balances per account, ledger (settled) and available (minus pending and under-review debits).
-- **Value:** people see what they can spend now and why it differs from the settled balance.
-- **Done when:** both are computed on the server with migration tests, shown on Overview and Move money, and transfers are checked against the available balance.
+- Goal: two balances per account, ledger (settled) and available (minus pending and under-review debits).
+- Value: people see what they can spend now and why it differs from the settled balance.
+- Done when: both are computed on the server with migration tests, shown on Overview and Move money, and transfers are checked against the available balance.
 
 ### Export transactions to CSV ([#21](https://github.com/zSamir015/obsidian-bank/issues/21))
 
-- **Goal:** download the filtered Activity list as a CSV file.
-- **Value:** history goes straight into a spreadsheet.
-- **Done when:** the export matches the filters, uses documented columns, escapes values (including protection against spreadsheet formulas) and is covered by tests.
+- Goal: download the filtered Activity list as a CSV file.
+- Value: history goes straight into a spreadsheet.
+- Done when: the export matches the filters, uses documented columns, escapes values (including protection against spreadsheet formulas) and is covered by tests.
 
 ### External transfers with validated ABA routing numbers ([#22](https://github.com/zSamir015/obsidian-bank/issues/22))
 
-- **Goal:** send money to a fictional external US account by routing and account number.
-- **Value:** covers the most common real transfer, with mistakes caught before sending.
-- **Done when:** routing numbers pass the ABA checksum on client and server, recipient accounts are stored masked, the transfer is atomic and pending until settled (simulated), and no real payment network is ever contacted.
+- Goal: send money to a fictional external US account by routing and account number.
+- Value: covers the most common real transfer, with mistakes caught before sending.
+- Done when: routing numbers pass the ABA checksum on client and server, recipient accounts are stored masked, the transfer is atomic and pending until settled (simulated), and no real payment network is ever contacted.
 
 ### Spanish version ([#23](https://github.com/zSamir015/obsidian-bank/issues/23))
 
-- **Goal:** the whole app in Spanish as well as English.
-- **Value:** Spanish speakers use the demo in their language.
-- **Done when:** all copy comes from message catalogues, a language picker follows the browser by default, dates and numbers use the chosen locale (amounts stay in USD), and the user guide exists in Spanish.
+- Goal: the whole app in Spanish as well as English.
+- Value: Spanish speakers use the demo in their language.
+- Done when: all copy comes from message catalogues, a language picker follows the browser by default, dates and numbers use the chosen locale (amounts stay in USD), and the user guide exists in Spanish.
 
 ## v3.0: platform
 
 ### Installable PWA ([#24](https://github.com/zSamir015/obsidian-bank/issues/24))
 
-- **Goal:** install the demo on phones and desktops, with an offline shell.
-- **Value:** it opens like an app and explains when it's offline instead of failing.
-- **Done when:** it passes installability checks in Chrome and Safari, only the app shell is cached (never financial data), and updates don't leave stale chunks.
+- Goal: install the demo on phones and desktops, with an offline shell.
+- Value: it opens like an app and explains when it's offline instead of failing.
+- Done when: it passes installability checks in Chrome and Safari, only the app shell is cached (never financial data), and updates don't leave stale chunks.
 
 ### Notifications for flagged activity ([#25](https://github.com/zSamir015/obsidian-bank/issues/25))
 
-- **Goal:** tell the user when a transaction is marked Under review.
-- **Value:** unusual payments are noticed straight away.
-- **Done when:** the server creates an in-app notification for each flagged transaction, web push is opt-in only, notifications carry no sensitive data beyond merchant, amount and last four digits, and the flow is tested.
+- Goal: tell the user when a transaction is marked Under review.
+- Value: unusual payments are noticed straight away.
+- Done when: the server creates an in-app notification for each flagged transaction, web push is opt-in only, notifications carry no sensitive data beyond merchant, amount and last four digits, and the flow is tested.

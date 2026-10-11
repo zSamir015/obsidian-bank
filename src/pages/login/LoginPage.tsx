@@ -35,7 +35,7 @@ export default function LoginPage() {
       <main className="my-auto max-w-xl py-16 lg:mx-auto lg:grid lg:min-h-[calc(100dvh-4rem)] lg:max-w-7xl lg:grid-cols-2 lg:gap-12 lg:py-0">
         <section className="lg:sticky lg:top-0 lg:flex lg:h-dvh lg:items-center">
           <div>
-            <Label>Demo project — not a real bank</Label>
+            <Label>Demo project, not a real bank</Label>
             <h1 className="mt-4 text-[clamp(2.75rem,8vw,4.5rem)] leading-[1.02] font-medium tracking-display">
               A calm place for your money.
             </h1>
