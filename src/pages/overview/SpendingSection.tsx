@@ -3,7 +3,8 @@ import { SectionTitle } from '@/components/ui/Label'
 import { Money } from '@/components/ui/Money'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { NEAR_LIMIT_RATIO, spendingAgainstBudgets, type BudgetProgress } from '@/lib/analytics'
-import { CATEGORY_LABELS } from '@/lib/labels'
+import { useI18n } from '@/i18n/useI18n'
+import { categoryLabel } from '@/lib/labels'
 import type { Budget, Transaction } from '@/types/bank'
 import type { QueryView } from './query'
 
@@ -15,17 +16,18 @@ export function SpendingSection({
   // Budgets only add context: if they fail to load, amounts still show, without bars.
   readonly budgets: readonly Budget[] | undefined
 }) {
+  const { t } = useI18n()
   const rows = spendingAgainstBudgets(transactions.data ?? [], budgets ?? [])
 
   return (
     <section aria-labelledby="spending">
-      <SectionTitle id="spending">Spending this month</SectionTitle>
+      <SectionTitle id="spending">{t.overview.spending}</SectionTitle>
       {transactions.isError ? (
-        <ErrorMessage onRetry={() => void transactions.refetch()}>Couldn't load your spending.</ErrorMessage>
+        <ErrorMessage onRetry={() => void transactions.refetch()}>{t.overview.spendingFailed}</ErrorMessage>
       ) : transactions.isPending ? (
         <Skeleton className="h-20 rounded-card" />
       ) : rows.length === 0 ? (
-        <p className="text-muted">No spending yet this month.</p>
+        <p className="text-muted">{t.overview.noSpending}</p>
       ) : (
         <ul className="grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((row) => (
@@ -38,7 +40,8 @@ export function SpendingSection({
 }
 
 function SpendingRow({ row }: { readonly row: BudgetProgress }) {
-  const label = CATEGORY_LABELS[row.category]
+  const { t } = useI18n()
+  const label = categoryLabel(row.category, t)
   return (
     <li>
       <div className="flex items-baseline justify-between gap-3 text-sm">
@@ -48,7 +51,7 @@ function SpendingRow({ row }: { readonly row: BudgetProgress }) {
           {row.limit !== null && (
             <span className="text-muted">
               {' '}
-              of <Money cents={row.limit} />
+              {t.overview.of} <Money cents={row.limit} />
             </span>
           )}
         </span>
@@ -56,7 +59,7 @@ function SpendingRow({ row }: { readonly row: BudgetProgress }) {
       {row.limit !== null && row.ratio !== null && (
         <div
           role="meter"
-          aria-label={`${label}: ${Math.round(row.ratio * 100)}% of budget`}
+          aria-label={t.overview.ofBudget(label, Math.round(row.ratio * 100))}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(row.ratio * 100)}

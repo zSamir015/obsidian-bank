@@ -1,3 +1,4 @@
+import { useI18n } from '@/i18n/useI18n'
 import { cn } from '@/lib/cn'
 import { formatMoney, formatMoneyParts } from '@/lib/money'
 import type { Cents, TransactionType } from '@/types/bank'
@@ -20,6 +21,8 @@ export function Money({
   readonly display?: boolean
   readonly className?: string
 }) {
+  // Subscribes to the language, so the amount is rewritten in the new format when it changes.
+  useI18n()
   const sign = type ? SIGN[type] : cents < 0 ? '−' : ''
   const parts = formatMoneyParts(cents)
   return (

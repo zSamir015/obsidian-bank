@@ -4,6 +4,7 @@ import { Glow } from '@/components/ui/Glow'
 import { Label } from '@/components/ui/Label'
 import { Money } from '@/components/ui/Money'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { useI18n } from '@/i18n/useI18n'
 import { cashflowThisMonth } from '@/lib/analytics'
 import { asCents } from '@/lib/money'
 import type { Account, Transaction } from '@/types/bank'
@@ -16,6 +17,7 @@ export function BalanceHero({
   readonly accounts: QueryView<readonly Account[]>
   readonly transactions: readonly Transaction[] | undefined
 }) {
+  const { t } = useI18n()
   const available = asCents(accounts.data?.reduce((sum, a) => sum + a.availableBalance, 0) ?? 0)
   const ledger = asCents(accounts.data?.reduce((sum, a) => sum + a.ledgerBalance, 0) ?? 0)
   const flow = transactions && cashflowThisMonth(transactions)
@@ -24,12 +26,12 @@ export function BalanceHero({
     <section aria-labelledby="total-balance" className="relative isolate pt-4">
       <Glow />
       <h1 id="total-balance">
-        <Label as="span">Total available</Label>
+        <Label as="span">{t.overview.totalAvailable}</Label>
       </h1>
 
       {accounts.isError ? (
         <div className="mt-6">
-          <ErrorMessage onRetry={() => void accounts.refetch()}>Couldn't load your balance.</ErrorMessage>
+          <ErrorMessage onRetry={() => void accounts.refetch()}>{t.overview.balanceFailed}</ErrorMessage>
         </div>
       ) : accounts.isPending ? (
         <Skeleton className="mt-5 h-20 w-80 max-w-full" />
@@ -43,20 +45,20 @@ export function BalanceHero({
 
       {!accounts.isPending && !accounts.isError && (
         <p className="mt-3 text-sm text-muted">
-          Ledger balance <Money cents={ledger} /> · Available excludes pending and under-review debits.
+          {t.overview.ledgerBalance} <Money cents={ledger} /> · {t.overview.availableNote}
         </p>
       )}
 
       {flow && (
         <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-2 text-sm">
           <div className="flex gap-2">
-            <dt className="text-muted">In this month</dt>
+            <dt className="text-muted">{t.overview.inThisMonth}</dt>
             <dd>
               <Money cents={flow.income} type="credit" />
             </dd>
           </div>
           <div className="flex gap-2">
-            <dt className="text-muted">Out this month</dt>
+            <dt className="text-muted">{t.overview.outThisMonth}</dt>
             <dd>
               <Money cents={flow.spending} type="debit" />
             </dd>
@@ -65,9 +67,9 @@ export function BalanceHero({
       )}
 
       <div className="mt-10 flex flex-wrap gap-3">
-        <ButtonLink to="/transfer">Move money</ButtonLink>
+        <ButtonLink to="/transfer">{t.overview.moveMoney}</ButtonLink>
         <ButtonLink to="/activity" variant="secondary">
-          View activity
+          {t.app.viewActivity}
         </ButtonLink>
       </div>
     </section>

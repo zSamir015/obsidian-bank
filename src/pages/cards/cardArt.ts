@@ -10,7 +10,8 @@ import {
   RepeatWrapping,
   SRGBColorSpace,
 } from 'three'
-import { CARD_TIER_LABELS } from '@/lib/labels'
+import { getLocale, getMessages } from '@/i18n/runtime'
+import { cardTierLabel } from '@/lib/labels'
 import type { CreditCard } from '@/types/bank'
 import { CARD_ASPECT, CARD_BACK } from './finish'
 
@@ -50,7 +51,7 @@ function drawMark(ctx: CanvasRenderingContext2D, x: number, y: number, ink: stri
   ctx.font = '500 34px Geist, sans-serif'
   ctx.textBaseline = 'middle'
   ctx.textAlign = 'left'
-  ctx.fillText('Obsidian', x + 56, y + 23)
+  ctx.fillText(getMessages().app.mark, x + 56, y + 23)
   ctx.restore()
 }
 
@@ -73,7 +74,7 @@ function drawFrost(ctx: CanvasRenderingContext2D) {
   ctx.fill()
   ctx.fillStyle = '#ffffff'
   ctx.font = '500 28px Geist, sans-serif'
-  ctx.fillText('FROZEN', LAYOUT_WIDTH / 2, LAYOUT_HEIGHT / 2 + 2)
+  ctx.fillText(getMessages().cards.frozenArt, LAYOUT_WIDTH / 2, LAYOUT_HEIGHT / 2 + 2)
   ctx.restore()
 }
 
@@ -85,7 +86,7 @@ export function drawFront(card: Art) {
   ctx.fillStyle = MUTED
   ctx.font = '500 26px Geist, sans-serif'
   ctx.textAlign = 'right'
-  ctx.fillText(CARD_TIER_LABELS[card.tier].toUpperCase(), LAYOUT_WIDTH - PAD, PAD + 23)
+  ctx.fillText(cardTierLabel(card.tier).toUpperCase(), LAYOUT_WIDTH - PAD, PAD + 23)
   ctx.textAlign = 'left'
   ctx.fillStyle = ink
   ctx.font = '400 54px "Geist Mono", monospace'
@@ -133,7 +134,7 @@ export function drawBack(card: Art) {
   ctx.textBaseline = 'alphabetic'
   ctx.fillStyle = MUTED
   ctx.font = '500 20px Geist, sans-serif'
-  const words = CARD_BACK.legal.split(' ')
+  const words = getMessages().cards.legal.split(' ')
   const lines: string[] = []
   for (const word of words) {
     const line = lines.at(-1)
@@ -152,6 +153,8 @@ export function useArtTexture(draw: (card: Art) => HTMLCanvasElement, card: Art)
   const invalidate = useThree((state) => state.invalidate)
   const anisotropy = useThree((state) => state.gl.capabilities.getMaxAnisotropy())
   const { tier, last4, cardHolder, expiry, isFrozen } = card
+  // The artwork has text on it (tier, FROZEN, legal line), so it is redrawn when the language changes.
+  const locale = getLocale()
 
   useEffect(() => {
     let cancelled = false
@@ -172,7 +175,7 @@ export function useArtTexture(draw: (card: Art) => HTMLCanvasElement, card: Art)
       cancelled = true
       created?.dispose()
     }
-  }, [draw, tier, last4, cardHolder, expiry, isFrozen, invalidate, anisotropy])
+  }, [draw, tier, last4, cardHolder, expiry, isFrozen, locale, invalidate, anisotropy])
 
   return texture
 }

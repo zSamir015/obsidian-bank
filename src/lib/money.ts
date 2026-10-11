@@ -1,4 +1,5 @@
 // All money is handled as integer cents (Cents). Never use floats for amounts.
+import { intlLocale } from '@/i18n/runtime'
 import type { Cents } from '@/types/bank'
 
 // Optional minus, digits with optional en-US thousands groups, up to two decimals.
@@ -35,15 +36,29 @@ export function parseCents(value: string): Cents | null {
   }
 }
 
-const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+// Always USD: the language only changes how an amount is written, never its currency.
+const formatters = new Map<string, Intl.NumberFormat>()
+function usdFormat(wholeDollars = false): Intl.NumberFormat {
+  const key = `${intlLocale()}|${wholeDollars}`
+  let format = formatters.get(key)
+  if (!format) {
+    format = new Intl.NumberFormat(intlLocale(), {
+      style: 'currency',
+      currency: 'USD',
+      ...(wholeDollars && { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
+    })
+    formatters.set(key, format)
+  }
+  return format
+}
 
 export function formatMoney(cents: Cents): string {
-  return usd.format(cents / 100)
+  return usdFormat().format(cents / 100)
 }
 
 /** Unsigned "$1,234" and ".56" parts, so the UI can render cents smaller. The caller shows the sign. */
 export function formatMoneyParts(cents: Cents): { readonly whole: string; readonly cents: string } {
-  const parts = usd.formatToParts(Math.abs(cents) / 100)
+  const parts = usdFormat().formatToParts(Math.abs(cents) / 100)
   const split = parts.findIndex((p) => p.type === 'decimal')
   const text = (from: number, to?: number) =>
     parts
@@ -60,10 +75,8 @@ export function toAmountInput(cents: Cents): string {
   return `${sign}${Math.trunc(abs / 100)}.${String(abs % 100).padStart(2, '0')}`
 }
 
-const usdWhole = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
-
 /** "$12,848" for amounts that are whole dollars (e.g. card limits). Throws if there are cents. */
 export function formatDollars(cents: Cents): string {
   if (cents % 100 !== 0) throw new RangeError(`Not a whole-dollar amount: ${cents}`)
-  return usdWhole.format(cents / 100)
+  return usdFormat(true).format(cents / 100)
 }

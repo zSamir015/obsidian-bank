@@ -1,3 +1,4 @@
+import { getMessages } from '@/i18n/runtime'
 import { formatDollars, parseCents } from '@/lib/money'
 import type { Cents } from '@/types/bank'
 
@@ -14,16 +15,14 @@ export function minimumLimit(spent: Cents): Cents {
 export type LimitCheck = { readonly ok: true; readonly cents: Cents } | { readonly ok: false; readonly error: string }
 
 export function validateCardLimit(input: string, spent: Cents): LimitCheck {
-  if (!input.trim()) return { ok: false, error: 'Enter a limit.' }
+  const t = getMessages().cards
+  if (!input.trim()) return { ok: false, error: t.limitRequired }
   const cents = parseCents(input)
-  if (cents === null) return { ok: false, error: 'Enter a limit in whole dollars, like 15000.' }
-  if (cents % 100 !== 0) return { ok: false, error: 'Use whole dollars for the limit, like 15000.' }
-  if (cents < LIMIT_MIN || cents > LIMIT_MAX) return { ok: false, error: 'Choose a limit between $500 and $100,000.' }
-  if (cents < spent) {
-    return {
-      ok: false,
-      error: `Choose at least ${formatDollars(minimumLimit(spent))}: that's what has already been spent on this card, rounded up.`,
-    }
+  if (cents === null) return { ok: false, error: t.limitFormat }
+  if (cents % 100 !== 0) return { ok: false, error: t.limitWholeDollars }
+  if (cents < LIMIT_MIN || cents > LIMIT_MAX) {
+    return { ok: false, error: t.limitRange(formatDollars(LIMIT_MIN), formatDollars(LIMIT_MAX)) }
   }
+  if (cents < spent) return { ok: false, error: t.limitBelowSpent(formatDollars(minimumLimit(spent))) }
   return { ok: true, cents }
 }

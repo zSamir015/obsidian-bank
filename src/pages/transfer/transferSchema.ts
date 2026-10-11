@@ -1,23 +1,26 @@
 import { z } from 'zod'
+import type { Messages } from '@/i18n/messages/en'
+import { getMessages } from '@/i18n/runtime'
 import { formatMoney, parseCents } from '@/lib/money'
 import type { Account } from '@/types/bank'
 
-export function makeTransferSchema(accounts: readonly Account[]) {
+export function makeTransferSchema(accounts: readonly Account[], t: Messages = getMessages()) {
+  const v = t.validation
   return z
     .object({
-      fromId: z.string().min(1, 'Choose the account to move money from.'),
-      toId: z.string().min(1, 'Choose the account to move money to.'),
-      amount: z.string().trim().min(1, 'Enter an amount.'),
-      description: z.string().trim().max(140, 'Keep the note under 140 characters.'),
+      fromId: z.string().min(1, v.chooseFrom),
+      toId: z.string().min(1, v.chooseTo),
+      amount: z.string().trim().min(1, v.enterAmount),
+      description: z.string().trim().max(140, v.noteTooLong),
     })
     .superRefine((values, ctx) => {
       if (values.fromId && values.fromId === values.toId) {
-        ctx.addIssue({ code: 'custom', path: ['toId'], message: 'Choose a different account from the source.' })
+        ctx.addIssue({ code: 'custom', path: ['toId'], message: v.differentAccount })
       }
       if (!values.amount) return
       const cents = parseCents(values.amount)
       if (cents === null || cents <= 0) {
-        ctx.addIssue({ code: 'custom', path: ['amount'], message: 'Enter an amount like 25.50, greater than $0.00.' })
+        ctx.addIssue({ code: 'custom', path: ['amount'], message: v.amountFormat })
         return
       }
       const from = accounts.find((a) => a.id === values.fromId)
@@ -25,7 +28,7 @@ export function makeTransferSchema(accounts: readonly Account[]) {
         ctx.addIssue({
           code: 'custom',
           path: ['amount'],
-          message: `That's more than this account has available. Available: ${formatMoney(from.availableBalance)}.`,
+          message: v.overAvailable(formatMoney(from.availableBalance)),
         })
       }
     })

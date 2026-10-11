@@ -3,6 +3,7 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { SectionTitle } from '@/components/ui/Label'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { TransactionRow } from '@/components/TransactionRow'
+import { useI18n } from '@/i18n/useI18n'
 import type { Account, Transaction } from '@/types/bank'
 import type { QueryView } from './query'
 
@@ -13,6 +14,7 @@ export function RecentActivity({
   readonly transactions: QueryView<readonly Transaction[]>
   readonly accounts: readonly Account[] | undefined
 }) {
+  const { t } = useI18n()
   const accountNames = new Map(accounts?.map((a) => [a.id, a.name]))
   return (
     <section aria-labelledby="recent-activity">
@@ -20,16 +22,16 @@ export function RecentActivity({
         id="recent-activity"
         action={
           <ButtonLink to="/activity" variant="ghost" size="sm" className="-mr-4">
-            View all
+            {t.overview.viewAll}
           </ButtonLink>
         }
       >
-        Recent activity
+        {t.overview.recentActivity}
       </SectionTitle>
       <div className="rounded-card border border-hairline bg-sunken px-5">
         {transactions.isError ? (
           <div className="py-5">
-            <ErrorMessage onRetry={() => void transactions.refetch()}>Couldn't load your activity.</ErrorMessage>
+            <ErrorMessage onRetry={() => void transactions.refetch()}>{t.overview.activityFailed}</ErrorMessage>
           </div>
         ) : transactions.isPending ? (
           <div className="space-y-4 py-5">
@@ -38,7 +40,7 @@ export function RecentActivity({
             ))}
           </div>
         ) : transactions.data?.length === 0 ? (
-          <p className="py-5 text-muted">No activity yet. Transfers and card payments will show up here.</p>
+          <p className="py-5 text-muted">{t.overview.noActivity}</p>
         ) : (
           <ul className="divide-y divide-hairline">
             {transactions.data?.slice(0, 6).map((t) => (
