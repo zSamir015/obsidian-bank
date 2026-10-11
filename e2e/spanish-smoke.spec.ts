@@ -27,6 +27,12 @@ test.describe('Spanish @es', () => {
     await page.getByRole('button', { name: 'Mover dinero' }).click()
     await expect(page.getByRole('status')).toContainText('Moviste $25.50 a Obsidian Vault')
     expect(backend.accounts[0].available_balance_cents).toBe(1261505)
+
+    await page.getByRole('link', { name: 'Notificaciones, 1 sin leer' }).first().click()
+    await expect(page.getByRole('heading', { name: 'Notificaciones' })).toBeVisible()
+    await expect(page.getByRole('listitem')).toContainText(
+      '$989.99 en Unrecognized merchant — online con la tarjeta terminada en 4821 está en revisión.',
+    )
     expect(backend.unexpectedRequests).toEqual([])
   })
 

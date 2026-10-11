@@ -48,6 +48,7 @@ for (const { name, size } of viewports) {
         { path: 'transfer', heading: 'Move money', name: 'Move money' },
         { path: 'budgets', heading: 'Budgets', name: 'Budgets' },
         { path: 'cards', heading: 'Cards', name: 'Cards (front)' },
+        { path: 'notifications', heading: 'Notifications', name: 'Notifications' },
       ]) {
         await page.goto(screen.path)
         await expect(page.getByRole('heading', { name: screen.heading }).first()).toBeVisible()
