@@ -32,7 +32,7 @@ const merchants = () =>
     .queryAllByRole('listitem')
     .map((li) => li.querySelector('p')!.textContent)
 
-const createObjectURL = vi.fn(() => 'blob:test')
+const createObjectURL = vi.fn<(blob: Blob) => string>(() => 'blob:test')
 const revokeObjectURL = vi.fn()
 
 beforeEach(() => {
@@ -63,22 +63,40 @@ describe('ActivityPage', () => {
   })
 
   it('exports every filtered transaction, including rows beyond the visible page', async () => {
-    const many: Transaction[] = Array.from({ length: 45 }, (_, i) => ({
+    const matching: Transaction[] = Array.from({ length: 45 }, (_, i) => ({
       ...transactions[0]!,
       id: `t${i}`,
-      merchant: `Merchant ${i}`,
+      merchant: `Export row ${i}`,
+      category: 'travel',
       amount: asCents(100 + i),
     }))
-    queries.useTransactions.mockReturnValue(ok(many))
+    const wrongCategory: Transaction[] = Array.from({ length: 3 }, (_, i) => ({
+      ...transactions[0]!,
+      id: `decoy${i}`,
+      merchant: `Export row decoy ${i}`,
+      category: 'services',
+    }))
+    queries.useTransactions.mockReturnValue(ok([...matching, ...wrongCategory, ...transactions]))
     renderPage()
     const clickedLinks: HTMLAnchorElement[] = []
     const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
       clickedLinks.push(this)
     })
-    await userEvent.type(screen.getByRole('searchbox', { name: 'Search transactions' }), 'merchant')
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Search transactions' }), 'export row')
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Category' }), 'Travel')
+    expect(merchants()).toHaveLength(30)
     await userEvent.click(screen.getByRole('button', { name: 'Export CSV' }))
 
     expect(createObjectURL).toHaveBeenCalledOnce()
+    const blob = createObjectURL.mock.calls[0]![0]
+    expect(blob.type).toBe('text/csv;charset=utf-8')
+    const bytes = new Uint8Array(await blob.arrayBuffer())
+    expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf])
+    const lines = new TextDecoder('utf-8', { ignoreBOM: true }).decode(bytes).trimEnd().split('\r\n')
+    const exportedMerchants = lines.slice(1).map((line) => line.split(',')[1])
+    expect(lines[0]).toBe('\uFEFF"date","merchant","category","account","type","amount","status","note"')
+    expect(exportedMerchants).toHaveLength(45)
+    expect(new Set(exportedMerchants)).toEqual(new Set(matching.map((t) => `"${t.merchant}"`)))
     expect(clickedLinks[0]?.download).toMatch(/^transactions-\d{4}-\d{2}-\d{2}\.csv$/)
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:test')
     click.mockRestore()
