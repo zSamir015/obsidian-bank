@@ -1,16 +1,16 @@
-import { Search } from 'lucide-react'
+import { Download, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { TransactionRow } from '@/components/TransactionRow'
 import { Button } from '@/components/ui/Button'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { Input, Select } from '@/components/ui/form'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useAccounts } from '@/hooks/accountQueries'
 import { useTransactions } from '@/hooks/transactionQueries'
 import { filterTransactions, type FlowFilter, type TransactionFilters } from '@/lib/analytics'
 import { groupByDay } from '@/lib/dates'
 import { CATEGORY_LABELS } from '@/lib/labels'
+import { downloadCsv, transactionsToCsv } from '@/lib/transactionCsv'
 import { CATEGORIES, type Category } from '@/types/bank'
 
 const PAGE_SIZE = 30
@@ -31,11 +31,32 @@ export default function ActivityPage() {
     setVisibleCount(PAGE_SIZE)
   }
 
+  function exportCsv() {
+    const accountNames = new Map(accounts.data?.map((account) => [account.id, account.name]))
+    const date = new Date().toISOString().slice(0, 10)
+    downloadCsv(`transactions-${date}.csv`, transactionsToCsv(filtered, accountNames))
+  }
+
   return (
     <>
-      <PageHeader title="Activity">
-        {transactions.data && `${filtered.length} ${filtered.length === 1 ? 'transaction' : 'transactions'}`}
-      </PageHeader>
+      <header className="mb-10 flex flex-wrap items-end justify-between gap-4 md:mb-14">
+        <div>
+          <h1 className="text-[2.5rem] leading-tight font-medium tracking-[-0.01em]">Activity</h1>
+          {transactions.data && (
+            <p className="mt-2 text-muted">
+              {filtered.length} {filtered.length === 1 ? 'transaction' : 'transactions'}
+            </p>
+          )}
+        </div>
+        <Button
+          variant="secondary"
+          onClick={exportCsv}
+          disabled={transactions.isPending || accounts.isPending || transactions.isError || accounts.isError}
+        >
+          <Download aria-hidden="true" className="size-4" />
+          Export CSV
+        </Button>
+      </header>
 
       <div className="mb-8 grid gap-3 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="relative">

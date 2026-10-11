@@ -32,6 +32,16 @@ const merchants = () =>
     .queryAllByRole('listitem')
     .map((li) => li.querySelector('p')!.textContent)
 
+const createObjectURL = vi.fn(() => 'blob:test')
+const revokeObjectURL = vi.fn()
+
+beforeEach(() => {
+  createObjectURL.mockClear()
+  revokeObjectURL.mockClear()
+  Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectURL })
+  Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revokeObjectURL })
+})
+
 describe('ActivityPage', () => {
   it('groups transactions under day headings, newest first', () => {
     renderPage()
@@ -50,6 +60,28 @@ describe('ActivityPage', () => {
     renderPage()
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Type' }), 'Money in')
     expect(merchants()).toEqual(['Payroll — Obsidian Labs Inc.'])
+  })
+
+  it('exports every filtered transaction, including rows beyond the visible page', async () => {
+    const many: Transaction[] = Array.from({ length: 45 }, (_, i) => ({
+      ...transactions[0]!,
+      id: `t${i}`,
+      merchant: `Merchant ${i}`,
+      amount: asCents(100 + i),
+    }))
+    queries.useTransactions.mockReturnValue(ok(many))
+    renderPage()
+    const clickedLinks: HTMLAnchorElement[] = []
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      clickedLinks.push(this)
+    })
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Search transactions' }), 'merchant')
+    await userEvent.click(screen.getByRole('button', { name: 'Export CSV' }))
+
+    expect(createObjectURL).toHaveBeenCalledOnce()
+    expect(clickedLinks[0]?.download).toMatch(/^transactions-\d{4}-\d{2}-\d{2}\.csv$/)
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:test')
+    click.mockRestore()
   })
 
   it('offers to clear filters when nothing matches', async () => {
