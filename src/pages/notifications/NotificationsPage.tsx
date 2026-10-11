@@ -8,6 +8,7 @@ import { useMarkNotificationsRead, useNotifications } from '@/hooks/notification
 import { formatNumber, intlLocale } from '@/i18n/runtime'
 import { useI18n } from '@/i18n/useI18n'
 import { cn } from '@/lib/cn'
+import { statusLabel } from '@/lib/labels'
 import { formatMoney } from '@/lib/money'
 import type { FlaggedNotification } from '@/types/bank'
 
@@ -78,7 +79,11 @@ function NotificationRow({ notification }: { readonly notification: FlaggedNotif
   const message = notification.cardLast4
     ? t.notifications.flagged(notification.merchant, amount, notification.cardLast4)
     : t.notifications.flaggedWithoutCard(notification.merchant, amount)
-  const context = [notification.cardLast4 && `${t.overview.cardEndingIn}${notification.cardLast4}`, date]
+  const context = [
+    notification.cardLast4 && `${t.overview.cardEndingIn}${notification.cardLast4}`,
+    statusLabel('flagged', t),
+    date,
+  ]
     .filter(Boolean)
     .join(' · ')
 
