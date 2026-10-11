@@ -29,3 +29,35 @@ export function useTransfer() {
     },
   })
 }
+
+export interface ExternalTransferInput {
+  readonly fromId: string
+  readonly amount: Cents
+  readonly routingNumber: string
+  /** Only the last four digits: the full account number never leaves the browser. */
+  readonly accountLast4: string
+  readonly recipientName: string
+  readonly note: string
+}
+
+export function useExternalTransfer() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ fromId, amount, routingNumber, accountLast4, recipientName, note }: ExternalTransferInput) => {
+      const { data, error } = await supabase.rpc('create_external_transfer', {
+        p_from: fromId,
+        p_amount_cents: amount,
+        p_routing_number: routingNumber,
+        p_account_last4: accountLast4,
+        p_recipient_name: recipientName,
+        p_note: note,
+      })
+      if (error) throw new Error(error.message)
+      return data
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.accounts })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.transactions })
+    },
+  })
+}

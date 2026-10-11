@@ -96,6 +96,9 @@ const backend = createServer((request, response) => {
     body = { ok: true }
   } else if (path === '/auth/v1/signup' && request.method === 'POST') {
     body = session
+  } else if (path === '/rest/v1/rpc/settle_external_transfers' && request.method === 'POST') {
+    // Simulated settlement runs before balances and activity load; nothing is due in the fixtures.
+    body = 0
   } else if (path.startsWith('/rest/v1/') && fixtures[path] && request.method === 'GET') {
     body = fixtures[path]
   } else {

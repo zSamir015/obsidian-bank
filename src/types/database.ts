@@ -118,6 +118,66 @@ export type Database = {
           },
         ]
       }
+      external_transfers: {
+        Row: {
+          account_id: string
+          account_last4: string
+          amount_cents: number
+          created_at: string
+          id: string
+          note: string
+          recipient_name: string
+          routing_number: string
+          settled_at: string | null
+          settles_at: string
+          transaction_id: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          account_last4: string
+          amount_cents: number
+          created_at?: string
+          id?: string
+          note?: string
+          recipient_name: string
+          routing_number: string
+          settled_at?: string | null
+          settles_at: string
+          transaction_id: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          account_last4?: string
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          note?: string
+          recipient_name?: string
+          routing_number?: string
+          settled_at?: string | null
+          settles_at?: string
+          transaction_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_transfers_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_transfers_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: true
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           account_id: string
@@ -183,15 +243,28 @@ export type Database = {
       }
     }
     Functions: {
+      aba_routing_is_valid: { Args: { p_routing: string }; Returns: boolean }
       cleanup_inactive_anonymous_users: {
         Args: { p_inactive_for?: string }
         Returns: number
+      }
+      create_external_transfer: {
+        Args: {
+          p_account_last4: string
+          p_amount_cents: number
+          p_from: string
+          p_note?: string
+          p_recipient_name: string
+          p_routing_number: string
+        }
+        Returns: string
       }
       freeze_card: {
         Args: { p_card_id: string; p_frozen: boolean }
         Returns: boolean
       }
       seed_demo_data: { Args: { p_user_id: string }; Returns: undefined }
+      settle_external_transfers: { Args: never; Returns: number }
       transfer_funds: {
         Args: {
           p_amount_cents: number

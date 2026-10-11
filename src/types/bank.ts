@@ -34,11 +34,17 @@ export interface CreditCard {
   readonly isFrozen: boolean
 }
 
-export const CATEGORIES = ['corporate', 'travel', 'services', 'payroll', 'transfer'] as const
+export const CATEGORIES = ['corporate', 'travel', 'services', 'payroll', 'transfer', 'external'] as const
 export type Category = (typeof CATEGORIES)[number]
 
-/** Movements between the user's own accounts: never budgeted, never counted as income or spending. */
-export type BudgetCategory = Exclude<Category, 'transfer'>
+/**
+ * Categories that can have a budget. `transfer` (between the user's own accounts) is never income or
+ * spending; `external` (money sent to another bank) counts as money out but has no budget.
+ */
+export type BudgetCategory = Exclude<Category, 'transfer' | 'external'>
+
+export const isBudgetCategory = (category: Category): category is BudgetCategory =>
+  category !== 'transfer' && category !== 'external'
 
 export type TransactionStatus = 'completed' | 'pending' | 'flagged'
 export type TransactionType = 'debit' | 'credit'

@@ -1,5 +1,5 @@
 import { ChevronDown, TriangleAlert } from 'lucide-react'
-import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react'
+import { useId, type ComponentProps, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react'
 import { cn } from '@/lib/cn'
 
 export interface ControlProps {
@@ -48,7 +48,7 @@ export function Field({
 const control =
   'h-12 w-full rounded-full border border-hairline bg-surface-2 px-5 text-text placeholder:text-muted/60 transition-colors hover:border-muted/40 aria-invalid:border-danger disabled:opacity-50'
 
-export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function Input({ className, ...props }: ComponentProps<'input'>) {
   return <input className={cn(control, className)} {...props} />
 }
 

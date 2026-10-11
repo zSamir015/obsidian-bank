@@ -67,6 +67,20 @@ describe('transfers between own accounts', () => {
   })
 })
 
+describe('external transfers', () => {
+  const sent = tx({ category: 'external', merchant: 'Ada Lovelace ••6789', amount: 25_000, status: 'pending' })
+  const groceries = tx({ category: 'services', amount: 4_000 })
+
+  it('count as money out this month, even while pending', () => {
+    expect(cashflowThisMonth([sent, groceries])).toEqual({ income: 0, spending: 29_000 })
+  })
+
+  it('have no budget category, so they never appear against budgets', () => {
+    expect(spendingByCategory([sent, groceries])).toEqual([{ category: 'services', cents: 4_000 }])
+    expect(spendingAgainstBudgets([sent], []).map((row) => row.category)).toEqual([])
+  })
+})
+
 describe('cashflowThisMonth', () => {
   it('ignores previous months and is zero for no activity', () => {
     expect(cashflowThisMonth([tx({ date: lastYear })])).toEqual({ income: 0, spending: 0 })

@@ -20,6 +20,8 @@ const daysAgo = (days: number) => {
 
 export class DemoBackend {
   readonly unexpectedRequests: string[] = []
+  /** Every request body sent to the mocked Supabase host, to check what leaves the browser. */
+  readonly requestBodies: string[] = []
   readonly accounts: Row[] = [
     {
       id: CHECKING_ID,
@@ -126,6 +128,8 @@ export class DemoBackend {
       }
 
       const path = url.pathname
+      const postData = route.request().postData()
+      if (postData) this.requestBodies.push(postData)
       if (path === '/auth/v1/signup') {
         await this.fulfill(route, {
           access_token: ACCESS_TOKEN,
@@ -212,6 +216,33 @@ export class DemoBackend {
         const cents = Number(body.p_amount_cents)
         this.transfer(String(body.p_from), String(body.p_to), cents)
         await this.fulfill(route, '00000000-0000-4000-8000-0000000000f1')
+        return
+      }
+      if (path === '/rest/v1/rpc/settle_external_transfers') {
+        await this.fulfill(route, 0)
+        return
+      }
+      if (path === '/rest/v1/rpc/create_external_transfer') {
+        const body = route.request().postDataJSON() as Row
+        const cents = Number(body.p_amount_cents)
+        const from = this.accounts.find((account) => account.id === body.p_from)
+        if (!from || !/^\d{4}$/.test(String(body.p_account_last4)) || cents <= 0) {
+          throw new Error('Invalid mocked external transfer request')
+        }
+        from.available_balance_cents = Number(from.available_balance_cents) - cents
+        this.transactions.unshift({
+          ...this.transaction(
+            90,
+            `${String(body.p_recipient_name)} ••${String(body.p_account_last4)}`,
+            cents,
+            'debit',
+            'external',
+            new Date().toISOString(),
+            'pending',
+          ),
+          account_id: String(body.p_from),
+        })
+        await this.fulfill(route, '00000000-0000-4000-8000-0000000000e1')
         return
       }
       if (path === '/rest/v1/rpc/freeze_card') {

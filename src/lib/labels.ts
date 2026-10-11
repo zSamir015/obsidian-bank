@@ -6,6 +6,7 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   services: 'Services',
   payroll: 'Payroll',
   transfer: 'Transfer',
+  external: 'External transfer',
 }
 
 export const STATUS_LABELS: Record<Exclude<TransactionStatus, 'completed'>, string> = {
