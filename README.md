@@ -151,8 +151,8 @@ The Login and Cards runs also confirm that the 3D module is not requested.
 
 The `CI` workflow runs on every pull request and every push to `main`, with three jobs:
 
-- `check`: lint, typecheck, unit, component and database tests, and a production build.
-- `e2e`: the Playwright journeys (10 repetitions) and the axe scans.
+- `check`: lint, typecheck, unit, component and database tests, a production build and the axe scans. It is the required check, so a new serious or critical violation blocks the merge.
+- `e2e`: the Playwright journeys (10 repetitions).
 - `performance`: the initial-bundle check and Lighthouse CI.
 
 `main` is protected: changes arrive through pull requests, the history stays linear, and `check` must pass on a branch that is up to date with `main`.
