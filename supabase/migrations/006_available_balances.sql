@@ -40,7 +40,8 @@ from public.accounts a
 left join public.transactions t on t.account_id = a.id and t.user_id = a.user_id
 group by a.id;
 
-revoke all on public.account_balances from public, anon;
+-- Schema default privileges grant every role full access to new relations: keep SELECT only.
+revoke all on public.account_balances from public, anon, authenticated;
 grant select on public.account_balances to authenticated;
 
 create or replace function public.transfer_funds(
