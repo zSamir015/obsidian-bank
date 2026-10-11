@@ -7,7 +7,7 @@ Obsidian Bank is a portfolio demo, not a real bank. This roadmap shows what has 
 | **v2.0** | Redesign, data foundation and 3D cards | Shipped (October 2026) | —                |
 | **v2.1** | Polish                                 | Shipped (October 2026) | 15 November 2026 |
 | **v2.2** | Features                               | Shipped (October 2026) | 31 January 2027  |
-| **v3.0** | Platform                               | Proposed               | 30 April 2027    |
+| **v3.0** | Platform                               | Shipped (October 2026) | 30 April 2027    |
 | Backlog  | Frozen proposals                       | No milestone           | —                |
 
 ## v2.0: shipped
@@ -80,9 +80,9 @@ Released as [v2.0.0](https://github.com/zSamir015/obsidian-bank/releases/tag/v2.
 - Done when: all copy comes from message catalogues, a language picker follows the browser by default and is remembered per device, dates and numbers use the chosen locale (amounts stay in USD), and the full suite runs in English with Spanish smoke tests for sign-in, balance, transfer and the error page.
 - Not included: the Spanish user guide ([#41](https://github.com/zSamir015/obsidian-bank/issues/41)) and full bilingual test parity ([#42](https://github.com/zSamir015/obsidian-bank/issues/42)), both in the backlog.
 
-## v3.0: platform
+## v3.0: platform (shipped)
 
-### In-app notifications for flagged activity ([#25](https://github.com/zSamir015/obsidian-bank/issues/25))
+### In-app notifications for flagged activity ([#25](https://github.com/zSamir015/obsidian-bank/issues/25)): shipped
 
 - Goal: tell the user in the app when a transaction is marked Under review.
 - Value: unusual payments are noticed straight away.
