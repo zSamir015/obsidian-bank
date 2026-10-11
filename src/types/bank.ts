@@ -34,6 +34,19 @@ export interface CreditCard {
   readonly isFrozen: boolean
 }
 
+/**
+ * A payment placed under review, as the server recorded it. Notifications carry only the
+ * merchant, the amount and the card's last four digits (null for payments without a card).
+ */
+export interface FlaggedNotification {
+  readonly id: string
+  readonly merchant: string
+  readonly amount: Cents
+  readonly cardLast4: string | null
+  readonly createdAt: string
+  readonly isRead: boolean
+}
+
 export const CATEGORIES = ['corporate', 'travel', 'services', 'payroll', 'transfer', 'external'] as const
 export type Category = (typeof CATEGORIES)[number]
 

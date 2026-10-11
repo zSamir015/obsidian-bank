@@ -289,5 +289,12 @@ export const es: Messages = {
     markAllRead: 'Marcar todo como leído',
     flagged: (merchant: string, amount: string, last4: string) =>
       `${amount} en ${merchant} con la tarjeta terminada en ${last4} está en revisión.`,
+    flaggedWithoutCard: (merchant: string, amount: string) => `${amount} en ${merchant} está en revisión.`,
+    intro: 'Aquí aparecen los pagos puestos en revisión.',
+    link: (count: number, formatted: string) =>
+      count > 0 ? `Notificaciones, ${formatted} sin leer` : 'Notificaciones',
+    unreadItem: 'Sin leer',
+    failed: 'No se pudieron cargar tus notificaciones.',
+    allRead: 'Todas las notificaciones se marcaron como leídas.',
   },
 }

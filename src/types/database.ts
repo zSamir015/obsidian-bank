@@ -178,10 +178,55 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          amount_cents: number
+          card_last4: string | null
+          created_at: string
+          id: string
+          kind: string
+          merchant: string
+          read_at: string | null
+          transaction_id: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          card_last4?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          merchant: string
+          read_at?: string | null
+          transaction_id: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          card_last4?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          merchant?: string
+          read_at?: string | null
+          transaction_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           account_id: string
           amount_cents: number
+          card_id: string | null
           category: string
           created_at: string
           description: string
@@ -194,6 +239,7 @@ export type Database = {
         Insert: {
           account_id: string
           amount_cents: number
+          card_id?: string | null
           category: string
           created_at?: string
           description: string
@@ -206,6 +252,7 @@ export type Database = {
         Update: {
           account_id?: string
           amount_cents?: number
+          card_id?: string | null
           category?: string
           created_at?: string
           description?: string
@@ -221,6 +268,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
             referencedColumns: ["id"]
           },
         ]
@@ -263,6 +317,7 @@ export type Database = {
         Args: { p_card_id: string; p_frozen: boolean }
         Returns: boolean
       }
+      mark_notifications_read: { Args: never; Returns: number }
       seed_demo_data: { Args: { p_user_id: string }; Returns: undefined }
       settle_external_transfers: { Args: never; Returns: number }
       transfer_funds: {

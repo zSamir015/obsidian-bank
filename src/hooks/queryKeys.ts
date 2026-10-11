@@ -3,4 +3,5 @@ export const queryKeys = {
   cards: ['cards'] as const,
   transactions: ['transactions'] as const,
   budgets: ['budgets'] as const,
+  notifications: ['notifications'] as const,
 }

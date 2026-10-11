@@ -10,6 +10,7 @@ import {
   type CardTier,
   type Category,
   type CreditCard,
+  type FlaggedNotification,
   type Transaction,
   type TransactionStatus,
   type TransactionType,
@@ -67,6 +68,25 @@ export function toCard(row: Tables<'cards'>): CreditCard {
     spent: asCents(row.spent_cents),
     tier: oneOf(CARD_TIERS, row.tier, 'card tier'),
     isFrozen: row.is_frozen,
+  }
+}
+
+/** The only notification columns the app reads: never ask for more. */
+export const NOTIFICATION_COLUMNS = 'id, merchant, amount_cents, card_last4, created_at, read_at'
+
+export function toNotification(
+  row: Pick<Tables<'notifications'>, 'id' | 'merchant' | 'amount_cents' | 'card_last4' | 'created_at' | 'read_at'>,
+): FlaggedNotification {
+  if (row.card_last4 !== null && !/^\d{4}$/.test(row.card_last4)) {
+    throw new TypeError('Notifications may only expose the last four digits of a card')
+  }
+  return {
+    id: row.id,
+    merchant: row.merchant,
+    amount: asCents(row.amount_cents),
+    cardLast4: row.card_last4,
+    createdAt: row.created_at,
+    isRead: row.read_at !== null,
   }
 }
 

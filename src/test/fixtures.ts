@@ -86,6 +86,7 @@ const tx = (
   description,
   status,
   transfer_id: null,
+  card_id: null,
   created_at,
 })
 
@@ -102,6 +103,21 @@ export const transactionRows: Tables<'transactions'>[] = [
   tx(6, 'Figma', 4500, 'debit', 'corporate', thisMonth(5)),
   tx(7, 'Con Edison', 13420, 'debit', 'services', thisMonth(6)),
   tx(8, 'Marriott Bonvoy', 62310, 'debit', 'travel', thisMonth(7)),
+]
+
+// The seeded review charge, as its notification: merchant, amount and last four only.
+export const notificationRows: Pick<
+  Tables<'notifications'>,
+  'id' | 'merchant' | 'amount_cents' | 'card_last4' | 'created_at' | 'read_at'
+>[] = [
+  {
+    id: '00000000-0000-4000-8000-0000000000d1',
+    merchant: 'Unrecognized merchant — online',
+    amount_cents: 98999,
+    card_last4: '4821',
+    created_at: thisMonth(2),
+    read_at: null,
+  },
 ]
 
 // Travel ends up at ~94% of its budget, services at ~56%; corporate has no budget.
