@@ -87,6 +87,38 @@ describe('account_balances', () => {
     expect(ownerIds.some((id) => strangerIds.includes(id))).toBe(false)
   })
 
+  it('grants authenticated users SELECT only, overriding the schema default privileges', async () => {
+    const privileges = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER']
+    const { rows } = await db.query<{ role: string; privilege: string; granted: boolean }>(
+      `select role, privilege, has_table_privilege(role, 'public.account_balances', privilege) as granted
+       from unnest(array['authenticated', 'anon', 'public']) as role
+       cross join unnest($1::text[]) as privilege`,
+      [privileges],
+    )
+    const granted = rows.filter((row) => row.granted).map((row) => `${row.role}:${row.privilege}`)
+
+    expect(granted).toEqual(['authenticated:SELECT'])
+  })
+
+  it('rejects authenticated writes through the view', async () => {
+    // The aggregate view is not updatable, so Postgres refuses these before checking privileges;
+    // the privilege test above guards the grants themselves.
+    const writes: readonly [string, RegExp][] = [
+      [
+        `insert into public.account_balances (id, user_id, name, kind, currency, apy_bps, created_at)
+         values (gen_random_uuid(), '${owner}', 'Forged', 'checking', 'USD', 0, now())`,
+        /cannot insert into view/,
+      ],
+      [`update public.account_balances set name = 'Renamed' where id = '${isolatedAccount}'`, /cannot update view/],
+      [`delete from public.account_balances where id = '${isolatedAccount}'`, /cannot delete from view/],
+      ['truncate public.account_balances', /is not a table/],
+    ]
+
+    for (const [sql, error] of writes) {
+      await expect(asUser(db, owner, (tx) => tx.query(sql))).rejects.toThrow(error)
+    }
+  })
+
   it('does not grant anonymous access to account balances', async () => {
     await expect(asUser(db, null, (tx) => tx.query('select * from public.account_balances'))).rejects.toThrow(
       /permission denied/,
