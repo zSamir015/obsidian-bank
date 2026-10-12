@@ -8,7 +8,7 @@ Obsidian Bank is a portfolio demo, not a real bank. This roadmap shows what has 
 | **v2.1** | Polish                                 | Shipped (October 2026) | 15 November 2026 |
 | **v2.2** | Features                               | Shipped (October 2026) | 31 January 2027  |
 | **v3.0** | Platform                               | Shipped (October 2026) | 30 April 2027    |
-| Backlog  | Frozen proposals                       | No milestone           | —                |
+| Backlog  | Open work                              | No milestone           | —                |
 
 ## v2.0: shipped
 
@@ -78,7 +78,7 @@ Released as [v2.0.0](https://github.com/zSamir015/obsidian-bank/releases/tag/v2.
 - Goal: the whole app in Spanish as well as English.
 - Value: Spanish speakers use the demo in their language.
 - Done when: all copy comes from message catalogues, a language picker follows the browser by default and is remembered per device, dates and numbers use the chosen locale (amounts stay in USD), and the full suite runs in English with Spanish smoke tests for sign-in, balance, transfer and the error page.
-- Not included: the Spanish user guide ([#41](https://github.com/zSamir015/obsidian-bank/issues/41)) and full bilingual test parity ([#42](https://github.com/zSamir015/obsidian-bank/issues/42)), both in the backlog.
+- Not included at the time: the Spanish user guide ([#41](https://github.com/zSamir015/obsidian-bank/issues/41)) and full bilingual test parity ([#42](https://github.com/zSamir015/obsidian-bank/issues/42)); both shipped later with v3.0.
 
 ## v3.0: platform (shipped)
 
@@ -86,13 +86,24 @@ Released as [v2.0.0](https://github.com/zSamir015/obsidian-bank/releases/tag/v2.
 
 - Goal: tell the user in the app when a transaction is marked Under review.
 - Value: unusual payments are noticed straight away.
-- Done when: the server creates an in-app notification for each flagged transaction, notifications carry no sensitive data beyond merchant, amount and last four digits, and the flow is covered by RLS, PGlite and e2e tests. No web push and no service worker.
+- Done when: the server creates an in-app notification for each flagged transaction, notifications carry no sensitive data beyond merchant, amount and last four digits, and the flow is covered by RLS, PGlite and e2e tests. Web push and the service worker came later (#40, #24).
+
+### Taken from the backlog (shipped)
+
+These four were frozen in the backlog. They were done in the same session as v3.0, outside the original plan, and approved by the owner afterwards.
+
+- **Spanish user guide** ([#41](https://github.com/zSamir015/obsidian-bank/issues/41)): [docs/USER_GUIDE.es.md](docs/USER_GUIDE.es.md); Help opens the guide in the active language.
+- **Bilingual test parity** ([#42](https://github.com/zSamir015/obsidian-bank/issues/42)): every e2e journey and axe scan runs in English and Spanish, as separate CI jobs; formatting unit tests run the same cases for both.
+- **Installable PWA** ([#24](https://github.com/zSamir015/obsidian-bank/issues/24)): manifest and icons, a service worker that caches the app shell only (never financial data), and an offline screen and notice.
+- **Web push for flagged activity** ([#40](https://github.com/zSamir015/obsidian-bank/issues/40)): opt-in browser notifications for payments placed under review, with a test notification and opt-out; payloads carry merchant, amount and last four digits only. The code is merged; it goes live once its database migrations, secrets and a real delivery test are done.
+
+### Fixes
+
+- Card controls no longer make `/cards` scroll sideways at 768 px ([#48](https://github.com/zSamir015/obsidian-bank/issues/48)).
+- Formatting is checked in CI ([#49](https://github.com/zSamir015/obsidian-bank/issues/49)).
 
 ## Backlog
 
-Frozen proposals with no milestone or date. They keep their issues and context and can be scheduled later.
+No frozen proposals right now. Known open work:
 
-- **Installable PWA** ([#24](https://github.com/zSamir015/obsidian-bank/issues/24)): install the demo with an offline app shell; financial data is never cached.
-- **Web push for flagged activity** ([#40](https://github.com/zSamir015/obsidian-bank/issues/40)): opt-in push on top of #25. Needs the service worker from #24.
-- **Spanish user guide** ([#41](https://github.com/zSamir015/obsidian-bank/issues/41)): split out of #23.
-- **Bilingual test parity** ([#42](https://github.com/zSamir015/obsidian-bank/issues/42)): every e2e journey in both languages. Split out of #23.
+- **Overview LCP at the Lighthouse budget** ([#57](https://github.com/zSamir015/obsidian-bank/issues/57)): Overview (and sometimes Cards) sits around 2.50–2.58 s against a 2.5 s budget on CI, so the non-required `performance` job fails intermittently.
