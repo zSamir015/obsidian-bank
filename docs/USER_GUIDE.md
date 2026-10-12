@@ -4,7 +4,7 @@ This guide explains how to use the Obsidian Bank demo, screen by screen. You don
 
 > **Obsidian Bank is a demo, not a real bank.** No real money, accounts or cards are involved. Everything you see is made up.
 
-**Contents:** [Getting started](#getting-started) · [Overview](#overview) · [Activity](#activity) · [Move money](#move-money) · [Budgets](#budgets) · [Cards](#cards) · [Notifications](#notifications) · [Accessibility](#accessibility) · [Troubleshooting](#troubleshooting) · [Glossary](#glossary)
+**Contents:** [Getting started](#getting-started) · [Overview](#overview) · [Activity](#activity) · [Move money](#move-money) · [Budgets](#budgets) · [Cards](#cards) · [Notifications](#notifications) · [Install the app](#install-the-app) · [Accessibility](#accessibility) · [Troubleshooting](#troubleshooting) · [Glossary](#glossary)
 
 ## Getting started
 
@@ -182,6 +182,16 @@ When a payment is placed **Under review**, you get a notification. The bell (at 
 - **Mark all as read** clears the count.
 
 Notifications only appear inside the demo. It never sends emails, text messages or browser notifications.
+
+## Install the app
+
+You can add the demo to your home screen or desktop, and it opens in its own window like an app.
+
+- **Chrome or Edge on a computer:** select the install icon at the right of the address bar, or **Install Obsidian Bank** in the browser menu.
+- **Android (Chrome):** open the menu and select **Add to home screen** or **Install app**.
+- **iPhone or iPad (Safari):** select **Share**, then **Add to Home Screen**.
+
+Balances, activity and cards always need a connection: nothing from your account is stored on the device. If you open the app without a connection it shows _You're offline_ and loads normally once the connection is back. If the connection drops while you use it, a notice appears and the screen stays as it was.
 
 ## Accessibility
 
