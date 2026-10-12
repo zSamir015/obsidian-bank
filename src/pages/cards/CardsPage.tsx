@@ -125,7 +125,7 @@ function CardControls({ card, onResult }: { readonly card: CreditCard; readonly 
   return (
     <section
       aria-label={t.cards.settings(name)}
-      className="grid gap-8 rounded-card border border-hairline bg-sunken p-6 md:grid-cols-[1.3fr_1fr_1fr] md:gap-10"
+      className="grid gap-8 rounded-card border border-hairline bg-sunken p-6 lg:grid-cols-[1.3fr_1fr_1fr] lg:gap-10"
     >
       <dl className="grid grid-cols-2 gap-x-6 gap-y-5 text-sm">
         <div>
@@ -152,7 +152,7 @@ function CardControls({ card, onResult }: { readonly card: CreditCard; readonly 
         </div>
       </dl>
 
-      <div className="border-t border-hairline pt-6 md:border-t-0 md:border-l md:pt-0 md:pl-10">
+      <div className="border-t border-hairline pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
         <Label>{t.cards.status}</Label>
         <p className="mt-1.5 text-sm">{card.isFrozen ? t.cards.frozenStatus : t.cards.active}</p>
         <Button
@@ -172,7 +172,7 @@ function CardControls({ card, onResult }: { readonly card: CreditCard; readonly 
         )}
       </div>
 
-      <div className="border-t border-hairline pt-6 md:border-t-0 md:border-l md:pt-0 md:pl-10">
+      <div className="border-t border-hairline pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
         <Label>{t.cards.limit}</Label>
         {editing ? (
           <LimitForm
