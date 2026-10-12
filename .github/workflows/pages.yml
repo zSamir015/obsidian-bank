@@ -36,7 +36,7 @@ jobs:
         run: npm run build
       # Pages has no SPA fallback; see scripts/pages-routes.mjs.
       - run: node scripts/pages-routes.mjs
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
