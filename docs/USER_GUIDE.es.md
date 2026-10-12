@@ -4,7 +4,7 @@ Esta guía explica cómo usar la demo de Obsidian Bank, pantalla por pantalla. N
 
 > **Obsidian Bank es una demo, no un banco real.** No hay dinero, cuentas ni tarjetas reales. Todo lo que ves es inventado.
 
-**Contenido:** [Primeros pasos](#primeros-pasos) · [Resumen](#resumen) · [Movimientos](#movimientos) · [Mover dinero](#mover-dinero) · [Presupuestos](#presupuestos) · [Tarjetas](#tarjetas) · [Notificaciones](#notificaciones) · [Accesibilidad](#accesibilidad) · [Solución de problemas](#solución-de-problemas) · [Glosario](#glosario)
+**Contenido:** [Primeros pasos](#primeros-pasos) · [Resumen](#resumen) · [Movimientos](#movimientos) · [Mover dinero](#mover-dinero) · [Presupuestos](#presupuestos) · [Tarjetas](#tarjetas) · [Notificaciones](#notificaciones) · [Instalar la app](#instalar-la-app) · [Accesibilidad](#accesibilidad) · [Solución de problemas](#solución-de-problemas) · [Glosario](#glosario)
 
 Las capturas de pantalla muestran la app en inglés; en español las pantallas son iguales, con los textos traducidos.
 
@@ -184,6 +184,16 @@ Cuando un pago queda **En revisión**, recibes una notificación. La campana (al
 - **Marcar todo como leído** pone el contador en cero.
 
 Las notificaciones solo aparecen dentro de la demo. Nunca envía correos, mensajes de texto ni notificaciones del navegador.
+
+## Instalar la app
+
+Puedes agregar la demo a tu pantalla de inicio o a tu escritorio, y se abre en su propia ventana, como una app.
+
+- **Chrome o Edge en una computadora:** selecciona el ícono de instalar a la derecha de la barra de direcciones, o **Instalar Obsidian Bank** en el menú del navegador.
+- **Android (Chrome):** abre el menú y selecciona **Agregar a la pantalla principal** o **Instalar app**.
+- **iPhone o iPad (Safari):** selecciona **Compartir** y luego **Agregar a inicio**.
+
+Los saldos, movimientos y tarjetas siempre necesitan conexión: nada de tu cuenta se guarda en el dispositivo. Si abres la app sin conexión, muestra _Sin conexión_ y carga normalmente cuando vuelve la conexión. Si la conexión se cae mientras la usas, aparece un aviso y la pantalla se queda como estaba.
 
 ## Accesibilidad
 

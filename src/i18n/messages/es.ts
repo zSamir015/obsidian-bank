@@ -275,6 +275,11 @@ export const es: Messages = {
     title: 'Esta página no existe',
     body: 'Revisa la dirección o vuelve a tu resumen.',
   },
+  offline: {
+    title: 'Sin conexión',
+    body: 'Los saldos, movimientos y tarjetas necesitan conexión. Nada de tu cuenta se guarda en este dispositivo.',
+    banner: 'Sin conexión. Los saldos y movimientos se actualizan cuando vuelve la conexión.',
+  },
   routeError: {
     staleTitle: 'Esta página no se cargó',
     staleBody: 'Hay una versión más reciente de Obsidian Bank. Recarga para obtenerla.',

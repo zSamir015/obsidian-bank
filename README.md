@@ -107,6 +107,7 @@ On the client, every row coming from the database goes through the mappers in `s
 - Server data is only kept in TanStack Query. Forms use React Hook Form with Zod schemas, and the same limits are enforced again on the server.
 - The interface is dark and mostly monochrome. Red marks at most one element per screen, and amber is reserved for errors, always with an icon and text so colour is never the only signal. Fonts (Geist and Geist Mono) are self-hosted.
 - Every animation respects `prefers-reduced-motion`.
+- The app is installable (web app manifest, icons, `apple-touch-icon`). The manifest is linked and the service worker registered once the page has loaded and the browser is idle, so neither adds requests before the largest paint. The service worker (`src/pwa/sw.js`, written to `dist/sw.js` by a Vite plugin that injects the file list) precaches the app shell only: the HTML, the entry JavaScript and CSS, the preloaded fonts, the Spanish catalogue, the manifest and icons. Route chunks are cached the first time they load. Navigations are network first, so a deploy shows up on the next visit, and the previous shell is kept so an open tab can still load the chunks it used. Supabase requests never go through the cache, so no account data is stored for offline use. Opened without a connection, the app shows an offline screen; losing the connection later adds a notice and keeps the current screen.
 - The interface is available in English and Spanish. Copy lives in typed message catalogues (`src/i18n/messages/`), with no i18n library: English ships with the app and other languages load as a separate chunk before the first render. The language follows the browser until the visitor picks one, and the choice is kept on that device. Dates and numbers are formatted with `Intl` for the active language; amounts are always US dollars. Spanish uses the `es-US` locale, so amounts keep the `$1,234.56` shape the amount fields accept. The CSV export stays in English because its columns are a documented format.
 
 ## How the 3D card loads
@@ -201,14 +202,15 @@ src/
   i18n/              message catalogues, language detection and the language context
   lib/               money, dates, mappers, analytics, CSV export, error messages
   pages/             one folder per route, each with its tests
+  pwa/               service worker, its registration and the offline screen
   router/            route table and legacy redirects
   types/             domain types and generated database types
   test/              shared fixtures and test setup
 supabase/
   migrations/        forward-only SQL migrations, numbered
   tests/             PGlite tests, one file per migration
-e2e/                 Playwright specs and the mocked backend
-scripts/             bundle check, Lighthouse helpers, Pages routes, notices
+e2e/                 Playwright specs (run in English and Spanish) and the mocked backend
+scripts/             bundle check, Lighthouse helpers, Pages routes, notices, app icons
 docs/                user guide, screenshots and design notes
 ```
 

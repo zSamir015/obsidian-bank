@@ -277,6 +277,12 @@ export const en = {
     title: "This page doesn't exist",
     body: 'Check the address, or go back to your overview.',
   },
+  // Shown when the device has no connection. The service worker only keeps the app shell.
+  offline: {
+    title: "You're offline",
+    body: 'Balances, activity and cards need a connection. Nothing from your account is stored on this device.',
+    banner: "You're offline. Balances and activity update when the connection is back.",
+  },
   routeError: {
     staleTitle: "This page didn't load",
     staleBody: 'A newer version of Obsidian Bank is available. Reload to get it.',

@@ -16,6 +16,8 @@ export default defineConfig<I18nOptions>({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     reducedMotion: 'reduce',
+    // page.route() can't see requests a service worker answers; pwa.spec.ts turns it back on.
+    serviceWorkers: 'block',
   },
   // Every journey runs in both languages. CI runs each project in its own job.
   projects: [
