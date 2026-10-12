@@ -16,6 +16,10 @@ test.describe('Spanish @es', () => {
 
     await expect(page.getByRole('heading', { name: 'Total disponible' })).toBeVisible()
     await expect(page.getByText('Saldo contable')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Ayuda (se abre en una pestaña nueva)' }).first()).toHaveAttribute(
+      'href',
+      'https://github.com/zSamir015/obsidian-bank/blob/main/docs/USER_GUIDE.es.md',
+    )
     // Amounts stay in US dollars whatever the language.
     await expect(page.getByText('$12,640.55').first()).toBeVisible()
 

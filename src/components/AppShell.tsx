@@ -1,5 +1,6 @@
 import { ArrowLeftRight, ChartPie, CircleHelp, CreditCard, LayoutGrid, LogOut, ReceiptText } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router'
+import type { Locale } from '@/i18n/locales'
 import { useI18n } from '@/i18n/useI18n'
 import { supabase } from '@/lib/supabase'
 import { LanguagePicker } from './LanguagePicker'
@@ -14,7 +15,10 @@ const NAV = [
   { to: '/cards', key: 'cards', icon: CreditCard },
 ] as const
 
-const userGuideUrl = 'https://github.com/zSamir015/obsidian-bank/blob/main/docs/USER_GUIDE.md'
+const userGuideUrl: Record<Locale, string> = {
+  en: 'https://github.com/zSamir015/obsidian-bank/blob/main/docs/USER_GUIDE.md',
+  es: 'https://github.com/zSamir015/obsidian-bank/blob/main/docs/USER_GUIDE.es.md',
+}
 
 // Active items stay monochrome: each screen spends its single red accent on its own content.
 const itemClass = ({ isActive }: { isActive: boolean }) =>
@@ -104,10 +108,10 @@ export function AppShell() {
 }
 
 function HelpLink({ desktop = false }: { readonly desktop?: boolean }) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   return (
     <a
-      href={userGuideUrl}
+      href={userGuideUrl[locale]}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t.nav.helpLabel}

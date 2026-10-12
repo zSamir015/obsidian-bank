@@ -1,10 +1,10 @@
 # Obsidian Bank user guide
 
-This guide explains how to use the Obsidian Bank demo, screen by screen. You don't need any technical knowledge to follow it.
+This guide explains how to use the Obsidian Bank demo, screen by screen. You don't need any technical knowledge to follow it. [Versión en español](USER_GUIDE.es.md).
 
 > **Obsidian Bank is a demo, not a real bank.** No real money, accounts or cards are involved. Everything you see is made up.
 
-**Contents:** [Getting started](#getting-started) · [Overview](#overview) · [Activity](#activity) · [Move money](#move-money) · [Budgets](#budgets) · [Cards](#cards) · [Accessibility](#accessibility) · [Troubleshooting](#troubleshooting) · [Glossary](#glossary)
+**Contents:** [Getting started](#getting-started) · [Overview](#overview) · [Activity](#activity) · [Move money](#move-money) · [Budgets](#budgets) · [Cards](#cards) · [Notifications](#notifications) · [Accessibility](#accessibility) · [Troubleshooting](#troubleshooting) · [Glossary](#glossary)
 
 ## Getting started
 
@@ -50,6 +50,8 @@ Every transaction, newest first, grouped by day (_Today_, _Yesterday_, then date
    - **All categories:** one category, such as _Travel_.
    - **All accounts:** one account, such as your Vault.
 3. Filters combine. If nothing matches, the screen says _No transactions match these filters_. Change or clear a filter to see results again.
+
+**Export CSV** downloads the transactions shown with the current filters.
 
 **What each row means**
 
