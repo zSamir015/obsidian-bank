@@ -31,3 +31,6 @@ test-results
 
 # Supabase CLI local state (linked project, CLI version)
 supabase/.temp/
+
+# Local tool configuration (contains the Supabase project ref)
+.mcp.json
