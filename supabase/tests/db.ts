@@ -34,6 +34,7 @@ const SUPABASE_STUB = `
 // Migrations PGlite cannot run, with the reason. They are checked statically in their own tests.
 export const PGLITE_UNSUPPORTED: Record<string, string> = {
   '004_schedule_anonymous_cleanup.sql': 'pg_cron is not available in PGlite',
+  '010_push_delivery.sql': 'pg_net and Vault are not available in PGlite',
 }
 
 export const allMigrations = readdirSync(migrationsDir)

@@ -181,7 +181,9 @@ When a payment is placed **Under review**, you get a notification. The bell (at 
 - New notifications appear when you come back to the tab, or within a minute while it's open.
 - **Mark all as read** clears the count.
 
-Notifications only appear inside the demo. It never sends emails, text messages or browser notifications.
+**Browser notifications (optional).** At the bottom of the Notifications screen, **Turn on browser notifications** asks your browser for permission and then notifies this device when a payment is placed under review, even with the app closed. They say the same as the notification in the app: merchant, amount and the card's last four digits, nothing else. **Send a test notification** checks that they arrive, and **Turn off** stops them. The choice is per browser. On an iPhone or iPad, add the app to your home screen first (see [Install the app](#install-the-app)). If your browser blocks notifications for the site, allow them in its settings.
+
+The demo never sends emails or text messages.
 
 ## Install the app
 

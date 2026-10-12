@@ -29,7 +29,7 @@ test('a payment moved to Under review shows up as a notification', async ({ page
   await expect(uber).toContainText(t.statuses.flagged)
 
   await bell.click()
-  await expect(page.getByRole('heading', { name: t.notifications.title })).toBeVisible()
+  await expect(page.getByRole('heading', { name: t.notifications.title, exact: true })).toBeVisible()
   const items = page.getByRole('listitem')
   await expect(items).toHaveCount(2)
   await expect(items.first()).toHaveText(

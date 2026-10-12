@@ -65,15 +65,16 @@ A visit goes like this:
 
 ## Data model
 
-| Table / view         | Purpose                                                                                              | Who can write                                                  |
-| -------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `accounts`           | Checking and vault accounts, with an APY in basis points for vaults                                  | Only server functions                                          |
-| `transactions`       | Positive amount in cents, `type` (`debit`/`credit`), category, status, optional transfer id and card | Only server functions                                          |
-| `cards`              | Tier, last four digits, expiry, credit limit, amount spent, frozen flag                              | Only server functions                                          |
-| `budgets`            | Monthly limit per spending category                                                                  | The owner, through an owner-only RLS policy                    |
-| `external_transfers` | Recipient name, routing number, last four digits of the account, amount and settlement times         | Only server functions                                          |
-| `notifications`      | One per transaction placed under review: merchant, amount, card last four, read time                 | Only the trigger; `mark_notifications_read` sets the read time |
-| `account_balances`   | View with the ledger and available balance of each account                                           | Read-only; `SELECT` granted to signed-in users                 |
+| Table / view         | Purpose                                                                                              | Who can write                                                                  |
+| -------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `accounts`           | Checking and vault accounts, with an APY in basis points for vaults                                  | Only server functions                                                          |
+| `transactions`       | Positive amount in cents, `type` (`debit`/`credit`), category, status, optional transfer id and card | Only server functions                                                          |
+| `cards`              | Tier, last four digits, expiry, credit limit, amount spent, frozen flag                              | Only server functions                                                          |
+| `budgets`            | Monthly limit per spending category                                                                  | The owner, through an owner-only RLS policy                                    |
+| `external_transfers` | Recipient name, routing number, last four digits of the account, amount and settlement times         | Only server functions                                                          |
+| `notifications`      | One per transaction placed under review: merchant, amount, card last four, read time                 | Only the trigger; `mark_notifications_read` sets the read time                 |
+| `push_subscriptions` | A browser that opted in to web push: endpoint, encryption keys and language                          | The owner, through `save_push_subscription()` and `delete_push_subscription()` |
+| `account_balances`   | View with the ledger and available balance of each account                                           | Read-only; `SELECT` granted to signed-in users                                 |
 
 A few rules hold everywhere:
 
@@ -96,6 +97,7 @@ The server functions follow the same pattern:
 - `transfer_funds` locks both accounts with `SELECT ... FOR UPDATE` in a fixed order (by id), then checks the available balance. Two concurrent transfers from the same account are serialised, and neither can spend money the other has already taken.
 - `create_external_transfer` takes a transaction-scoped advisory lock per user before checking the $25,000 rolling 24-hour limit, so two requests from different source accounts cannot both pass it. It then locks the source account and checks the available balance. Routing numbers are validated with the ABA rules (assigned prefix and check digit) both in `src/lib/aba.ts` and in the database.
 - Card functions report `card_not_found` both for a card that doesn't exist and for a card owned by someone else, so they never reveal whether an id is valid.
+- Web push (migrations 009 and 010, `supabase/functions/send-push`): a browser opts in only from a click, and stores its subscription through `save_push_subscription()`; the API can read and delete its own subscriptions and nothing else. When a notification is created, a trigger queues a `pg_net` request carrying only the notification id, authenticated with a shared secret kept in Vault. The function reads the notification with the service role and sends merchant, amount and last four digits, the same text as the in-app notification, to that user's browsers, and deletes subscriptions the push service reports as gone. Its test mode only accepts a user's own access token and only pushes to that user.
 - Errors are short codes (`insufficient_funds`, `limit_below_spent` and so on). The frontend maps them to messages in `src/lib/errors.ts` and never shows raw database errors.
 
 On the client, every row coming from the database goes through the mappers in `src/lib/mappers.ts`, which turn it into a read-only domain type and throw on anything unexpected, such as an unknown status or a fractional amount of cents.
@@ -163,6 +165,8 @@ The `CI` workflow runs on every pull request and every push to `main`, with thes
 `main` is protected: changes arrive through pull requests, the history stays linear, and `check` must pass on a branch that is up to date with `main`.
 
 Merging to `main` triggers `Deploy Pages`. It runs the tests, builds with the production Supabase URL and anon key from repository secrets, and copies `index.html` to one file per route (`scripts/pages-routes.mjs`), because GitHub Pages has no single-page-app fallback.
+
+Web push (optional) needs, once per project: a VAPID key pair (`npx web-push generate-vapid-keys`); the Edge Function deployed with `supabase functions deploy send-push --no-verify-jwt` and the secrets `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` and `PUSH_WEBHOOK_SECRET` (`supabase secrets set`); the function URL and the same webhook secret stored in Vault as `push_function_url` and `push_webhook_secret`, which migration 010 reads; and the public key as the `VITE_VAPID_PUBLIC_KEY` repository secret. Without that secret the option stays hidden.
 
 Database migrations are not applied by CI. They are forward-only (an applied file is never edited), and each one is checked with a `supabase db push --dry-run` and applied to production by hand, before the frontend that depends on it is merged.
 

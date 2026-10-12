@@ -2,6 +2,8 @@
 // Service worker. The build (see `serviceWorker()` in vite.config.ts) fills in the
 // placeholders below and writes it to dist/sw.js.
 //
+// It also shows web push notifications (#40); see the push handlers at the end.
+//
 // It only ever caches the app shell: the HTML, the hashed JavaScript, CSS and fonts under
 // assets/, the icons and the manifest. Supabase requests (accounts, balances, activity,
 // auth) are never handled here, so no financial data is stored for offline use.
@@ -78,3 +80,40 @@ async function shellFile(request) {
   }
   return response
 }
+
+// Web push. The payload is built by the send-push Edge Function and only carries a title and
+// a body (merchant, amount and last four digits), a tag and the screen a click opens.
+self.addEventListener('push', (event) => {
+  let payload = null
+  try {
+    payload = event.data?.json() ?? null
+  } catch {
+    payload = null
+  }
+  if (!payload || typeof payload.title !== 'string' || typeof payload.body !== 'string') return
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      tag: typeof payload.tag === 'string' ? payload.tag : undefined,
+      icon: `${BASE}icons/icon-192.png`,
+      data: { path: payload.path === 'notifications' ? 'notifications' : '' },
+    }),
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const url = new URL(BASE + (event.notification.data?.path ?? ''), self.location.origin).href
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: 'window' })
+      const open = windows.find((client) => new URL(client.url).pathname.startsWith(BASE))
+      if (open) {
+        await open.focus()
+        await open.navigate(url)
+      } else {
+        await self.clients.openWindow(url)
+      }
+    })(),
+  )
+})

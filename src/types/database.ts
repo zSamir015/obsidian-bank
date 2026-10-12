@@ -222,6 +222,36 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          locale: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          locale?: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          locale?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           account_id: string
@@ -313,11 +343,19 @@ export type Database = {
         }
         Returns: string
       }
+      delete_push_subscription: {
+        Args: { p_endpoint: string }
+        Returns: undefined
+      }
       freeze_card: {
         Args: { p_card_id: string; p_frozen: boolean }
         Returns: boolean
       }
       mark_notifications_read: { Args: never; Returns: number }
+      save_push_subscription: {
+        Args: { p_auth: string; p_endpoint: string; p_locale: string; p_p256dh: string }
+        Returns: undefined
+      }
       seed_demo_data: { Args: { p_user_id: string }; Returns: undefined }
       settle_external_transfers: { Args: never; Returns: number }
       transfer_funds: {
