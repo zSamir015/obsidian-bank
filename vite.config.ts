@@ -90,7 +90,16 @@ export default defineConfig({
       'icons/apple-touch-icon.png',
     ]),
   ],
-  build: { manifest: true },
+  build: {
+    manifest: true,
+    rolldownOptions: {
+      output: {
+        advancedChunks: {
+          groups: [{ name: 'shared', test: /\/src\/(hooks|lib|components\/ui)\//, minShareCount: 2 }],
+        },
+      },
+    },
+  },
   preview: {
     proxy: {
       '/obsidian-bank/auth': {

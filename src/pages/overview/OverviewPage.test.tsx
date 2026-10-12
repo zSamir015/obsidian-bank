@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toAccount, toBudget, toCard, toTransaction } from '@/lib/mappers'
 import { accountRows, budgetRows, cardRows, transactionRows } from '@/test/fixtures'
-import OverviewPage from './OverviewPage'
+import OverviewPage, { DETAILS_AFTER_BALANCES_MS } from './OverviewPage'
 
 const refetchAccounts = vi.fn()
 const queries = vi.hoisted(() => ({
@@ -118,5 +118,34 @@ describe('OverviewPage card management', () => {
       'href',
       '/cards',
     )
+  })
+})
+
+describe('OverviewPage details timing', () => {
+  it('waits for the balances before loading the sections below them', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      queries.useAccounts.mockReturnValue({ data: undefined, isPending: true, isError: false, refetch: vi.fn() })
+      const { rerender } = render(
+        <MemoryRouter>
+          <OverviewPage />
+        </MemoryRouter>,
+      )
+      await vi.advanceTimersByTimeAsync(DETAILS_AFTER_BALANCES_MS * 2)
+      expect(screen.queryByRole('region', { name: 'Cards' })).not.toBeInTheDocument()
+
+      queries.useAccounts.mockReturnValue(ok(accountRows.map(toAccount)))
+      rerender(
+        <MemoryRouter>
+          <OverviewPage />
+        </MemoryRouter>,
+      )
+      await vi.advanceTimersByTimeAsync(DETAILS_AFTER_BALANCES_MS - 50)
+      expect(screen.queryByRole('region', { name: 'Cards' })).not.toBeInTheDocument()
+      await vi.advanceTimersByTimeAsync(100)
+      expect(await screen.findByRole('region', { name: 'Cards' })).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

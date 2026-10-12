@@ -104,7 +104,7 @@ On the client, every row coming from the database goes through the mappers in `s
 
 ## Frontend
 
-- Every route is lazy-loaded, and the initial JavaScript must stay under 180 kB gzip. `npm run check:initial-bundle` fails the build otherwise.
+- Every route is lazy-loaded, and the initial JavaScript must stay under 180 kB gzip. `npm run check:initial-bundle` fails the build otherwise. Code shared by several routes (`src/hooks`, `src/lib`, `src/components/ui`) goes into one `shared` chunk, so a screen loads its own chunk plus at most a couple of others instead of a handful of small files. On Overview, the sections below the balances start loading only after the balances arrive, so they don't compete with the largest paint (#57).
 - The Supabase SDK is not used as a whole. The app imports `@supabase/postgrest-js` directly, and talks to Supabase Auth through `src/lib/auth.ts`, a small client for what the demo needs (anonymous sign-in, refresh, sign-out, cross-tab sync) that stores sessions in the same format as `@supabase/auth-js`. Dropping `auth-js` took about 22 kB of gzip off the first JavaScript, which Overview's LCP needed (#57).
 - Server data is only kept in TanStack Query. Forms use React Hook Form with Zod schemas, and the same limits are enforced again on the server.
 - The interface is dark and mostly monochrome. Red marks at most one element per screen, and amber is reserved for errors, always with an icon and text so colour is never the only signal. Fonts (Geist and Geist Mono) are self-hosted.
