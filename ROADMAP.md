@@ -102,8 +102,10 @@ These four were frozen in the backlog. They were done in the same session as v3.
 - Card controls no longer make `/cards` scroll sideways at 768 px ([#48](https://github.com/zSamir015/obsidian-bank/issues/48)).
 - Formatting is checked in CI ([#49](https://github.com/zSamir015/obsidian-bank/issues/49)).
 
+### Performance
+
+- **Overview LCP back under budget** ([#57](https://github.com/zSamir015/obsidian-bank/issues/57)): Overview had settled at the 2.5 s Lighthouse budget on CI. Replacing `@supabase/auth-js` with a small auth client, grouping shared code into one chunk and loading Overview's lower sections after the balances brought it to about 2.2 s. The CI job summary now prints LCP, TBT and CLS for every run.
+
 ## Backlog
 
-No frozen proposals right now. Known open work:
-
-- **Overview LCP at the Lighthouse budget** ([#57](https://github.com/zSamir015/obsidian-bank/issues/57)): Overview (and sometimes Cards) sits around 2.50–2.58 s against a 2.5 s budget on CI, so the non-required `performance` job fails intermittently.
+Nothing open. New proposals start as issues labelled `proposal`.
