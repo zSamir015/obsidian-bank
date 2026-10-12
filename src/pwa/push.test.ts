@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { base64UrlToBytes } from './push'
+
+vi.mock('@/lib/supabase', () => ({ supabase: {} }))
 
 describe('base64UrlToBytes', () => {
   it('decodes an unpadded base64url VAPID key', () => {

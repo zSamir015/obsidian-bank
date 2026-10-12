@@ -10,6 +10,8 @@ import NotificationsPage from './NotificationsPage'
 
 const queries = vi.hoisted(() => ({ useNotifications: vi.fn(), useMarkNotificationsRead: vi.fn() }))
 vi.mock('@/hooks/notificationQueries', () => queries)
+// Push is covered in PushSettings.test.tsx; here it stays unconfigured, so the option is hidden.
+vi.mock('@/pwa/push', () => ({ VAPID_PUBLIC_KEY: '' }))
 
 const mutate = vi.fn()
 const unread = notificationRows.map(toNotification)
