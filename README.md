@@ -45,7 +45,7 @@ Browser: React SPA on GitHub Pages
   React Router            one lazy-loaded chunk per route
   TanStack Query          server state, refetched after each mutation
   Zod + React Hook Form   form validation in the browser
-  auth-js, postgrest-js   the two Supabase clients the app actually needs
+  postgrest-js            Supabase's REST client; auth is a small client of its own
 
 Supabase
   Auth                    anonymous sign-in, one user per visitor
@@ -105,7 +105,7 @@ On the client, every row coming from the database goes through the mappers in `s
 ## Frontend
 
 - Every route is lazy-loaded, and the initial JavaScript must stay under 180 kB gzip. `npm run check:initial-bundle` fails the build otherwise.
-- The Supabase SDK is not used as a whole. The app imports `@supabase/auth-js` and `@supabase/postgrest-js` directly, which keeps storage, realtime and functions out of the bundle.
+- The Supabase SDK is not used as a whole. The app imports `@supabase/postgrest-js` directly, and talks to Supabase Auth through `src/lib/auth.ts`, a small client for what the demo needs (anonymous sign-in, refresh, sign-out, cross-tab sync) that stores sessions in the same format as `@supabase/auth-js`. Dropping `auth-js` took about 22 kB of gzip off the first JavaScript, which Overview's LCP needed (#57).
 - Server data is only kept in TanStack Query. Forms use React Hook Form with Zod schemas, and the same limits are enforced again on the server.
 - The interface is dark and mostly monochrome. Red marks at most one element per screen, and amber is reserved for errors, always with an icon and text so colour is never the only signal. Fonts (Geist and Geist Mono) are self-hosted.
 - Every animation respects `prefers-reduced-motion`.

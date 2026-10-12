@@ -1,4 +1,4 @@
-import type { Session } from '@supabase/auth-js'
+import type { Session } from '@/lib/auth'
 import { createContext } from 'react'
 
 export interface AuthState {

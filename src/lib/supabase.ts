@@ -1,6 +1,6 @@
-import { GoTrueClient } from '@supabase/auth-js'
 import { PostgrestClient } from '@supabase/postgrest-js'
 import type { Database } from '@/types/database'
+import { AuthClient } from './auth'
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -10,11 +10,7 @@ if (!url || !anonKey) {
 }
 
 const baseUrl = url.replace(/\/+$/, '')
-const auth = new GoTrueClient({
-  url: `${baseUrl}/auth/v1`,
-  headers: { apikey: anonKey },
-  storageKey: `sb-${new URL(baseUrl).hostname.split('.')[0]}-auth-token`,
-})
+const auth = new AuthClient(`${baseUrl}/auth/v1`, anonKey, `sb-${new URL(baseUrl).hostname.split('.')[0]}-auth-token`)
 
 let accessToken: string | null = null
 auth.onAuthStateChange((_event, session) => {
