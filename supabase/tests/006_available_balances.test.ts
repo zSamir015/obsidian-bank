@@ -33,15 +33,13 @@ beforeAll(async () => {
   )
 }, 30_000)
 
-const transfer =
-  (from: string, to: string, cents: number) =>
-  (tx: Transaction) =>
-    tx.query<{ id: string }>('select public.transfer_funds($1, $2, $3, $4) as id', [
-      from,
-      to,
-      cents,
-      'Available balance test',
-    ])
+const transfer = (from: string, to: string, cents: number) => (tx: Transaction) =>
+  tx.query<{ id: string }>('select public.transfer_funds($1, $2, $3, $4) as id', [
+    from,
+    to,
+    cents,
+    'Available balance test',
+  ])
 
 describe('account_balances', () => {
   it('counts completed activity in the ledger and subtracts only pending and flagged debits from available', async () => {
