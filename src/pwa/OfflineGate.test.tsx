@@ -15,6 +15,7 @@ function goOnline(online: boolean) {
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
 
 describe('OfflineGate', () => {
@@ -25,7 +26,7 @@ describe('OfflineGate', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
-  it('shows the offline screen instead of the app when opened offline, then the app once back online', () => {
+  it('shows the offline screen instead of the app when opened offline, then the app once back online', async () => {
     setOnline(false)
     render(<OfflineGate>{<p>Overview</p>}</OfflineGate>)
     expect(screen.getByRole('heading', { name: "You're offline" })).toBeInTheDocument()
@@ -33,9 +34,33 @@ describe('OfflineGate', () => {
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
     expect(screen.queryByText('Overview')).not.toBeInTheDocument()
 
+    const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 404 }))
+    vi.stubGlobal('fetch', fetch)
     goOnline(true)
-    expect(screen.getByText('Overview')).toBeInTheDocument()
+    expect(await screen.findByText('Overview')).toBeInTheDocument()
+    expect(fetch).toHaveBeenCalledWith('/assets/connection-check', { cache: 'no-store' })
     expect(screen.queryByRole('heading', { name: "You're offline" })).not.toBeInTheDocument()
+  })
+
+  it('waits until a request gets through before showing the app', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    setOnline(false)
+    render(<OfflineGate>{<p>Overview</p>}</OfflineGate>)
+    const fetch = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValue(new Response(null, { status: 404 }))
+    vi.stubGlobal('fetch', fetch)
+
+    goOnline(true)
+    await act(async () => {})
+    expect(screen.getByRole('heading', { name: "You're offline" })).toBeInTheDocument()
+    await act(async () => {
+      vi.advanceTimersByTime(1000)
+    })
+    expect(await screen.findByText('Overview')).toBeInTheDocument()
+    expect(fetch).toHaveBeenCalledTimes(2)
+    vi.useRealTimers()
   })
 
   it('keeps the current screen and adds a notice when the connection drops', () => {
