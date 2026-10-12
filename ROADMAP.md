@@ -95,7 +95,7 @@ These four were frozen in the backlog. They were done in the same session as v3.
 - **Spanish user guide** ([#41](https://github.com/zSamir015/obsidian-bank/issues/41)): [docs/USER_GUIDE.es.md](docs/USER_GUIDE.es.md); Help opens the guide in the active language.
 - **Bilingual test parity** ([#42](https://github.com/zSamir015/obsidian-bank/issues/42)): every e2e journey and axe scan runs in English and Spanish, as separate CI jobs; formatting unit tests run the same cases for both.
 - **Installable PWA** ([#24](https://github.com/zSamir015/obsidian-bank/issues/24)): manifest and icons, a service worker that caches the app shell only (never financial data), and an offline screen and notice.
-- **Web push for flagged activity** ([#40](https://github.com/zSamir015/obsidian-bank/issues/40)): opt-in browser notifications for payments placed under review, with a test notification and opt-out; payloads carry merchant, amount and last four digits only. The code is merged; it goes live once its database migrations, secrets and a real delivery test are done.
+- **Web push for flagged activity** ([#40](https://github.com/zSamir015/obsidian-bank/issues/40)): opt-in browser notifications for payments placed under review, with a test notification and opt-out; payloads carry merchant, amount and last four digits only. Live since 12 October 2026, with delivery verified in production.
 
 ### Fixes
 
