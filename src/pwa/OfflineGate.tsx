@@ -1,7 +1,12 @@
 import { WifiOff } from 'lucide-react'
-import { type ReactNode, useState, useSyncExternalStore } from 'react'
+import { type ReactNode, useEffect, useState, useSyncExternalStore } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useI18n } from '@/i18n/useI18n'
+
+// Not cached by the service worker (it only keeps files that exist), so it always goes to
+// the network: any response, a 404 included, means the connection is back.
+const CONNECTION_CHECK = `${import.meta.env.BASE_URL}assets/connection-check`
+const RETRY_MS = 1000
 
 function subscribe(onChange: () => void) {
   window.addEventListener('online', onChange)
@@ -29,7 +34,28 @@ export function OfflineGate({ children }: { readonly children: ReactNode }) {
   const online = useOnline()
   const { t } = useI18n()
   const [startedOffline, setStartedOffline] = useState(!online)
-  if (startedOffline && online) setStartedOffline(false)
+
+  // "online" can fire before requests get through (the service worker's own fetches can lag
+  // behind the page's). The app only mounts once a request through the service worker
+  // reaches the server, so the first route load doesn't fail.
+  useEffect(() => {
+    if (!startedOffline || !online) return
+    let cancelled = false
+    void (async () => {
+      while (!cancelled) {
+        try {
+          await fetch(CONNECTION_CHECK, { cache: 'no-store' })
+          if (!cancelled) setStartedOffline(false)
+          return
+        } catch {
+          await new Promise((resolve) => setTimeout(resolve, RETRY_MS))
+        }
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [startedOffline, online])
 
   if (startedOffline) {
     return (
