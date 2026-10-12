@@ -2,6 +2,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { I18nContext } from '@/i18n/I18nContext'
+import { es } from '@/i18n/messages/es'
 import { AppShell } from './AppShell'
 import { WITHOUT_DATA_MS } from './NotificationsBell'
 
@@ -48,6 +50,26 @@ describe('AppShell help links', () => {
       expect(link).toHaveAttribute('href', 'https://github.com/zSamir015/obsidian-bank/blob/main/docs/USER_GUIDE.md')
       expect(link).toHaveAttribute('target', '_blank')
       expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+    }
+  })
+
+  it('opens the Spanish guide when the app is in Spanish', () => {
+    render(
+      <I18nContext.Provider value={{ locale: 'es', t: es, setLocale: () => {} }}>
+        <QueryClientProvider client={new QueryClient()}>
+          <MemoryRouter initialEntries={['/']}>
+            <Routes>
+              <Route element={<AppShell />}>
+                <Route path="/" element={<p>Resumen</p>} />
+              </Route>
+            </Routes>
+          </MemoryRouter>
+        </QueryClientProvider>
+      </I18nContext.Provider>,
+    )
+
+    for (const link of screen.getAllByRole('link', { name: 'Ayuda (se abre en una pestaña nueva)' })) {
+      expect(link).toHaveAttribute('href', 'https://github.com/zSamir015/obsidian-bank/blob/main/docs/USER_GUIDE.es.md')
     }
   })
 

@@ -9,7 +9,7 @@ Obsidian Bank is a personal banking web app built as a portfolio project. It is 
 It has checking and savings accounts, available and ledger balances, transfers between your own accounts, simulated transfers to other US banks, an activity feed with filters and CSV export, monthly budgets, and cards that can be frozen or have their limit changed. Every visitor gets an anonymous session with three months of generated activity, so the demo works without signing up.
 
 Live demo: https://zsamir015.github.io/obsidian-bank/
-User guide for non-technical readers: [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
+User guide for non-technical readers: [docs/USER_GUIDE.md](docs/USER_GUIDE.md) (in Spanish: [docs/USER_GUIDE.es.md](docs/USER_GUIDE.es.md))
 Roadmap: [ROADMAP.md](ROADMAP.md)
 
 | Overview                                                                                                                         | Activity                                                                                         |
