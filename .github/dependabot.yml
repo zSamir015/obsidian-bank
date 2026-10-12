@@ -5,6 +5,10 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # Types follow the Node major that CI runs (lts/*), not the newest release.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       # One PR for routine minor and patch updates; security updates still arrive on their own.
       minor-and-patch:

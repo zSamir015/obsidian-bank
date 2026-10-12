@@ -1,29 +1,62 @@
 # Obsidian Bank
 
+**A banking demo built like the real thing: Row Level Security, server-side money rules, a 3D card, offline-ready PWA and web push.**
+
 [![CI](https://github.com/zSamir015/obsidian-bank/actions/workflows/ci.yml/badge.svg)](https://github.com/zSamir015/obsidian-bank/actions/workflows/ci.yml)
 [![Deploy Pages](https://github.com/zSamir015/obsidian-bank/actions/workflows/pages.yml/badge.svg)](https://github.com/zSamir015/obsidian-bank/actions/workflows/pages.yml)
+[![Lighthouse budgets](https://img.shields.io/badge/Lighthouse-budgets%20enforced%20in%20CI-F44B21?logo=lighthouse&logoColor=white)](#testing)
+[![E2E](https://img.shields.io/badge/e2e-English%20%2B%20Spanish-2EAD33?logo=playwright&logoColor=white)](#testing)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+**English** | [Español](README.es.md)
 
 Obsidian Bank is a personal banking web app built as a portfolio project. It is not a real bank: no real money, accounts or cards are involved, and it never talks to a payment network.
 
-It has checking and savings accounts, available and ledger balances, transfers between your own accounts, simulated transfers to other US banks, an activity feed with filters and CSV export, monthly budgets, and cards that can be frozen or have their limit changed. Every visitor gets an anonymous session with three months of generated activity, so the demo works without signing up.
+It has checking and savings accounts, available and ledger balances, transfers between your own accounts, simulated transfers to other US banks, an activity feed with filters and CSV export, monthly budgets, cards that can be frozen or have their limit changed, and notifications when a payment is placed under review. Every visitor gets an anonymous session with three months of generated activity, so the demo works without signing up.
 
-Live demo: https://zsamir015.github.io/obsidian-bank/
-User guide for non-technical readers: [docs/USER_GUIDE.md](docs/USER_GUIDE.md) (in Spanish: [docs/USER_GUIDE.es.md](docs/USER_GUIDE.es.md))
-Roadmap: [ROADMAP.md](ROADMAP.md)
+**[Live demo →](https://zsamir015.github.io/obsidian-bank/)** · [User guide](docs/USER_GUIDE.md) ([español](docs/USER_GUIDE.es.md)) · [Roadmap](ROADMAP.md) · [Security policy](SECURITY.md)
 
-| Overview                                                                                                                         | Activity                                                                                         |
-| -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| ![Overview: total balance hero, accounts, cards, spending against budgets and recent activity](docs/screenshots/overview.webp)   | ![Activity: transactions grouped by day with search and filters](docs/screenshots/activity.webp) |
-| **Move money**                                                                                                                   | **Budgets**                                                                                      |
-| ![Transfer form with a summary of balances after the transfer](docs/screenshots/transfer.webp)                                   | ![Budgets with spending against each monthly limit](docs/screenshots/budgets.webp)               |
-| **Cards**                                                                                                                        |                                                                                                  |
-| ![Cards: the 3D card on a stage, with the card picker, Show back and the freeze and limit controls](docs/screenshots/cards.webp) |                                                                                                  |
+![Signing in, the overview, a transfer between accounts, turning and freezing the card, and notifications](docs/screenshots/demo.gif)
 
-<sub>Screenshots at 1280px with local demo data.</sub>
+| Overview                                                                                         | Activity                                                                                         |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| ![Overview: total available, ledger balance, accounts and cards](docs/screenshots/overview.webp) | ![Activity: transactions grouped by day with search and filters](docs/screenshots/activity.webp) |
+| **Move money**                                                                                   | **Budgets**                                                                                      |
+| ![Transfer form with the balances after the transfer](docs/screenshots/transfer.webp)            | ![Budgets with spending against each monthly limit](docs/screenshots/budgets.webp)               |
+| **Cards**                                                                                        | **Notifications**                                                                                |
+| ![Cards: the card on its stage, with the freeze and limit controls](docs/screenshots/cards.webp) | ![Notifications for payments under review](docs/screenshots/notifications.webp)                  |
+
+<sub>Recorded from the production build with the demo data used by the end-to-end tests.</sub>
+
+## Highlights
+
+- **Money rules live in the database.** Balances only change through Postgres functions that check the caller, lock rows and run in one transaction. Row Level Security keeps every visitor inside their own data.
+- **Fast on a mid-range phone.** Lighthouse CI enforces an LCP, CLS, TBT and JavaScript budget on every pull request (Overview: about 2.2 s LCP in CI's simulated mobile profile).
+- **A 3D card that never slows the first load.** three.js lives in its own chunk, loads only on `/cards` with WebGL and full motion, and falls back to a static card.
+- **Installable and bilingual.** PWA with an offline screen (no account data is cached), optional web push for payments under review, and the whole interface in English and Spanish.
+- **Tested end to end in both languages.** Unit, database (PGlite), Playwright and axe tests; the journeys run 10 times in a row in CI without retries.
+
+## Tech stack
+
+[![Stack](https://skillicons.dev/icons?i=react,ts,vite,tailwind,supabase,postgres,threejs,vitest,githubactions)](#how-it-works)
+
+React 19 · TypeScript · Vite · Tailwind CSS 4 · TanStack Query · React Hook Form + Zod · React Three Fiber · Supabase (Postgres, Auth, PostgREST, Edge Functions) · Vitest + PGlite · Playwright + axe · Lighthouse CI · GitHub Actions + Pages
+
+## Quickstart
+
+```sh
+git clone https://github.com/zSamir015/obsidian-bank.git && cd obsidian-bank
+npm install
+cp .env.example .env   # your Supabase URL and anon key
+npm run dev
+```
+
+You also need the migrations applied to your Supabase project; see [Running it locally](#running-it-locally).
 
 ## Contents
 
+- [Highlights](#highlights)
+- [Quickstart](#quickstart)
 - [How it works](#how-it-works)
 - [Data model](#data-model)
 - [Security](#security)
@@ -40,18 +73,33 @@ Roadmap: [ROADMAP.md](ROADMAP.md)
 
 The frontend is a single-page React app served as static files from GitHub Pages. All data lives in a Supabase project (Postgres with Auth and PostgREST in front of it).
 
-```
-Browser: React SPA on GitHub Pages
-  React Router            one lazy-loaded chunk per route
-  TanStack Query          server state, refetched after each mutation
-  Zod + React Hook Form   form validation in the browser
-  postgrest-js            Supabase's REST client; auth is a small client of its own
-
-Supabase
-  Auth                    anonymous sign-in, one user per visitor
-  PostgREST               reads, filtered by Row Level Security
-  Postgres functions      every change to money or cards
-  pg_cron                 daily cleanup of inactive demo users
+```mermaid
+flowchart LR
+  subgraph Browser["Browser · GitHub Pages"]
+    UI["React SPA<br/>one lazy chunk per route"]
+    Q["TanStack Query<br/>server state"]
+    SW["Service worker<br/>app shell only"]
+  end
+  subgraph Supabase
+    AUTH["Auth<br/>anonymous sessions"]
+    REST["PostgREST<br/>reads filtered by RLS"]
+    FN["Postgres functions<br/>every change to money or cards"]
+    DB[("Postgres<br/>RLS on every table")]
+    EF["Edge Function<br/>send-push"]
+    CRON["pg_cron<br/>daily cleanup"]
+  end
+  UI --> Q
+  Q -->|JWT| REST --> DB
+  Q -->|JWT| FN --> DB
+  UI -->|sign in| AUTH
+  DB -->|notification trigger, pg_net| EF -->|Web Push| SW
+  CRON --> DB
+  subgraph CI["GitHub Actions"]
+    CHECK["lint · types · unit · DB · axe"]
+    E2E["Playwright EN + ES"]
+    LH["Lighthouse budgets"]
+  end
+  CI -->|main| PAGES["Deploy to Pages"]
 ```
 
 A visit goes like this:
@@ -60,7 +108,7 @@ A visit goes like this:
 2. Pages read their data through PostgREST. Row Level Security limits every query to rows where `user_id = auth.uid()`, so a user can only ever see their own data.
 3. Anything that changes money or cards is a call to a Postgres function (`transfer_funds`, `create_external_transfer`, `freeze_card`, `update_card_limit`). Each one checks the caller, validates its arguments and does the whole change in one transaction. After it returns, TanStack Query invalidates the affected queries so every screen shows the new state.
 4. Whenever balances or activity load, the client also calls `settle_external_transfers`, which marks the caller's external transfers as completed once their two-minute delay has passed. It runs alongside the read rather than before it, and if anything settled, balances and activity are fetched again. This is how settlement is simulated; nothing runs in the background.
-5. When a transaction is created as, or moves to, Under review (`flagged`), a trigger (`notify_flagged_transaction`) writes a notification for its owner. The app shows the unread count on a bell and checks for new notifications when the tab regains focus and once a minute. There is no push and no service worker.
+5. When a transaction is created as, or moves to, Under review (`flagged`), a trigger (`notify_flagged_transaction`) writes a notification for its owner. The app shows the unread count on a bell and checks for new notifications when the tab regains focus and once a minute. Visitors who opt in also get a web push (see [Security](#security)).
 6. A `pg_cron` job runs every day at 04:17 UTC and deletes anonymous users that have been inactive for more than 7 days. Their accounts, cards, transactions and budgets go with them through `ON DELETE CASCADE`.
 
 ## Data model
@@ -99,6 +147,8 @@ The server functions follow the same pattern:
 - Card functions report `card_not_found` both for a card that doesn't exist and for a card owned by someone else, so they never reveal whether an id is valid.
 - Web push (migrations 009 and 010, `supabase/functions/send-push`): a browser opts in only from a click, and stores its subscription through `save_push_subscription()`; the API can read and delete its own subscriptions and nothing else. When a notification is created, a trigger queues a `pg_net` request carrying only the notification id, authenticated with a shared secret kept in Vault. The function reads the notification with the service role and sends merchant, amount and last four digits, the same text as the in-app notification, to that user's browsers, and deletes subscriptions the push service reports as gone. Its test mode only accepts a user's own access token and only pushes to that user.
 - Errors are short codes (`insufficient_funds`, `limit_below_spent` and so on). The frontend maps them to messages in `src/lib/errors.ts` and never shows raw database errors.
+
+To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
 On the client, every row coming from the database goes through the mappers in `src/lib/mappers.ts`, which turn it into a read-only domain type and throw on anything unexpected, such as an unknown status or a fractional amount of cents.
 
@@ -139,11 +189,11 @@ On desktop, the sign-in page reuses the same card in a scroll story. The 3D chun
 | Accessibility      | axe-core inside Playwright     | No serious or critical violations on the main screens at 1280px and 375px                                                                                                                                                                                    |
 | Performance        | Lighthouse CI                  | Login, Overview and Cards in the mobile profile                                                                                                                                                                                                              |
 
-The database tests use [PGlite](https://pglite.dev/), Postgres compiled to WebAssembly and run in memory. `supabase/tests/db.ts` creates a small stub of Supabase's `auth` schema, the `anon` and `authenticated` roles and Supabase's default privileges, then applies the migrations the same way `supabase db push` would. That makes it possible to test policies, grants and functions as a real signed-in user without Docker or a live database. PGlite has no `pg_cron`, so the scheduling migration is checked statically and the cleanup function is tested on its own.
+The database tests use [PGlite](https://pglite.dev/), Postgres compiled to WebAssembly and run in memory. `supabase/tests/db.ts` creates a small stub of Supabase's `auth` schema, the `anon` and `authenticated` roles and Supabase's default privileges, then applies the migrations the same way `supabase db push` would. That makes it possible to test policies, grants and functions as a real signed-in user without Docker or a live database. PGlite has no `pg_cron` or `pg_net`, so those migrations are checked statically and the cleanup function is tested on its own.
 
 End-to-end tests never touch the real backend. `e2e/support/demoBackend.ts` intercepts every Supabase request and answers from an in-memory fixture, and any request it doesn't expect fails the test. In CI the journeys run 10 times in a row without retries, to catch flaky tests early.
 
-The performance budget is checked by Lighthouse CI on every pull request, against a production preview with a local mock backend and simulated mobile throttling. Breaking any of these fails the run:
+The performance budget is checked by Lighthouse CI on every pull request, against a production preview with a local mock backend and simulated mobile throttling. Breaking any of these fails the run, and the job summary shows the numbers of every run:
 
 | Metric                   | Budget |
 | ------------------------ | ------ |
@@ -162,7 +212,7 @@ The `CI` workflow runs on every pull request and every push to `main`, with thes
 - `e2e (en)` and `e2e (es)`: the Playwright journeys in each language (10 repetitions).
 - `performance`: the initial-bundle check and Lighthouse CI.
 
-`main` is protected: changes arrive through pull requests, the history stays linear, and `check` must pass on a branch that is up to date with `main`.
+`main` is protected: changes arrive through pull requests, the history stays linear, and `check` must pass on a branch that is up to date with `main`. Dependabot watches dependencies and actions.
 
 Merging to `main` triggers `Deploy Pages`. It runs the tests, builds with the production Supabase URL and anon key from repository secrets, and copies `index.html` to one file per route (`scripts/pages-routes.mjs`), because GitHub Pages has no single-page-app fallback.
 
@@ -204,7 +254,7 @@ src/
   components/        app shell, transaction row and the small UI kit in ui/
   hooks/             TanStack Query hooks, one file per resource
   i18n/              message catalogues, language detection and the language context
-  lib/               money, dates, mappers, analytics, CSV export, error messages
+  lib/               money, dates, mappers, analytics, CSV export, error messages, auth
   pages/             one folder per route, each with its tests
   pwa/               service worker, its registration and the offline screen
   router/            route table and legacy redirects
@@ -212,6 +262,7 @@ src/
   test/              shared fixtures and test setup
 supabase/
   migrations/        forward-only SQL migrations, numbered
+  functions/         send-push Edge Function
   tests/             PGlite tests, one file per migration
 e2e/                 Playwright specs (run in English and Spanish) and the mocked backend
 scripts/             bundle check, Lighthouse helpers, Pages routes, notices, app icons
@@ -224,6 +275,7 @@ docs/                user guide, screenshots and design notes
 - **Balances are computed from transactions** in the `account_balances` view, rather than kept in a column that has to stay in sync. For a demo with a few hundred rows per user this is fast, and it removes a whole class of drift bugs.
 - **Anonymous sessions instead of sign-up.** Visitors can try the app in one click, and the daily cleanup keeps the database small. The trade-off is that a session is tied to one browser.
 - **A mocked backend for end-to-end tests.** It makes them fast, deterministic and safe to run on every pull request. Database behaviour is covered separately by the PGlite tests, so the two together cover the full path.
+- **A small auth client instead of `@supabase/auth-js`.** The demo only needs anonymous sign-in, refresh and sign-out, and the full library weighed about 22 kB gzip on first load. The client stores sessions under the same key and shape, so existing sessions keep working.
 - **Settlement is simulated on read.** An external transfer is a pending debit with a `settles_at` two minutes ahead. Each time balances or activity load, the client asks the server to settle due transfers in parallel with the read, and refetches only if something settled. There is no job to schedule, the page is never slowed down by the extra call, and the behaviour can be tested entirely in PGlite. The trade-off is that a transfer only settles when the app is used, which is fine for a demo and is stated in the interface. The seeded pending and under-review transactions never settle.
 
 ## License
