@@ -128,14 +128,13 @@ On desktop, the sign-in page reuses the same card in a scroll story. The 3D chun
 
 ## Testing
 
-| Layer              | Tools                          | What it covers                                                                                                                              |
-| ------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit and component | Vitest, Testing Library, jsdom | Money parsing and formatting, dates, mappers, analytics, CSV export, query hooks, and page states such as loading, errors and empty results |
-| Database           | Vitest, PGlite                 | Every migration applied in order, then RLS isolation between users, grants, constraints and server functions                                |
-| End to end         | Playwright                     | Sign-in, internal and external transfers, budgets, cards, reduced motion and CSV download, run against the production build                 |
-| Spanish            | Playwright                     | Smoke tests for sign-in, balance, transfer and the error pages in Spanish, and the language picker                                          |
-| Accessibility      | axe-core inside Playwright     | No serious or critical violations on the main screens at 1280px and 375px                                                                   |
-| Performance        | Lighthouse CI                  | Login, Overview and Cards in the mobile profile                                                                                             |
+| Layer              | Tools                          | What it covers                                                                                                                                                                                                                                               |
+| ------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Unit and component | Vitest, Testing Library, jsdom | Money parsing and formatting, dates, mappers, analytics, CSV export, query hooks, and page states such as loading, errors and empty results. Formatting runs the same cases in English and Spanish                                                           |
+| Database           | Vitest, PGlite                 | Every migration applied in order, then RLS isolation between users, grants, constraints and server functions                                                                                                                                                 |
+| End to end         | Playwright                     | Sign-in, internal and external transfers, budgets, cards, notifications, reduced motion, CSV download and the language picker, run against the production build once in English and once in Spanish. Tests read their copy from the app's message catalogues |
+| Accessibility      | axe-core inside Playwright     | No serious or critical violations on the main screens at 1280px and 375px                                                                                                                                                                                    |
+| Performance        | Lighthouse CI                  | Login, Overview and Cards in the mobile profile                                                                                                                                                                                                              |
 
 The database tests use [PGlite](https://pglite.dev/), Postgres compiled to WebAssembly and run in memory. `supabase/tests/db.ts` creates a small stub of Supabase's `auth` schema, the `anon` and `authenticated` roles and Supabase's default privileges, then applies the migrations the same way `supabase db push` would. That makes it possible to test policies, grants and functions as a real signed-in user without Docker or a live database. PGlite has no `pg_cron`, so the scheduling migration is checked statically and the cleanup function is tested on its own.
 
@@ -154,10 +153,10 @@ The Login and Cards runs also confirm that the 3D module is not requested.
 
 ## CI and deployment
 
-The `CI` workflow runs on every pull request and every push to `main`, with three jobs:
+The `CI` workflow runs on every pull request and every push to `main`, with these jobs:
 
 - `check`: lint, typecheck, unit, component and database tests, a production build and the axe scans. It is the required check, so a new serious or critical violation blocks the merge.
-- `e2e`: the Playwright journeys (10 repetitions).
+- `e2e (en)` and `e2e (es)`: the Playwright journeys in each language (10 repetitions).
 - `performance`: the initial-bundle check and Lighthouse CI.
 
 `main` is protected: changes arrive through pull requests, the history stays linear, and `check` must pass on a branch that is up to date with `main`.

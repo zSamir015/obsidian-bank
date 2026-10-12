@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
+import type { I18nOptions } from './e2e/support/i18n'
 
-export default defineConfig({
+export default defineConfig<I18nOptions>({
   testDir: './e2e',
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
@@ -16,6 +17,11 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     reducedMotion: 'reduce',
   },
+  // Every journey runs in both languages. CI runs each project in its own job.
+  projects: [
+    { name: 'en', use: { lang: 'en' } },
+    { name: 'es', use: { lang: 'es' } },
+  ],
   webServer: {
     command: 'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort',
     url: 'http://127.0.0.1:4173/obsidian-bank/',

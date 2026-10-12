@@ -1,41 +1,46 @@
-import { expect, test, type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
 import { DemoBackend } from './support/demoBackend'
+import { expect, test } from './support/i18n'
+
+const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 /** TanStack Query refetches notifications when the tab becomes visible again. */
 const returnToTab = (page: Page) => page.evaluate(() => window.dispatchEvent(new Event('visibilitychange')))
 
-test('a payment moved to Under review shows up as a notification', async ({ page }) => {
+test('a payment moved to Under review shows up as a notification', async ({ page, t }) => {
   const backend = new DemoBackend()
   await backend.route(page)
 
   await page.goto('')
-  await page.getByRole('button', { name: 'Explore the demo' }).click()
-  await expect(page.getByRole('heading', { name: 'Total available' })).toBeVisible()
+  await page.getByRole('button', { name: t.login.start }).click()
+  await expect(page.getByRole('heading', { name: t.overview.totalAvailable })).toBeVisible()
 
   // The seeded review charge already has its notification.
-  const bell = page.getByRole('link', { name: /^Notifications/ }).first()
-  await expect(bell).toHaveAccessibleName('Notifications, 1 unread')
+  const bell = page.getByRole('link', { name: new RegExp(`^${escapeRegExp(t.notifications.title)}`) }).first()
+  await expect(bell).toHaveAccessibleName(t.notifications.link(1, '1'))
 
   // The server moves a pending card payment to review; the app hears about it on the next check.
   backend.flag('Uber')
   await returnToTab(page)
-  await expect(bell).toHaveAccessibleName('Notifications, 2 unread')
+  await expect(bell).toHaveAccessibleName(t.notifications.link(2, '2'))
 
-  await page.getByRole('link', { name: 'Activity' }).first().click()
+  await page.getByRole('link', { name: t.nav.activity }).first().click()
   const uber = page.getByRole('listitem').filter({ hasText: 'Uber' })
-  await expect(uber).toContainText('Under review')
+  await expect(uber).toContainText(t.statuses.flagged)
 
   await bell.click()
-  await expect(page.getByRole('heading', { name: 'Notifications' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: t.notifications.title })).toBeVisible()
   const items = page.getByRole('listitem')
   await expect(items).toHaveCount(2)
-  await expect(items.first()).toHaveText(/^\$89\.40 at Uber on the card ending in 4821 is under review\./)
-  await expect(items.first()).toContainText('Unread')
+  await expect(items.first()).toHaveText(
+    new RegExp(`^${escapeRegExp(t.notifications.flagged('Uber', '$89.40', '4821'))}`),
+  )
+  await expect(items.first()).toContainText(t.notifications.unreadItem)
 
-  await page.getByRole('button', { name: 'Mark all as read' }).click()
-  await expect(page.getByRole('status')).toHaveText('All notifications marked as read.')
-  await expect(bell).toHaveAccessibleName('Notifications')
-  await expect(page.getByText('0 unread')).toBeVisible()
+  await page.getByRole('button', { name: t.notifications.markAllRead }).click()
+  await expect(page.getByRole('status')).toHaveText(t.notifications.allRead)
+  await expect(bell).toHaveAccessibleName(t.notifications.link(0, '0'))
+  await expect(page.getByText(t.notifications.unread(0, '0'))).toBeVisible()
   expect(backend.notifications.every((row) => row.read_at !== null)).toBe(true)
 
   // Nothing but merchant, amount and last four digits travels with a notification.

@@ -1,44 +1,44 @@
-import { expect, test } from '@playwright/test'
 import { DemoBackend } from './support/demoBackend'
+import { expect, test } from './support/i18n'
 
 const FULL_ACCOUNT_NUMBER = '000123456789'
 
-test('an external transfer keeps only the last four digits and stays pending', async ({ page }) => {
+test('an external transfer keeps only the last four digits and stays pending', async ({ page, t }) => {
   const backend = new DemoBackend()
   await backend.route(page)
 
   await page.goto('')
-  await page.getByRole('button', { name: 'Explore the demo' }).click()
-  await expect(page.getByRole('heading', { name: 'Total available' })).toBeVisible()
+  await page.getByRole('button', { name: t.login.start }).click()
+  await expect(page.getByRole('heading', { name: t.overview.totalAvailable })).toBeVisible()
 
-  await page.getByRole('link', { name: 'Transfer' }).first().click()
-  await expect(page.getByRole('heading', { name: 'Move money' })).toBeVisible()
-  await page.getByText('To another bank').click()
-  await expect(page.getByRole('radio', { name: 'To another bank' })).toBeChecked()
-  await expect(page.getByRole('note')).toContainText("doesn't connect to ACH, Fedwire or any other payment network")
+  await page.getByRole('link', { name: t.nav.transfer }).first().click()
+  await expect(page.getByRole('heading', { name: t.transfer.title })).toBeVisible()
+  await page.getByText(t.transfer.externalMode).click()
+  await expect(page.getByRole('radio', { name: t.transfer.externalMode })).toBeChecked()
+  await expect(page.getByRole('note')).toContainText(t.transfer.demoNotice)
 
-  const accountNumber = page.getByRole('textbox', { name: 'Account number', exact: true })
-  await page.getByLabel('Recipient name').fill('Ada Lovelace')
-  await page.getByLabel('Routing number').fill('021000022')
+  const accountNumber = page.getByRole('textbox', { name: t.transfer.accountNumber, exact: true })
+  await page.getByLabel(t.transfer.recipientName).fill('Ada Lovelace')
+  await page.getByLabel(t.transfer.routingNumber).fill('021000022')
   await accountNumber.fill(FULL_ACCOUNT_NUMBER)
   await accountNumber.blur()
-  await expect(accountNumber).toHaveValue('Ending in 6789')
-  await page.getByLabel('Amount').fill('125.50')
-  await page.getByRole('button', { name: 'Send transfer' }).click()
-  await expect(page.getByText("That isn't a valid US routing number. Check the 9 digits.")).toBeVisible()
+  await expect(accountNumber).toHaveValue(t.transfer.endingIn('6789'))
+  await page.getByLabel(t.transfer.amount).fill('125.50')
+  await page.getByRole('button', { name: t.transfer.submitExternal }).click()
+  await expect(page.getByText(t.validation.routingChecksum)).toBeVisible()
 
-  await page.getByLabel('Routing number').fill('021000021')
-  await page.getByRole('button', { name: 'Send transfer' }).click()
+  await page.getByLabel(t.transfer.routingNumber).fill('021000021')
+  await page.getByRole('button', { name: t.transfer.submitExternal }).click()
   const status = page.getByRole('status')
-  await expect(status).toContainText('Sent $125.50 to Ada Lovelace')
-  await expect(status).toContainText('Account ending 6789, routing number 021000021.')
-  await expect(status).toContainText("It's pending")
+  await expect(status).toContainText(t.transfer.sent('$125.50', 'Ada Lovelace'))
+  await expect(status).toContainText(`${t.transfer.sentAccount} 6789, ${t.transfer.sentRouting} 021000021.`)
+  await expect(status).toContainText(t.transfer.sentDetail)
   expect(backend.accounts[0].available_balance_cents).toBe(1264055 - 12550)
   expect(backend.accounts[0].ledger_balance_cents).toBe(1393894)
 
-  await page.getByRole('link', { name: 'View activity' }).click()
+  await page.getByRole('link', { name: t.app.viewActivity }).click()
   const row = page.getByRole('listitem').filter({ hasText: 'Ada Lovelace ••6789' })
-  await expect(row).toContainText('Pending')
+  await expect(row).toContainText(t.statuses.pending)
 
   expect(backend.requestBodies.some((body) => body.includes(FULL_ACCOUNT_NUMBER))).toBe(false)
   expect(backend.requestBodies.some((body) => body.includes('"p_account_last4":"6789"'))).toBe(true)
