@@ -96,10 +96,14 @@ jobs:
           CI: true
           VITE_SUPABASE_URL: http://127.0.0.1:4173/obsidian-bank
           VITE_SUPABASE_ANON_KEY: lighthouse-placeholder-key
+      - run: node scripts/lighthouse-summary.mjs
+        if: always()
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: lighthouse-reports
           path: .lighthouseci/
+          # The folder starts with a dot, which upload-artifact skips by default.
+          include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 14
