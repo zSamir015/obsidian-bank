@@ -11,6 +11,7 @@ import { cn } from '@/lib/cn'
 import { statusLabel } from '@/lib/labels'
 import { formatMoney } from '@/lib/money'
 import type { FlaggedNotification } from '@/types/bank'
+import { PushSettings } from './PushSettings'
 
 export default function NotificationsPage() {
   const { t } = useI18n()
@@ -63,6 +64,7 @@ export default function NotificationsPage() {
           </div>
         </>
       )}
+      <PushSettings onAnnounce={setAnnouncement} />
       <p role="status" aria-live="polite" className="mt-6 text-sm text-muted">
         {announcement}
       </p>

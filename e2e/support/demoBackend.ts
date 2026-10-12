@@ -22,6 +22,9 @@ export class DemoBackend {
   readonly unexpectedRequests: string[] = []
   /** Every request body sent to the mocked Supabase host, to check what leaves the browser. */
   readonly requestBodies: string[] = []
+  /** Web push subscriptions saved through save_push_subscription, and test pushes requested. */
+  pushSubscriptions: Row[] = []
+  testPushes = 0
   readonly accounts: Row[] = [
     {
       id: CHECKING_ID,
@@ -216,6 +219,29 @@ export class DemoBackend {
         const unread = this.notifications.filter((row) => row.read_at === null)
         for (const row of unread) row.read_at = new Date().toISOString()
         await this.fulfill(route, unread.length)
+        return
+      }
+      if (path === '/rest/v1/rpc/save_push_subscription') {
+        const body = route.request().postDataJSON() as Row
+        this.pushSubscriptions = this.pushSubscriptions.filter((row) => row.endpoint !== body.p_endpoint)
+        this.pushSubscriptions.push({
+          endpoint: body.p_endpoint ?? null,
+          p256dh: body.p_p256dh ?? null,
+          auth: body.p_auth ?? null,
+          locale: body.p_locale ?? null,
+        })
+        await route.fulfill({ status: 204, body: '' })
+        return
+      }
+      if (path === '/rest/v1/rpc/delete_push_subscription') {
+        const body = route.request().postDataJSON() as Row
+        this.pushSubscriptions = this.pushSubscriptions.filter((row) => row.endpoint !== body.p_endpoint)
+        await route.fulfill({ status: 204, body: '' })
+        return
+      }
+      if (path === '/functions/v1/send-push' && route.request().method() === 'POST') {
+        this.testPushes += 1
+        await this.fulfill(route, { sent: this.pushSubscriptions.length })
         return
       }
       if (path === '/rest/v1/budgets') {

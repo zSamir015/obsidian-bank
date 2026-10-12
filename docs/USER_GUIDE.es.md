@@ -183,7 +183,9 @@ Cuando un pago queda **En revisión**, recibes una notificación. La campana (al
 - Las notificaciones nuevas aparecen cuando vuelves a la pestaña, o en menos de un minuto si la tienes abierta.
 - **Marcar todo como leído** pone el contador en cero.
 
-Las notificaciones solo aparecen dentro de la demo. Nunca envía correos, mensajes de texto ni notificaciones del navegador.
+**Notificaciones del navegador (opcional).** Al final de la pantalla de Notificaciones, **Activar notificaciones del navegador** le pide permiso a tu navegador y luego avisa a este dispositivo cuando un pago queda en revisión, incluso con la app cerrada. Dicen lo mismo que la notificación de la app: comercio, monto y los últimos cuatro dígitos de la tarjeta, nada más. **Enviar una notificación de prueba** comprueba que llegan y **Desactivar** las detiene. La elección es por navegador. En un iPhone o iPad, primero agrega la app a tu pantalla de inicio (consulta [Instalar la app](#instalar-la-app)). Si tu navegador bloquea las notificaciones del sitio, permítelas en sus ajustes.
+
+La demo nunca envía correos ni mensajes de texto.
 
 ## Instalar la app
 

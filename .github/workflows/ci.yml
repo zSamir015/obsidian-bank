@@ -28,6 +28,8 @@ jobs:
         env:
           VITE_SUPABASE_URL: https://placeholder.supabase.co
           VITE_SUPABASE_ANON_KEY: placeholder
+          # Any well-formed key: e2e/push.spec.ts replaces the push service.
+          VITE_VAPID_PUBLIC_KEY: BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
       # Accessibility runs here so a new axe violation blocks the merge.
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e -- --grep @a11y
@@ -55,6 +57,8 @@ jobs:
         env:
           VITE_SUPABASE_URL: https://placeholder.supabase.co
           VITE_SUPABASE_ANON_KEY: placeholder
+          # Any well-formed key: e2e/push.spec.ts replaces the push service.
+          VITE_VAPID_PUBLIC_KEY: BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
       - run: npm run test:e2e -- --project ${{ matrix.lang }} --grep-invert @a11y
         env:
           CI: true

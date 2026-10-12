@@ -20,10 +20,10 @@ describe('004_schedule_anonymous_cleanup.sql', () => {
 })
 
 describe('PGlite skip list', () => {
-  it('only skips migrations that exist and use pg_cron', () => {
+  it('only skips migrations that exist and use an extension PGlite lacks', () => {
     for (const file of Object.keys(PGLITE_UNSUPPORTED)) {
       expect(allMigrations).toContain(file)
-      expect(readMigration(file)).toMatch(/pg_cron/)
+      expect(readMigration(file)).toMatch(/pg_cron|pg_net/)
     }
   })
 })

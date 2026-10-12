@@ -115,3 +115,14 @@ describe('formatting in Spanish', () => {
     expect(csv).not.toContain('Viajes')
   })
 })
+
+describe('push catalogue', () => {
+  it('has the same keys and no empty text in every language', async () => {
+    const { pushMessages } = await import('./messages/push')
+    const keys = Object.keys(pushMessages.en).sort()
+    for (const messages of Object.values(pushMessages)) {
+      expect(Object.keys(messages).sort()).toEqual(keys)
+      expect(Object.values(messages).every((text) => text.trim().length > 0)).toBe(true)
+    }
+  })
+})
